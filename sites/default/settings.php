@@ -220,7 +220,7 @@ $databases = array (
       'database' => 'maestro_db',
       'username' => 'maestro_user',
       'password' => '89wje*s$0()F*D8jf',
-      'host' => 'localhost',
+      'host' => 'brianchau.ca',
       'port' => '',
       'driver' => 'mysql',
       'prefix' => '',
@@ -258,7 +258,7 @@ $update_free_access = FALSE;
  *   $drupal_hash_salt = file_get_contents('/home/example/salt.txt');
  *
  */
-$drupal_hash_salt = 'c8jZD5ce5fMKMmoWZ8QFMAPF9HgxXKfnSNhv--IVg7I';
+$drupal_hash_salt = 'rrNz11yGnD9Tj6RpnSBG_X7SnIbmDJRATeNqzMy5_sc';
 
 /**
  * Base URL (optional).
