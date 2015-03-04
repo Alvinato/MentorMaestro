@@ -1,0 +1,4058 @@
+{
+    "path": "/home/asumal/git/cs410/plumbum/plumbum/cli/application.py",
+    "lines": [
+        {
+            "index": "1",
+            "colour": "orange",
+            "code": "import os\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "2",
+            "colour": "orange",
+            "code": "import sys\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "3",
+            "colour": "orange",
+            "code": "import inspect\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "4",
+            "colour": "orange",
+            "code": "import functools\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "5",
+            "colour": "orange",
+            "code": "from plumbum.lib import six\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "6",
+            "colour": "orange",
+            "code": "from textwrap import TextWrapper\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "7",
+            "colour": "orange",
+            "code": "from plumbum.cli.terminal import get_terminal_size\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "8",
+            "colour": "orange",
+            "code": "from plumbum.cli.switches import (SwitchError, UnknownSwitch, MissingArgument, WrongArgumentType,\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "9",
+            "colour": "orange",
+            "code": "    MissingMandatorySwitch, SwitchCombinationError, PositionalArgumentsError, switch,\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "10",
+            "colour": "orange",
+            "code": "    SubcommandError, Flag, CountOf)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "11",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "12",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "13",
+            "colour": "orange",
+            "code": "class ShowHelp(SwitchError):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "14",
+            "colour": "orange",
+            "code": "    pass\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "15",
+            "colour": "orange",
+            "code": "class ShowHelpAll(SwitchError):\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "16",
+            "colour": "orange",
+            "code": "    pass\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "17",
+            "colour": "orange",
+            "code": "class ShowVersion(SwitchError):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "18",
+            "colour": "orange",
+            "code": "    pass\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "19",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "20",
+            "colour": "blue",
+            "code": "class SwitchParseInfo(object):\n",
+            "error": "R",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "21",
+            "colour": "orange",
+            "code": "    __slots__ = [\"swname\", \"val\", \"index\"]\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "22",
+            "colour": "orange",
+            "code": "    def __init__(self, swname, val, index):\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "23",
+            "colour": "orange",
+            "code": "        self.swname = swname\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "24",
+            "colour": "orange",
+            "code": "        self.val = val\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "25",
+            "colour": "orange",
+            "code": "        self.index = index\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "26",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "27",
+            "colour": "blue",
+            "code": "class Subcommand(object):\n",
+            "error": "R",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "28",
+            "colour": "orange",
+            "code": "    def __init__(self, name, subapplication):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "29",
+            "colour": "orange",
+            "code": "        self.name = name\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "30",
+            "colour": "orange",
+            "code": "        self.subapplication = subapplication\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "31",
+            "colour": "orange",
+            "code": "    def get(self):\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "32",
+            "colour": "orange",
+            "code": "        if isinstance(self.subapplication, str):\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "33",
+            "colour": "orange",
+            "code": "            modname, clsname = self.subapplication.rsplit(\".\", 1)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "34",
+            "colour": "orange",
+            "code": "            mod = __import__(modname, None, None, \"*\")\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "35",
+            "colour": "orange",
+            "code": "            try:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "36",
+            "colour": "orange",
+            "code": "                cls = getattr(mod, clsname)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "37",
+            "colour": "orange",
+            "code": "            except AttributeError:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "38",
+            "colour": "orange",
+            "code": "                raise ImportError(\"cannot import name %s\" % (clsname,))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "39",
+            "colour": "orange",
+            "code": "            self.subapplication = cls\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "40",
+            "colour": "orange",
+            "code": "        return self.subapplication\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "41",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "42",
+            "colour": "orange",
+            "code": "    def __repr__(self):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "43",
+            "colour": "orange",
+            "code": "        return \"Subcommand(%r, %r)\" % (self.name, self.subapplication)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "44",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "45",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "46",
+            "colour": "orange",
+            "code": "#===================================================================================================\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "47",
+            "colour": "orange",
+            "code": "# CLI Application base class\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "48",
+            "colour": "orange",
+            "code": "#===================================================================================================\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "49",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "50",
+            "colour": "blue",
+            "code": "class Application(object):\n",
+            "error": "R",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "51",
+            "colour": "orange",
+            "code": "    \"\"\"\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "52",
+            "colour": "orange",
+            "code": "    The base class for CLI applications; your \"entry point\" class should derive from it,\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "53",
+            "colour": "orange",
+            "code": "    define the relevant switch functions and attributes, and the ``main()`` function.\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "54",
+            "colour": "orange",
+            "code": "    The class defines two overridable \"meta switches\" for version (``-v``, ``--version``)\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "55",
+            "colour": "orange",
+            "code": "    and help (``-h``, ``--help``).\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "56",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "57",
+            "colour": "orange",
+            "code": "    The signature of the main function matters: any positional arguments (e.g., non-switch\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "58",
+            "colour": "orange",
+            "code": "    arguments) given on the command line are passed to the ``main()`` function; if you wish\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "59",
+            "colour": "orange",
+            "code": "    to allow unlimited number of positional arguments, use varargs (``*args``). The names\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "60",
+            "colour": "orange",
+            "code": "    of the arguments will be shown in the help message.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "61",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "62",
+            "colour": "orange",
+            "code": "    The classmethod ``run`` serves as the entry point of the class. It parses the command-line\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "63",
+            "colour": "orange",
+            "code": "    arguments, invokes switch functions and enter ``main``. You should **not override** this\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "64",
+            "colour": "orange",
+            "code": "    method.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "65",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "66",
+            "colour": "orange",
+            "code": "    Usage::\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "67",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "68",
+            "colour": "orange",
+            "code": "        class FileCopier(Application):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "69",
+            "colour": "orange",
+            "code": "            stat = Flag(\"p\", \"copy stat info as well\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "70",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "71",
+            "colour": "orange",
+            "code": "            def main(self, src, dst):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "72",
+            "colour": "orange",
+            "code": "                if self.stat:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "73",
+            "colour": "orange",
+            "code": "                    shutil.copy2(src, dst)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "74",
+            "colour": "orange",
+            "code": "                else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "75",
+            "colour": "orange",
+            "code": "                    shutil.copy(src, dst)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "76",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "77",
+            "colour": "orange",
+            "code": "        if __name__ == \"__main__\":\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "78",
+            "colour": "orange",
+            "code": "            FileCopier.run()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "79",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "80",
+            "colour": "orange",
+            "code": "    There are several class-level attributes you may set:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "81",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "82",
+            "colour": "orange",
+            "code": "    * ``PROGNAME`` - the name of the program; if ``None`` (the default), it is set to the\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "83",
+            "colour": "orange",
+            "code": "      name of the executable (``argv[0]``)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "84",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "85",
+            "colour": "orange",
+            "code": "    * ``VERSION`` - the program's version (defaults to ``1.0``)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "86",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "87",
+            "colour": "orange",
+            "code": "    * ``DESCRIPTION`` - a short description of your program (shown in help). If not set,\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "88",
+            "colour": "orange",
+            "code": "      the class' ``__doc__`` will be used.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "89",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "90",
+            "colour": "orange",
+            "code": "    * ``USAGE`` - the usage line (shown in help)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "91",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "92",
+            "colour": "orange",
+            "code": "    A note on sub-commands: when an application is the root, its ``parent`` attribute is set to\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "93",
+            "colour": "orange",
+            "code": "    ``None``. When it is used as a nested-command, ``parent`` will point to be its direct ancestor.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "94",
+            "colour": "orange",
+            "code": "    Likewise, when an application is invoked with a sub-command, its ``nested_command`` attribute\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "95",
+            "colour": "orange",
+            "code": "    will hold the chosen sub-application and its command-line arguments (a tuple); otherwise, it\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "96",
+            "colour": "orange",
+            "code": "    will be set to ``None``\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "97",
+            "colour": "orange",
+            "code": "    \"\"\"\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "98",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "99",
+            "colour": "orange",
+            "code": "    PROGNAME = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "100",
+            "colour": "orange",
+            "code": "    DESCRIPTION = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "101",
+            "colour": "orange",
+            "code": "    VERSION = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "102",
+            "colour": "orange",
+            "code": "    USAGE = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "103",
+            "colour": "orange",
+            "code": "    CALL_MAIN_IF_NESTED_COMMAND = True\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "104",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "105",
+            "colour": "orange",
+            "code": "    parent = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "106",
+            "colour": "orange",
+            "code": "    nested_command = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "107",
+            "colour": "orange",
+            "code": "    _unbound_switches = ()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "108",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "109",
+            "colour": "orange",
+            "code": "    def __init__(self, executable):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "110",
+            "colour": "orange",
+            "code": "        if self.PROGNAME is None:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "111",
+            "colour": "orange",
+            "code": "            self.PROGNAME = os.path.basename(executable)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "112",
+            "colour": "orange",
+            "code": "        if self.DESCRIPTION is None:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "113",
+            "colour": "orange",
+            "code": "            self.DESCRIPTION = inspect.getdoc(self)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "114",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "115",
+            "colour": "orange",
+            "code": "        self.executable = executable\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "116",
+            "colour": "orange",
+            "code": "        self._switches_by_name = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "117",
+            "colour": "orange",
+            "code": "        self._switches_by_func = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "118",
+            "colour": "orange",
+            "code": "        self._subcommands = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "119",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "120",
+            "colour": "orange",
+            "code": "        for cls in reversed(type(self).mro()):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "121",
+            "colour": "orange",
+            "code": "            for obj in cls.__dict__.values():\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "122",
+            "colour": "orange",
+            "code": "                if isinstance(obj, Subcommand):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "123",
+            "colour": "orange",
+            "code": "                    if obj.name.startswith(\"-\"):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "124",
+            "colour": "orange",
+            "code": "                        raise SubcommandError(\"Subcommand names cannot start with '-'\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "125",
+            "colour": "orange",
+            "code": "                    # it's okay for child classes to override subcommands set by their parents\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "126",
+            "colour": "orange",
+            "code": "                    self._subcommands[obj.name] = obj\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "127",
+            "colour": "orange",
+            "code": "                    continue\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "128",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "129",
+            "colour": "orange",
+            "code": "                swinfo = getattr(obj, \"_switch_info\", None)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "130",
+            "colour": "orange",
+            "code": "                if not swinfo:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "131",
+            "colour": "orange",
+            "code": "                    continue\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "132",
+            "colour": "orange",
+            "code": "                for name in swinfo.names:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "133",
+            "colour": "orange",
+            "code": "                    if name in self._unbound_switches:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "134",
+            "colour": "orange",
+            "code": "                        continue\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "135",
+            "colour": "orange",
+            "code": "                    if name in self._switches_by_name and not self._switches_by_name[name].overridable:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "136",
+            "colour": "orange",
+            "code": "                        raise SwitchError(\"Switch %r already defined and is not overridable\" % (name,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "137",
+            "colour": "orange",
+            "code": "                    self._switches_by_name[name] = swinfo\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "138",
+            "colour": "orange",
+            "code": "                    self._switches_by_func[swinfo.func] = swinfo\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "139",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "140",
+            "colour": "orange",
+            "code": "    @property\n",
+            "error": "none",
+            "author": "kevin.horn@gmail.com"
+        },
+        {
+            "index": "141",
+            "colour": "orange",
+            "code": "    def root_app(self):\n",
+            "error": "none",
+            "author": "kevin.horn@gmail.com"
+        },
+        {
+            "index": "142",
+            "colour": "orange",
+            "code": "        return self.parent.root_app if self.parent else self\n",
+            "error": "none",
+            "author": "kevin.horn@gmail.com"
+        },
+        {
+            "index": "143",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "144",
+            "colour": "orange",
+            "code": "    @classmethod\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "145",
+            "colour": "orange",
+            "code": "    def unbind_switches(cls, *switch_names):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "146",
+            "colour": "orange",
+            "code": "        \"\"\"Unbinds the given switch names from this application. For example\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "147",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "148",
+            "colour": "orange",
+            "code": "        ::\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "149",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "150",
+            "colour": "orange",
+            "code": "            class MyApp(cli.Application):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "151",
+            "colour": "orange",
+            "code": "                pass\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "152",
+            "colour": "orange",
+            "code": "            MyApp.unbind(\"--version\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "153",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "154",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "155",
+            "colour": "orange",
+            "code": "        cls._unbound_switches += tuple(name.lstrip(\"-\") for name in switch_names if name)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "156",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "157",
+            "colour": "orange",
+            "code": "    @classmethod\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "158",
+            "colour": "orange",
+            "code": "    def subcommand(cls, name, subapp = None):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "159",
+            "colour": "orange",
+            "code": "        \"\"\"Registers the given sub-application as a sub-command of this one. This method can be\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "160",
+            "colour": "orange",
+            "code": "        used both as a decorator and as a normal ``classmethod``::\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "161",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "162",
+            "colour": "orange",
+            "code": "            @MyApp.subcommand(\"foo\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "163",
+            "colour": "orange",
+            "code": "            class FooApp(cli.Application):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "164",
+            "colour": "orange",
+            "code": "                pass\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "165",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "166",
+            "colour": "orange",
+            "code": "        Or ::\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "167",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "168",
+            "colour": "orange",
+            "code": "            MyApp.subcommand(\"foo\", FooApp)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "169",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "170",
+            "colour": "orange",
+            "code": "        .. versionadded:: 1.1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "171",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "172",
+            "colour": "orange",
+            "code": "        .. versionadded:: 1.3\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "173",
+            "colour": "orange",
+            "code": "            The subcommand can also be a string, in which case it is treated as a\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "174",
+            "colour": "orange",
+            "code": "            fully-qualified class name and is imported on demand. For examples,\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "175",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "176",
+            "colour": "orange",
+            "code": "            MyApp.subcommand(\"foo\", \"fully.qualified.package.FooApp\")\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "177",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "178",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "179",
+            "colour": "orange",
+            "code": "        def wrapper(subapp):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "180",
+            "colour": "orange",
+            "code": "            attrname = \"_subcommand_%s\" % (subapp if isinstance(subapp, str) else subapp.__name__,)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "181",
+            "colour": "orange",
+            "code": "            setattr(cls, attrname, Subcommand(name, subapp))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "182",
+            "colour": "orange",
+            "code": "            return subapp\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "183",
+            "colour": "orange",
+            "code": "        return wrapper(subapp) if subapp else wrapper\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "184",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "185",
+            "colour": "blue",
+            "code": "    def _parse_args(self, argv):\n",
+            "error": "R",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "186",
+            "colour": "orange",
+            "code": "        tailargs = []\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "187",
+            "colour": "orange",
+            "code": "        swfuncs = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "188",
+            "colour": "orange",
+            "code": "        index = 0\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "189",
+            "colour": "orange",
+            "code": "        while argv:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "190",
+            "colour": "orange",
+            "code": "            index += 1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "191",
+            "colour": "orange",
+            "code": "            a = argv.pop(0)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "192",
+            "colour": "orange",
+            "code": "            if a == \"--\":\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "193",
+            "colour": "orange",
+            "code": "                # end of options, treat the rest as tailargs\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "194",
+            "colour": "orange",
+            "code": "                tailargs.extend(argv)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "195",
+            "colour": "orange",
+            "code": "                break\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "196",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "197",
+            "colour": "orange",
+            "code": "            if a in self._subcommands:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "198",
+            "colour": "orange",
+            "code": "                subcmd = self._subcommands[a].get()\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "199",
+            "colour": "orange",
+            "code": "                self.nested_command = (subcmd, [self.PROGNAME + \" \" + a] + argv)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "200",
+            "colour": "orange",
+            "code": "                break\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "201",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "202",
+            "colour": "orange",
+            "code": "            elif a.startswith(\"--\") and len(a) >= 3:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "203",
+            "colour": "orange",
+            "code": "                # [--name], [--name=XXX], [--name, XXX], [--name, ==, XXX],\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "204",
+            "colour": "orange",
+            "code": "                # [--name=, XXX], [--name, =XXX]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "205",
+            "colour": "orange",
+            "code": "                eqsign = a.find(\"=\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "206",
+            "colour": "orange",
+            "code": "                if eqsign >= 0:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "207",
+            "colour": "orange",
+            "code": "                    name = a[2:eqsign]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "208",
+            "colour": "orange",
+            "code": "                    argv.insert(0, a[eqsign:])\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "209",
+            "colour": "orange",
+            "code": "                else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "210",
+            "colour": "orange",
+            "code": "                    name = a[2:]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "211",
+            "colour": "orange",
+            "code": "                swname = \"--\" + name\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "212",
+            "colour": "orange",
+            "code": "                if name not in self._switches_by_name:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "213",
+            "colour": "orange",
+            "code": "                    raise UnknownSwitch(\"Unknown switch %s\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "214",
+            "colour": "orange",
+            "code": "                swinfo = self._switches_by_name[name]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "215",
+            "colour": "orange",
+            "code": "                if swinfo.argtype:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "216",
+            "colour": "orange",
+            "code": "                    if not argv:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "217",
+            "colour": "orange",
+            "code": "                        raise MissingArgument(\"Switch %s requires an argument\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "218",
+            "colour": "orange",
+            "code": "                    a = argv.pop(0)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "219",
+            "colour": "orange",
+            "code": "                    if a and a[0] == \"=\":\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "220",
+            "colour": "orange",
+            "code": "                        if len(a) >= 2:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "221",
+            "colour": "orange",
+            "code": "                            val = a[1:]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "222",
+            "colour": "orange",
+            "code": "                        else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "223",
+            "colour": "orange",
+            "code": "                            if not argv:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "224",
+            "colour": "orange",
+            "code": "                                raise MissingArgument(\"Switch %s requires an argument\" % (swname))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "225",
+            "colour": "orange",
+            "code": "                            val = argv.pop(0)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "226",
+            "colour": "orange",
+            "code": "                    else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "227",
+            "colour": "orange",
+            "code": "                        val = a\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "228",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "229",
+            "colour": "orange",
+            "code": "            elif a.startswith(\"-\") and len(a) >= 2:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "230",
+            "colour": "orange",
+            "code": "                # [-a], [-a, XXX], [-aXXX], [-abc]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "231",
+            "colour": "orange",
+            "code": "                name = a[1]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "232",
+            "colour": "orange",
+            "code": "                swname = \"-\" + name\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "233",
+            "colour": "orange",
+            "code": "                if name not in self._switches_by_name:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "234",
+            "colour": "orange",
+            "code": "                    raise UnknownSwitch(\"Unknown switch %s\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "235",
+            "colour": "orange",
+            "code": "                swinfo = self._switches_by_name[name]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "236",
+            "colour": "orange",
+            "code": "                if swinfo.argtype:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "237",
+            "colour": "orange",
+            "code": "                    if len(a) >= 3:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "238",
+            "colour": "orange",
+            "code": "                        val = a[2:]\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "239",
+            "colour": "orange",
+            "code": "                    else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "240",
+            "colour": "orange",
+            "code": "                        if not argv:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "241",
+            "colour": "orange",
+            "code": "                            raise MissingArgument(\"Switch %s requires an argument\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "242",
+            "colour": "orange",
+            "code": "                        val = argv.pop(0)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "243",
+            "colour": "orange",
+            "code": "                elif len(a) >= 3:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "244",
+            "colour": "orange",
+            "code": "                    argv.insert(0, \"-\" + a[2:])\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "245",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "246",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "247",
+            "colour": "orange",
+            "code": "                if a.startswith(\"-\"):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "248",
+            "colour": "orange",
+            "code": "                    raise UnknownSwitch(\"Unknown switch %s\" % (a,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "249",
+            "colour": "orange",
+            "code": "                tailargs.append(a)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "250",
+            "colour": "orange",
+            "code": "                continue\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "251",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "252",
+            "colour": "orange",
+            "code": "            # handle argument\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "253",
+            "colour": "orange",
+            "code": "            if swinfo.argtype:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "254",
+            "colour": "orange",
+            "code": "                try:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "255",
+            "colour": "orange",
+            "code": "                    val = swinfo.argtype(val)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "256",
+            "colour": "orange",
+            "code": "                except (TypeError, ValueError):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "257",
+            "colour": "orange",
+            "code": "                    ex = sys.exc_info()[1]  # compat\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "258",
+            "colour": "orange",
+            "code": "                    raise WrongArgumentType(\"Argument of %s expected to be %r, not %r:\\n    %r\" % (\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "259",
+            "colour": "orange",
+            "code": "                        swname, swinfo.argtype, val, ex))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "260",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "261",
+            "colour": "orange",
+            "code": "                val = NotImplemented\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "262",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "263",
+            "colour": "orange",
+            "code": "            if swinfo.func in swfuncs:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "264",
+            "colour": "orange",
+            "code": "                if swinfo.list:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "265",
+            "colour": "orange",
+            "code": "                    swfuncs[swinfo.func].val[0].append(val)\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "266",
+            "colour": "orange",
+            "code": "                else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "267",
+            "colour": "orange",
+            "code": "                    if swfuncs[swinfo.func].swname == swname:\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "268",
+            "colour": "orange",
+            "code": "                        raise SwitchError(\"Switch %r already given\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "269",
+            "colour": "orange",
+            "code": "                    else:\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "270",
+            "colour": "orange",
+            "code": "                        raise SwitchError(\"Switch %r already given (%r is equivalent)\" % (\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "271",
+            "colour": "orange",
+            "code": "                            swfuncs[swinfo.func].swname, swname))\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "272",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "273",
+            "colour": "orange",
+            "code": "                if swinfo.list:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "274",
+            "colour": "orange",
+            "code": "                    swfuncs[swinfo.func] = SwitchParseInfo(swname, ([val],), index)\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "275",
+            "colour": "orange",
+            "code": "                elif val is NotImplemented:\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "276",
+            "colour": "orange",
+            "code": "                    swfuncs[swinfo.func] = SwitchParseInfo(swname, (), index)\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "277",
+            "colour": "orange",
+            "code": "                else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "278",
+            "colour": "orange",
+            "code": "                    swfuncs[swinfo.func] = SwitchParseInfo(swname, (val,), index)\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "279",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "280",
+            "colour": "orange",
+            "code": "        return swfuncs, tailargs\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "281",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "282",
+            "colour": "blue",
+            "code": "    def _validate_args(self, swfuncs, tailargs):\n",
+            "error": "R",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "283",
+            "colour": "orange",
+            "code": "        if six.get_method_function(self.help) in swfuncs:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "284",
+            "colour": "orange",
+            "code": "            raise ShowHelp()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "285",
+            "colour": "orange",
+            "code": "        if six.get_method_function(self.helpall) in swfuncs:\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "286",
+            "colour": "orange",
+            "code": "            raise ShowHelpAll()\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "287",
+            "colour": "orange",
+            "code": "        if six.get_method_function(self.version) in swfuncs:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "288",
+            "colour": "orange",
+            "code": "            raise ShowVersion()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "289",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "290",
+            "colour": "orange",
+            "code": "        requirements = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "291",
+            "colour": "orange",
+            "code": "        exclusions = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "292",
+            "colour": "orange",
+            "code": "        for swinfo in self._switches_by_func.values():\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "293",
+            "colour": "orange",
+            "code": "            if swinfo.mandatory and not swinfo.func in swfuncs:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "294",
+            "colour": "orange",
+            "code": "                raise MissingMandatorySwitch(\"Switch %s is mandatory\" %\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "295",
+            "colour": "orange",
+            "code": "                    (\"/\".join((\"-\" if len(n) == 1 else \"--\") + n for n in swinfo.names),))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "296",
+            "colour": "orange",
+            "code": "            requirements[swinfo.func] = set(self._switches_by_name[req] for req in swinfo.requires)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "297",
+            "colour": "orange",
+            "code": "            exclusions[swinfo.func] = set(self._switches_by_name[exc] for exc in swinfo.excludes)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "298",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "299",
+            "colour": "green",
+            "code": "        # TODO: compute topological order\n",
+            "error": "W",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "300",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "301",
+            "colour": "orange",
+            "code": "        gotten = set(swfuncs.keys())\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "302",
+            "colour": "orange",
+            "code": "        for func in gotten:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "303",
+            "colour": "orange",
+            "code": "            missing = set(f.func for f in requirements[func]) - gotten\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "304",
+            "colour": "orange",
+            "code": "            if missing:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "305",
+            "colour": "orange",
+            "code": "                raise SwitchCombinationError(\"Given %s, the following are missing %r\" %\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "306",
+            "colour": "orange",
+            "code": "                    (swfuncs[func].swname, [self._switches_by_func[f].names[0] for f in missing]))\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "307",
+            "colour": "orange",
+            "code": "            invalid = set(f.func for f in exclusions[func]) & gotten\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "308",
+            "colour": "orange",
+            "code": "            if invalid:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "309",
+            "colour": "orange",
+            "code": "                raise SwitchCombinationError(\"Given %s, the following are invalid %r\" %\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "310",
+            "colour": "orange",
+            "code": "                    (swfuncs[func].swname, [swfuncs[f].swname for f in invalid]))\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "311",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "312",
+            "colour": "orange",
+            "code": "        m_args, m_varargs, _, m_defaults = inspect.getargspec(self.main)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "313",
+            "colour": "orange",
+            "code": "        max_args = six.MAXSIZE if m_varargs else len(m_args) - 1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "314",
+            "colour": "orange",
+            "code": "        min_args = len(m_args) - 1 - (len(m_defaults) if m_defaults else 0)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "315",
+            "colour": "orange",
+            "code": "        if len(tailargs) < min_args:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "316",
+            "colour": "orange",
+            "code": "            raise PositionalArgumentsError(\"Expected at least %d positional arguments, got %r\" %\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "317",
+            "colour": "orange",
+            "code": "                (min_args, tailargs))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "318",
+            "colour": "orange",
+            "code": "        elif len(tailargs) > max_args:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "319",
+            "colour": "orange",
+            "code": "            raise PositionalArgumentsError(\"Expected at most %d positional arguments, got %r\" %\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "320",
+            "colour": "orange",
+            "code": "                (max_args, tailargs))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "321",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "322",
+            "colour": "orange",
+            "code": "        ordered = [(f, a) for _, f, a in\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "323",
+            "colour": "orange",
+            "code": "            sorted([(sf.index, f, sf.val) for f, sf in swfuncs.items()])]\n",
+            "error": "none",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "324",
+            "colour": "orange",
+            "code": "        return ordered, tailargs\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "325",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "326",
+            "colour": "orange",
+            "code": "    @classmethod\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "327",
+            "colour": "green",
+            "code": "    def run(cls, argv = sys.argv, exit = True):  # @ReservedAssignment\n",
+            "error": "W",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "328",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "329",
+            "colour": "orange",
+            "code": "        Runs the application, taking the arguments from ``sys.argv`` by default. If ``exit`` is\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "330",
+            "colour": "orange",
+            "code": "        ``True`` (the default), the function will exit with the appropriate return code;\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "331",
+            "colour": "orange",
+            "code": "        otherwise it will return a tuple of ``(inst, retcode)``, where ``inst`` is the\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "332",
+            "colour": "orange",
+            "code": "        application instance created internally by this function and ``retcode`` is the\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "333",
+            "colour": "orange",
+            "code": "        exit code of the application.\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "334",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "335",
+            "colour": "orange",
+            "code": "        .. note::\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "336",
+            "colour": "orange",
+            "code": "           Setting ``exit`` to ``False`` is intendend for testing/debugging purposes only -- do\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "337",
+            "colour": "orange",
+            "code": "           not override it other situations.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "338",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "339",
+            "colour": "orange",
+            "code": "        argv = list(argv)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "340",
+            "colour": "orange",
+            "code": "        inst = cls(argv.pop(0))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "341",
+            "colour": "orange",
+            "code": "        retcode = 0\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "342",
+            "colour": "orange",
+            "code": "        try:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "343",
+            "colour": "green",
+            "code": "            swfuncs, tailargs = inst._parse_args(argv)\n",
+            "error": "W",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "344",
+            "colour": "green",
+            "code": "            ordered, tailargs = inst._validate_args(swfuncs, tailargs)\n",
+            "error": "W",
+            "author": "tomerf@il.ibm.com"
+        },
+        {
+            "index": "345",
+            "colour": "orange",
+            "code": "        except ShowHelp:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "346",
+            "colour": "orange",
+            "code": "            inst.help()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "347",
+            "colour": "orange",
+            "code": "        except ShowHelpAll:\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "348",
+            "colour": "orange",
+            "code": "            inst.helpall()\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "349",
+            "colour": "orange",
+            "code": "        except ShowVersion:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "350",
+            "colour": "orange",
+            "code": "            inst.version()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "351",
+            "colour": "orange",
+            "code": "        except SwitchError:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "352",
+            "colour": "orange",
+            "code": "            ex = sys.exc_info()[1]  # compatibility with python 2.5\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "353",
+            "colour": "orange",
+            "code": "            print(\"Error: %s\" % (ex,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "354",
+            "colour": "orange",
+            "code": "            print(\"------\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "355",
+            "colour": "orange",
+            "code": "            inst.help()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "356",
+            "colour": "orange",
+            "code": "            retcode = 2\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "357",
+            "colour": "orange",
+            "code": "        else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "358",
+            "colour": "orange",
+            "code": "            for f, a in ordered:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "359",
+            "colour": "green",
+            "code": "                f(inst, *a)\n",
+            "error": "W",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "360",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "361",
+            "colour": "orange",
+            "code": "            cleanup = None\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "362",
+            "colour": "orange",
+            "code": "            if not inst.nested_command or inst.CALL_MAIN_IF_NESTED_COMMAND:\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "363",
+            "colour": "green",
+            "code": "                retcode = inst.main(*tailargs)\n",
+            "error": "W",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "364",
+            "colour": "orange",
+            "code": "                cleanup = functools.partial(inst.cleanup, retcode)\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "365",
+            "colour": "orange",
+            "code": "            if not retcode and inst.nested_command:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "366",
+            "colour": "orange",
+            "code": "                subapp, argv = inst.nested_command\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "367",
+            "colour": "orange",
+            "code": "                subapp.parent = inst\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "368",
+            "colour": "orange",
+            "code": "                inst, retcode = subapp.run(argv, exit = False)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "369",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "370",
+            "colour": "orange",
+            "code": "            if cleanup:\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "371",
+            "colour": "orange",
+            "code": "                cleanup()\n",
+            "error": "none",
+            "author": "koreno@gmail.com"
+        },
+        {
+            "index": "372",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "373",
+            "colour": "orange",
+            "code": "            if retcode is None:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "374",
+            "colour": "orange",
+            "code": "                retcode = 0\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "375",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "376",
+            "colour": "orange",
+            "code": "        if exit:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "377",
+            "colour": "orange",
+            "code": "            sys.exit(retcode)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "378",
+            "colour": "orange",
+            "code": "        else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "379",
+            "colour": "orange",
+            "code": "            return inst, retcode\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "380",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "381",
+            "colour": "orange",
+            "code": "    @classmethod\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "382",
+            "colour": "blue",
+            "code": "    def invoke(cls, *args, **switches):\n",
+            "error": "R",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "383",
+            "colour": "orange",
+            "code": "        \"\"\"Invoke this application programmatically (as a function), in the same way ``run()``\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "384",
+            "colour": "orange",
+            "code": "        would. There are two key differences: the return value of ``main()`` is not converted to\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "385",
+            "colour": "orange",
+            "code": "        an integer (returned as-is), and exceptions are not swallowed either.\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "386",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "387",
+            "colour": "orange",
+            "code": "        :param args: any positional arguments for ``main()``\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "388",
+            "colour": "orange",
+            "code": "        :param switches: command-line switches are passed as keyword arguments,\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "389",
+            "colour": "orange",
+            "code": "                         e.g., ``foo=5`` for ``--foo=5``\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "390",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "391",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "392",
+            "colour": "orange",
+            "code": "        inst = cls(\"\")\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "393",
+            "colour": "orange",
+            "code": "        swfuncs = {}\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "394",
+            "colour": "orange",
+            "code": "        for index, (swname, val) in enumerate(switches.items(), 1):\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "395",
+            "colour": "green",
+            "code": "            switch = getattr(cls, swname)\n",
+            "error": "W",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "396",
+            "colour": "green",
+            "code": "            swinfo = inst._switches_by_func[switch._switch_info.func]\n",
+            "error": "W",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "397",
+            "colour": "orange",
+            "code": "            if isinstance(switch, CountOf):\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "398",
+            "colour": "orange",
+            "code": "                p = (range(val),)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "399",
+            "colour": "orange",
+            "code": "            elif swinfo.list and not hasattr(val, \"__iter__\"):\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "400",
+            "colour": "orange",
+            "code": "                raise SwitchError(\"Switch %r must be a sequence (iterable)\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "401",
+            "colour": "orange",
+            "code": "            elif not swinfo.argtype:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "402",
+            "colour": "orange",
+            "code": "                # a flag\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "403",
+            "colour": "orange",
+            "code": "                if val not in (True, False, None, Flag):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "404",
+            "colour": "orange",
+            "code": "                    raise SwitchError(\"Switch %r is a boolean flag\" % (swname,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "405",
+            "colour": "orange",
+            "code": "                p = ()\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "406",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "407",
+            "colour": "orange",
+            "code": "                p = (val,)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "408",
+            "colour": "orange",
+            "code": "            swfuncs[swinfo.func] = SwitchParseInfo(swname, p, index)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "409",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "410",
+            "colour": "green",
+            "code": "        ordered, tailargs = inst._validate_args(swfuncs, args)\n",
+            "error": "W",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "411",
+            "colour": "orange",
+            "code": "        for f, a in ordered:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "412",
+            "colour": "green",
+            "code": "            f(inst, *a)\n",
+            "error": "W",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "413",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "414",
+            "colour": "orange",
+            "code": "        cleanup = None\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "415",
+            "colour": "orange",
+            "code": "        if not inst.nested_command or inst.CALL_MAIN_IF_NESTED_COMMAND:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "416",
+            "colour": "green",
+            "code": "            retcode = inst.main(*tailargs)\n",
+            "error": "W",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "417",
+            "colour": "orange",
+            "code": "            cleanup = functools.partial(inst.cleanup, retcode)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "418",
+            "colour": "orange",
+            "code": "        if not retcode and inst.nested_command:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "419",
+            "colour": "orange",
+            "code": "            subapp, argv = inst.nested_command\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "420",
+            "colour": "orange",
+            "code": "            subapp.parent = inst\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "421",
+            "colour": "orange",
+            "code": "            inst, retcode = subapp.run(argv, exit = False)\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "422",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "423",
+            "colour": "orange",
+            "code": "        if cleanup:\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "424",
+            "colour": "orange",
+            "code": "            cleanup()\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "425",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "426",
+            "colour": "orange",
+            "code": "        return inst, retcode\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "427",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "ofer@weka.io"
+        },
+        {
+            "index": "428",
+            "colour": "orange",
+            "code": "    def main(self, *args):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "429",
+            "colour": "orange",
+            "code": "        \"\"\"Implement me (no need to call super)\"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "430",
+            "colour": "orange",
+            "code": "        if self._subcommands:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "431",
+            "colour": "orange",
+            "code": "            if args:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "432",
+            "colour": "orange",
+            "code": "                print(\"Unknown sub-command %r\" % (args[0],))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "433",
+            "colour": "orange",
+            "code": "                print(\"------\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "434",
+            "colour": "orange",
+            "code": "                self.help()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "435",
+            "colour": "orange",
+            "code": "                return 1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "436",
+            "colour": "orange",
+            "code": "            if not self.nested_command:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "437",
+            "colour": "orange",
+            "code": "                print(\"No sub-command given\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "438",
+            "colour": "orange",
+            "code": "                print(\"------\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "439",
+            "colour": "orange",
+            "code": "                self.help()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "440",
+            "colour": "orange",
+            "code": "                return 1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "441",
+            "colour": "orange",
+            "code": "        else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "442",
+            "colour": "orange",
+            "code": "            print(\"main() not implemented\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "443",
+            "colour": "orange",
+            "code": "            return 1\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "444",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "445",
+            "colour": "orange",
+            "code": "    def cleanup(self, retcode):\n",
+            "error": "none",
+            "author": "tomer@weka.io"
+        },
+        {
+            "index": "446",
+            "colour": "orange",
+            "code": "        \"\"\"Called after ``main()`` and all subapplications have executed, to perform any necessary cleanup.\n",
+            "error": "none",
+            "author": "tomer@weka.io"
+        },
+        {
+            "index": "447",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "448",
+            "colour": "orange",
+            "code": "        :param retcode: the return code of ``main()``\n",
+            "error": "none",
+            "author": "tomer@weka.io"
+        },
+        {
+            "index": "449",
+            "colour": "orange",
+            "code": "        \"\"\"\n",
+            "error": "none",
+            "author": "tomer@weka.io"
+        },
+        {
+            "index": "450",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "451",
+            "colour": "orange",
+            "code": "    @switch([\"--help-all\"], overridable = True, group = \"Meta-switches\")\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "452",
+            "colour": "orange",
+            "code": "    def helpall(self):\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "453",
+            "colour": "orange",
+            "code": "        \"\"\"Print help messages of all subcommands and quit\"\"\"\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "454",
+            "colour": "orange",
+            "code": "        self.help()\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "455",
+            "colour": "orange",
+            "code": "        print(\"\")\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "456",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "457",
+            "colour": "orange",
+            "code": "        if self._subcommands:\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "458",
+            "colour": "orange",
+            "code": "            for name, subcls in sorted(self._subcommands.items()):\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "459",
+            "colour": "orange",
+            "code": "                subapp = (subcls.get())(\"%s %s\" % (self.PROGNAME, name))\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "460",
+            "colour": "orange",
+            "code": "                subapp.parent = self\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "461",
+            "colour": "green",
+            "code": "                for si in subapp._switches_by_func.values():\n",
+            "error": "W",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "462",
+            "colour": "orange",
+            "code": "                    if si.group == \"Meta-switches\":\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "463",
+            "colour": "orange",
+            "code": "                        si.group = \"Hidden-switches\"\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "464",
+            "colour": "orange",
+            "code": "                subapp.helpall()\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "465",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomer@weka.io"
+        },
+        {
+            "index": "466",
+            "colour": "orange",
+            "code": "    @switch([\"-h\", \"--help\"], overridable = True, group = \"Meta-switches\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "467",
+            "colour": "blue",
+            "code": "    def help(self):  # @ReservedAssignment\n",
+            "error": "R",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "468",
+            "colour": "orange",
+            "code": "        \"\"\"Prints this help message and quits\"\"\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "469",
+            "colour": "orange",
+            "code": "        if self._get_prog_version():\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "470",
+            "colour": "orange",
+            "code": "            self.version()\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "471",
+            "colour": "orange",
+            "code": "            print(\"\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "472",
+            "colour": "orange",
+            "code": "        if self.DESCRIPTION:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "473",
+            "colour": "orange",
+            "code": "            print(self.DESCRIPTION.strip())\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "474",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "475",
+            "colour": "orange",
+            "code": "        m_args, m_varargs, _, m_defaults = inspect.getargspec(self.main)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "476",
+            "colour": "orange",
+            "code": "        tailargs = m_args[1:]  # skip self\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "477",
+            "colour": "orange",
+            "code": "        if m_defaults:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "478",
+            "colour": "orange",
+            "code": "            for i, d in enumerate(reversed(m_defaults)):\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "479",
+            "colour": "orange",
+            "code": "                tailargs[-i - 1] = \"[%s=%r]\" % (tailargs[-i - 1], d)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "480",
+            "colour": "orange",
+            "code": "        if m_varargs:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "481",
+            "colour": "orange",
+            "code": "            tailargs.append(\"%s...\" % (m_varargs,))\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "482",
+            "colour": "orange",
+            "code": "        tailargs = \" \".join(tailargs)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "483",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "484",
+            "colour": "orange",
+            "code": "        print(\"Usage:\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "485",
+            "colour": "orange",
+            "code": "        if not self.USAGE:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "486",
+            "colour": "orange",
+            "code": "            if self._subcommands:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "487",
+            "colour": "orange",
+            "code": "                self.USAGE = \"    %(progname)s [SWITCHES] [SUBCOMMAND [SWITCHES]] %(tailargs)s\\n\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "488",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "489",
+            "colour": "orange",
+            "code": "                self.USAGE = \"    %(progname)s [SWITCHES] %(tailargs)s\\n\"\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "490",
+            "colour": "orange",
+            "code": "        print(self.USAGE % {\"progname\": self.PROGNAME, \"tailargs\": tailargs})\n",
+            "error": "none",
+            "author": "boolegue@gmail.com"
+        },
+        {
+            "index": "491",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tanzer@swing.co.at"
+        },
+        {
+            "index": "492",
+            "colour": "orange",
+            "code": "        by_groups = {}\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "493",
+            "colour": "orange",
+            "code": "        for si in self._switches_by_func.values():\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "494",
+            "colour": "orange",
+            "code": "            if si.group not in by_groups:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "495",
+            "colour": "orange",
+            "code": "                by_groups[si.group] = []\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "496",
+            "colour": "orange",
+            "code": "            by_groups[si.group].append(si)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "497",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "498",
+            "colour": "orange",
+            "code": "        def switchs(by_groups, show_groups):\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "499",
+            "colour": "orange",
+            "code": "            for grp, swinfos in sorted(by_groups.items(), key = lambda item: item[0]):\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "500",
+            "colour": "orange",
+            "code": "                if show_groups:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "501",
+            "colour": "orange",
+            "code": "                    print(\"%s:\" % (grp,))\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "502",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "503",
+            "colour": "orange",
+            "code": "                for si in sorted(swinfos, key = lambda si: si.names):\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "504",
+            "colour": "orange",
+            "code": "                    swnames = \", \".join((\"-\" if len(n) == 1 else \"--\") + n for n in si.names\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "505",
+            "colour": "orange",
+            "code": "                        if n in self._switches_by_name and self._switches_by_name[n] == si)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "506",
+            "colour": "orange",
+            "code": "                    if si.argtype:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "507",
+            "colour": "orange",
+            "code": "                        if isinstance(si.argtype, type):\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "508",
+            "colour": "orange",
+            "code": "                            typename = si.argtype.__name__\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "509",
+            "colour": "orange",
+            "code": "                        else:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "510",
+            "colour": "orange",
+            "code": "                            typename = str(si.argtype)\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "511",
+            "colour": "orange",
+            "code": "                        argtype = \" %s:%s\" % (si.argname.upper(), typename)\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "512",
+            "colour": "orange",
+            "code": "                    else:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "513",
+            "colour": "orange",
+            "code": "                        argtype = \"\"\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "514",
+            "colour": "orange",
+            "code": "                    prefix = swnames + argtype\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "515",
+            "colour": "orange",
+            "code": "                    yield si, prefix\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "516",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "517",
+            "colour": "orange",
+            "code": "                if show_groups:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "518",
+            "colour": "orange",
+            "code": "                    print(\"\")\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "519",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "520",
+            "colour": "orange",
+            "code": "        sw_width = max(len(prefix) for si, prefix in switchs(by_groups, False)) + 4\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "521",
+            "colour": "green",
+            "code": "        cols, _ = get_terminal_size()\n",
+            "error": "W",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "522",
+            "colour": "orange",
+            "code": "        description_indent = \"    %s%s%s\"\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "523",
+            "colour": "orange",
+            "code": "        wrapper = TextWrapper(width = max(cols - min(sw_width, 60), 50) - 6)\n",
+            "error": "none",
+            "author": "jonas@chaoflow.net"
+        },
+        {
+            "index": "524",
+            "colour": "orange",
+            "code": "        indentation = \"\\n\" + \" \" * (cols - wrapper.width)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "525",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "526",
+            "colour": "orange",
+            "code": "        for si, prefix in switchs(by_groups, True):\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "527",
+            "colour": "green",
+            "code": "            help = si.help  # @ReservedAssignment\n",
+            "error": "W",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "528",
+            "colour": "orange",
+            "code": "            if si.list:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "529",
+            "colour": "orange",
+            "code": "                help += \"; may be given multiple times\"\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "530",
+            "colour": "orange",
+            "code": "            if si.mandatory:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "531",
+            "colour": "orange",
+            "code": "                help += \"; required\"\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "532",
+            "colour": "orange",
+            "code": "            if si.requires:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "533",
+            "colour": "orange",
+            "code": "                help += \"; requires %s\" % (\", \".join(((\"-\" if len(s) == 1 else \"--\") + s) for s in si.requires))\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "534",
+            "colour": "orange",
+            "code": "            if si.excludes:\n",
+            "error": "none",
+            "author": "flo@iMac-de-Antoine.local"
+        },
+        {
+            "index": "535",
+            "colour": "orange",
+            "code": "                help += \"; excludes %s\" % (\", \".join(((\"-\" if len(s) == 1 else \"--\") + s) for s in si.excludes))\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "536",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "537",
+            "colour": "orange",
+            "code": "            msg = indentation.join(wrapper.wrap(\" \".join(l.strip() for l in help.splitlines())))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "538",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "539",
+            "colour": "orange",
+            "code": "            if len(prefix) + wrapper.width >= cols:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "540",
+            "colour": "orange",
+            "code": "                padding = indentation\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "541",
+            "colour": "orange",
+            "code": "            else:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "542",
+            "colour": "orange",
+            "code": "                padding = \" \" * max(cols - wrapper.width - len(prefix) - 4, 1)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "543",
+            "colour": "orange",
+            "code": "            print(description_indent % (prefix, padding, msg))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "544",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "545",
+            "colour": "orange",
+            "code": "        if self._subcommands:\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "546",
+            "colour": "orange",
+            "code": "            print(\"Subcommands:\")\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "547",
+            "colour": "orange",
+            "code": "            for name, subcls in sorted(self._subcommands.items()):\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "548",
+            "colour": "orange",
+            "code": "                subapp = subcls.get()\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "549",
+            "colour": "orange",
+            "code": "                doc = subapp.DESCRIPTION if subapp.DESCRIPTION else inspect.getdoc(subapp)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "550",
+            "colour": "orange",
+            "code": "                help = doc + \"; \" if doc else \"\"  # @ReservedAssignment\n",
+            "error": "none",
+            "author": "tomer.filiba@emc.com"
+        },
+        {
+            "index": "551",
+            "colour": "orange",
+            "code": "                help += \"see '%s %s --help' for more info\" % (self.PROGNAME, name)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "552",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "553",
+            "colour": "orange",
+            "code": "                msg = indentation.join(wrapper.wrap(\" \".join(l.strip() for l in help.splitlines())))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "554",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "555",
+            "colour": "orange",
+            "code": "                if len(name) + wrapper.width >= cols:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "556",
+            "colour": "orange",
+            "code": "                    padding = indentation\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "557",
+            "colour": "orange",
+            "code": "                else:\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "558",
+            "colour": "orange",
+            "code": "                    padding = \" \" * max(cols - wrapper.width - len(name) - 4, 1)\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "559",
+            "colour": "orange",
+            "code": "                print(description_indent % (name, padding, msg))\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "560",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "561",
+            "colour": "orange",
+            "code": "    def _get_prog_version(self):\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "562",
+            "colour": "orange",
+            "code": "        ver = None\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "563",
+            "colour": "orange",
+            "code": "        curr = self\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "564",
+            "colour": "orange",
+            "code": "        while curr is not None:\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "565",
+            "colour": "orange",
+            "code": "            ver = getattr(curr, \"VERSION\", None)\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "566",
+            "colour": "orange",
+            "code": "            if ver is not None:\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "567",
+            "colour": "orange",
+            "code": "                return ver\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "568",
+            "colour": "orange",
+            "code": "            curr = curr.parent\n",
+            "error": "none",
+            "author": "tomerfiliba@gmail.com"
+        },
+        {
+            "index": "569",
+            "colour": "orange",
+            "code": "        return ver\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "570",
+            "colour": "orange",
+            "code": "\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "571",
+            "colour": "orange",
+            "code": "    @switch([\"-v\", \"--version\"], overridable = True, group = \"Meta-switches\")\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "572",
+            "colour": "orange",
+            "code": "    def version(self):\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "573",
+            "colour": "orange",
+            "code": "        \"\"\"Prints the program's version and quits\"\"\"\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "574",
+            "colour": "orange",
+            "code": "        ver = self._get_prog_version()\n",
+            "error": "none",
+            "author": "Tomer.Filiba@emc.com"
+        },
+        {
+            "index": "575",
+            "colour": "orange",
+            "code": "        if sys.stdout.isatty() and os.name == \"posix\":\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "576",
+            "colour": "orange",
+            "code": "            fmt = \"\\033[0;36m%s\\033[0m %s\"\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "577",
+            "colour": "orange",
+            "code": "        else:\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "578",
+            "colour": "orange",
+            "code": "            fmt = \"%s %s\"\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        },
+        {
+            "index": "579",
+            "colour": "orange",
+            "code": "        print (fmt % (self.PROGNAME, ver if ver is not None else \"(version not set)\"))\n",
+            "error": "none",
+            "author": "flo@chaoflow.net"
+        }
+    ]
+}
