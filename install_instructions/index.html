@@ -81,12 +81,10 @@ Set up the MySQL database with the following credentials:
 <ol>
 <li>In the XAMPP control panel, open up the Apache config, <tt>httpd.conf</tt>.</li>
 <li>Find the line that says <tt>DocumentRoot "C:/xampp/htdocs"</tt>. If you installed in a different directory, use that instead of <tt>C:/xampp</tt>.</li>
-<li>Comment out that line with a # in front.</li>
-<li>Copy the following lines to just above where you commented out the htdocs line.<br />
+<li>Copy the following lines to just below that line. If you installed on a different directory, or use Mac or Linux, change the path accordingly.s<br />
 <pre>
 # Root for MAESTRO_MAIN for CS319 PROJECT
-DocumentRoot "C:/xampp/maestro_main"
-&lt;Directory "C:/xampp/maestro_main"&gt;
+&lt;Directory "C:/xampp/htdocs/maestro_main"&gt;
     Options -Indexes
     AllowOverride All
     Require all granted
