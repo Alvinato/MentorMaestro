@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-ca">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Mentor Maestro Install Instructions" />
+    <meta name="author" content="Brian Chau" />
+    <meta name="robots" content="nofollow" />
+    <title>Install Instructions</title>
+    
+    <!-- CSS -->
+    <style>
+    body {
+        background-color: #333333;
+        font-family: Helvetica, Arial, Sans-serif;
+    }
+    #main {
+        background-color: #ffffff;
+        margin: 100px auto 0px auto;
+        padding: 30px;
+        width: 960px;
+    }
+    </style>
+
+</head>
+<body>
+<div id="main">
+<h1>MentorMaestro Development Enviornment Setup</h1>
+The instructions given are assuming you use a command line to install. If using the XAMPP control panel please adjust accordingly.
+
+<h3>Step 1: Clone Repository</h3>
+Clone the master repository from Stash.
+<ul>
+<li>If using Linux in a VM: <tt>cd</tt> to <tt>/var/www</tt>.</li>
+<li>If using XAMPP: Go to <tt>C:\xampp\</tt> on Windows (or wherever you installed XAMPP) in git bash.</li>
+</ul>
+Then, clone the git repo (replace r2d2 with your ugrad id):<br />
+<pre>$ git clone https://r2d2@stash.ugrad.cs.ubc.ca:8443/scm/cs319/maestro_main.git</pre>
+Or, if you want to put a SSH key into Stash, you can use this:
+<pre>$ git clone ssh://git@stash.ugrad.cs.ubc.ca:7999/cs319/maestro_main.git</pre>
+
+<h3>Step 2: Set up MySQL Database</h3>
+Set up the MySQL database with the following credentials:
+<ol>
+<li>In your command line (bash, zsh, etc.), enter the mysql database with your root (or other user) credentials.<br />
+<pre>$ mysql -u root -p</pre></li>
+<li>Create a new user called <tt>maestro_user</tt> with password <tt>89wje*s$0()F*D8jf</tt>:<br />
+<pre>mysql&gt; CREATE USER 'maestro_user'@'localhost' IDENTIFIED BY '89wje*s$0()F*D8jf';</pre></li>
+<li>Create a new database called <tt>maestro_db</tt>:<br />
+<pre>mysql&gt; CREATE DATABASE maestro_db;</pre></li>
+<li>Grant permissions for the user on the current database:<br />
+<pre>mysql&gt; GRANT ALL PRIVILEGES ON maestro_db.* TO 'maestro_user'@'localhost';</pre></li>
+<li>Exit mysql.<br />
+<pre>mysql&gt; exit;</pre>
+<li>Import the <tt>maestro_db_init.sql</tt> file into MySQL:<br />
+<pre>$ mysql -u root -p -h localhost maestro_db &lt; maestro_db_init.sql</pre></li>
+</ol>
+
+<h3>Step 3: Set Apache settings accordingly</h3>
+<h4>Linux on VM</h4>
+<ol>
+<li>Copy the included <tt>maestro.conf</tt> file to <tt>/etc/apache2/sites-available</tt>:<br />
+<pre>$ sudo cp maestro.conf /etc/apache2/sites-available/</pre></li>
+<li><tt>cd</tt> to <tt>/etc/apache2/sites-enabled</tt>:<br />
+<pre>$ cd /etc/apache2/sites-enabled</pre></li>
+<li>If there are any files in the directory, remove them (unless you know what you're doing):<br />
+<pre>$ sudo rm ./*</pre></li>
+<li>Create a symlink to the maestro.conf file from before:<br />
+<pre>$ sudo ln -s ../sites-available/maestro.conf maestro.conf</pre></li>
+<li>Restart apache:<br />
+<pre>$ sudo apachectl graceful</pre></li>
+</ol>
+<h4>Windows XAMPP</h4>
+<ol>
+<li>In the XAMPP control panel, open up the Apache config, <tt>httpd.conf</tt>.</li>
+<li>Find the line that says <tt>DocumentRoot "C:/xampp/htdocs"</tt>. If you installed in a different directory, use that instead of <tt>C:/xampp</tt>.</li>
+<li>Comment out that line with a # in front.</li>
+<li>Copy the following lines to just above where you commented out the htdocs line.<br />
+<pre>
+# Root for MAESTRO_MAIN for CS319 PROJECT
+DocumentRoot "C:/xampp/maestro_main"
+&lt;Directory "C:/xampp/maestro_main"&gt;
+    Options -Indexes
+    AllowOverride All
+    Require all granted
+&lt;/Directory&gt;
+</pre></li>
+<li>Stop and restart Apache.</li>
+</ol>
+
+<h3>Step 4: That's it!</h3>
+
+Ask me (Brian) if you have any questions.
+
+</div>
+</body>
+</html>
