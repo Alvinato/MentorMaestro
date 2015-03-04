@@ -51,10 +51,10 @@ Set up the MySQL database with the following credentials:
 <ol>
 <li>In your command line (bash, zsh, etc.), enter the mysql database with your root (or other user) credentials.<br />
 <pre>$ mysql -u root -p</pre></li>
-<li>Create a new user called <tt>maestro_user</tt> with password <tt>89wje*s$0()F*D8jf</tt>:<br />
-<pre>mysql&gt; CREATE USER 'maestro_user'@'localhost' IDENTIFIED BY '89wje*s$0()F*D8jf';</pre></li>
 <li>Create a new database called <tt>maestro_db</tt>:<br />
 <pre>mysql&gt; CREATE DATABASE maestro_db;</pre></li>
+<li>Create a new user called <tt>maestro_user</tt> with password <tt>89wje*s$0()F*D8jf</tt>:<br />
+<pre>mysql&gt; CREATE USER 'maestro_user'@'localhost' IDENTIFIED BY '89wje*s$0()F*D8jf';</pre></li>
 <li>Grant permissions for the user on the current database:<br />
 <pre>mysql&gt; GRANT ALL PRIVILEGES ON maestro_db.* TO 'maestro_user'@'localhost';</pre></li>
 <li>Exit mysql.<br />
