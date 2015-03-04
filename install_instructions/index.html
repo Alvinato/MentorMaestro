@@ -28,6 +28,13 @@
 <h1>MentorMaestro Development Enviornment Setup</h1>
 The instructions given are assuming you use a command line to install. If using the XAMPP control panel please adjust accordingly.
 
+<h3>Step 0: Linux Only</h3>
+If you're using Linux, make sure you have a LAMP stack installed. If not, you can install a Ubuntu 14.04 server in a VM, and then follow instructions <a href="https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-14-04">here</a> to install the LAMP stack.<br /><br />
+Also, make sure that you have php-GD installed. On Ubuntu-based systems run:<br />
+<pre>$ sudo apt-get install php5-gd</pre>
+Once that's done, restart apache:
+<pre>$ sudo apachectl graceful</pre>
+
 <h3>Step 1: Clone Repository</h3>
 Clone the master repository from Stash.
 <ul>
