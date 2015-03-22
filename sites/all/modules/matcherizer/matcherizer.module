@@ -62,6 +62,5 @@ function matcherizer_form_submit($form, &$form_state) {
         'hobbies_interests' => $form_state['values']['hobbies_interests'],
         );
 
-    // TODO get year from db
     match(getYear(), $states);
 }

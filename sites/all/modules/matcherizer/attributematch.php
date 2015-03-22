@@ -117,7 +117,7 @@ function getAttributeScores(&$from, &$to, &$weights) {
         }
     }
 
-    // Make each score an array(index, score) for easy sorting
+    // Make each score an array(index, score) for easy sorting later
     for ($i = 0; $i < count($score); ++$i) {
         for ($j = 0; $j < count($score[$i]); ++$j) {
             $score[$i][$j] = array($j, $score[$i][$j] * $multiplier[$i][$j]);

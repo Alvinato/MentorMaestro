@@ -34,7 +34,6 @@ function match($year, $weighting) {
     list($ms_attribute, $ms_maxscore) = getAttributeScores($mentors, $seniors, $weighting);
 
     // sort the attributes
-    sortAttributes($sm_attribute);
     sortAttributes($ms_attribute);
 
     // Rank mentor/senior based on attribute scores, sorted by senior
@@ -56,7 +55,6 @@ function match($year, $weighting) {
 
     // sort the attributes
     sortAttributes($js_attribute);
-    sortAttributes($sj_attribute);
 
     // Rank junior/senior based on attribute scores, sorted by senior
     $groups_js = stableMatch($js_attribute, $sj_attribute, 'junior', 'senior');
