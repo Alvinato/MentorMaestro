@@ -1,0 +1,4 @@
+name = Matcherizer
+description = Provides stable matching for trio groups.
+core = 7.x
+
