@@ -4,46 +4,48 @@
  * Stores grouping into database
  */
 function saveGroups($groups, $year, $percentage, $weighting) {
-    $query = "INSERT INTO maestro_db.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
-    db_query($query, array(
-        ':ts' => date('Y-m-d H:i:s'),
-        ':my' => $year, 
-        ':w'  => json_encode($weighting),
-        ':p'  => $percentage,
-        ':t'  => json_encode($groups),
-        ));
-
-    dpm('Average similarity: '.$percentage);
+    db_insert('maestro_matched_trios')
+        ->fields(array(
+            'timestamp' => date('Y-m-d H:i:s'),
+            'mentoring_year' => $year,
+            'weightings'  => json_encode($weighting),
+            'percentage'  => $percentage,
+            'trios'  => json_encode($groups),
+            ))
+        ->execute();
 }
 
 /*
  * Get current year
  */
 function getYear() {
-    $query = "SELECT * FROM maestro_db.maestro_years WHERE active = 1";
-    $result = db_query($query)->fetchObject();
-
-    return $result->{'year'};
+    return db_select('maestro_years', 'my')
+        ->fields('my')
+        ->condition('active', 1, '=')
+        ->execute()
+        ->fetchObject()
+        ->{'year'};
 }
 
 /*
  * Gets participants from the database
  */
 function getParticipants($year, $weighting) {
-    // First get name of database
-    $query = "SELECT * FROM maestro_db.maestro_years WHERE year = '".$year."'";
-    $result = db_query($query);
-
-    $obj = $result->fetchObject();
+    // First get name of participant tables
+    $obj = db_select('maestro_years', 'my')
+        ->fields('my')
+        ->condition('year', $year, '=')
+        ->execute()
+        ->fetchObject();
 
     $mentor_table_name = $obj->{'mentor_table_name'};
     $student_table_name = $obj->{'student_table_name'};
 
     // ================= get mentors =================
-    $query = "SELECT * FROM maestro_db.".$mentor_table_name;
-    $result = db_query($query);
-
-    $mentors_from_db = $result->fetchAll();
+    $mentors_from_db = db_select($mentor_table_name, 'mtn')
+        ->fields('mtn')
+        ->execute()
+        ->fetchAll();
 
     $mentors = array();
 
@@ -69,10 +71,10 @@ function getParticipants($year, $weighting) {
 
 
     // ================= get students =================
-    $query = "SELECT * FROM maestro_db.".$student_table_name;
-    $result = db_query($query);
-
-    $students_from_db = $result->fetchAll();
+    $students_from_db = db_select($student_table_name, 'stn')
+        ->fields('stn')
+        ->execute()
+        ->fetchAll();
 
     $students = array();
 

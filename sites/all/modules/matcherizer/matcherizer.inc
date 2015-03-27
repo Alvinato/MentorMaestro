@@ -1,8 +1,8 @@
 <?php
 
-module_load_include('php', 'matcherizer', 'attributematch');
-module_load_include('php', 'matcherizer', 'stablematch');
-module_load_include('php', 'matcherizer', 'db');
+module_load_include('inc', 'matcherizer', 'attributematch');
+module_load_include('inc', 'matcherizer', 'stablematch');
+module_load_include('inc', 'matcherizer', 'db');
 
 /*
  * Comparator function to sort attribute scores
