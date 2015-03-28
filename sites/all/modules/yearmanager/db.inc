@@ -40,8 +40,9 @@ function setYearArchived($year) {
  * Create a new year
  */
 function createNewYear($year) {
-    $stn = 'testy';
-    $mtn = 'testy';
+    $year_suffix = substr($year, 0, 4).substr($year, 5, 4);
+    $stn = 'maestro_signup_student_'.$year_suffix;
+    $mtn = 'maestro_signup_mentor_'.$year_suffix;
     db_insert('maestro_years')
         ->fields(array(
             'year'     => $year,

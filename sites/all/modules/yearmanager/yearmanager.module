@@ -87,8 +87,6 @@ function yearmanager_form_validate($form, &$form_state) {
 function yearmanager_form_submit($form, &$form_state) {
     $results = $form_state['values'];
 
-    dpm($results);
-
     // Get selected year
     $selected_year = substr($form['current_year']['#options'][(int)$results['current_year']], 0, 9);
 
