@@ -3,15 +3,16 @@
 //include_once DRUPAL_ROOT . '/includes/database/database.inc';
 module_load_include('inc', 'yearmanager', 'db');
 module_load_include('inc', 'kickoff', 'kickoff');
+module_load_include('inc', 'kickoff', 'debug');
 
 $GLOBALS['MAX_GROUP_SIZE'] = 9;
 
-function get_person_from_db_row($record)
+function getPersonFromDbRow($record)
 {
 	return array("name" => $record->first_name, "prefs" => ["year" => 1, "hobbies" => explode(',', $record->hobbies_interests)]);
 }
 
-function get_person_info_from_db($id, $tableName)
+function getPersonInfoFromDb($id, $tableName)
 {
 	
 	//$tablePart = '';
@@ -21,7 +22,7 @@ function get_person_info_from_db($id, $tableName)
 	
 	foreach ($result as $record)
 	{	
-		return get_person_from_db_row($record);
+		return getPersonFromDbRow($record);
 	}
 }
 
@@ -42,7 +43,7 @@ function getTrioBuckets()
         ->execute()
         ->fetchAll();
 		
-	echo $currentYear;
+	#echo $currentYear;
 	list($mentor_table_name, $student_table_name) = getParticipantTableNames($currentYear);
 // Result is returned as a iterable object that returns a stdClass object on each iteration
 	$jsonTrios = null;
@@ -65,14 +66,12 @@ function getTrioBuckets()
 			$availability = $trio['kickoff'];
 			if ($allNights == null) { $allNights = $availability; }
 			$numNightsAvailable = countAvailability($availability);
-			if (array_key_exists($numNightsAvailable, $trioBuckets))
-			{
-				array_push($trioBuckets[$numNightsAvailable], $trio);
-			}
-			else
+			$trio['id'] = $trioId;
+			if (!array_key_exists($numNightsAvailable, $trioBuckets))
 			{
 				$trioBuckets[$numNightsAvailable] = array();
 			}
+			array_push($trioBuckets[$numNightsAvailable], $trio);
 			//echo $numNightsAvailable;
 			
 			$trioId++;
@@ -96,20 +95,10 @@ $items['kickoff'] = array( //this creates a URL that will call this form at "exa
     'access callback' => TRUE
   );
   
-  return 
-
-$items;
-}
-function printTrioBuckets($trioBuckets)
-{
-	foreach ($trioBuckets as $night => $trios)
-	{
-		echo $night;
-	}
+  return $items;
 }
 
-
-function distributeBucketsIntoNights($allNights)
+function distributeBucketsIntoNights($allNights, $buckets)
 {
 	$returnNights = array();
 	ksort($buckets);
@@ -155,10 +144,48 @@ function distributeBucketsIntoNights($allNights)
 	return $returnNights;
 }
 
+function flattenTrios($trios)
+{
+	$titles = array('mentor','senior','junior');
+	$people = array();
+	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
+	
+	foreach ($trios as $trio)
+	{
+		$x = 0;
+		foreach ($titles as $title)
+		{
+			$keyId = intval($trio[$title]);
+			if ($x++ == 0) { $personInfo = getPersonInfoFromDb($keyId, $mentorTableName);
+			} else { $personInfo = getPersonInfoFromDb($keyId, $studentTableName); }
+			
+			$personInfo['trio'] = $trio['id'];
+			$personInfo['title'] = $title;
+			array_push($people, $personInfo);
+		}
+		
+	}
+	
+	//return $people;
+}
+
+function outputAllGroups($allGroups)
+{
+	$html = '';
+	foreach ($allGroups as $night=>$groups)
+	{
+		$temp = 'Groups for Night ' . $night . '<br />';
+		$temp .= outputGroups($groups);
+		$temp .= '<br />';
+		$html .= $temp;
+	}
+	return $html;
+}
+
 function kickoff_form($form, &$form_state)
 {
-  //$people = get_data();
- /* $people = array(
+	//$people = get_data();
+	/* $people = array(
 	array("name" => "Bill", "trio" => 4, "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
 	,array("name" => "Eric", "trio" => 1, "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
 	,array("name" => "Ted", "trio" => 3, "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
@@ -166,40 +193,47 @@ function kickoff_form($form, &$form_state)
 	//,array("name" => "Alvin2", "prefs" => ["year" => 0])
 	//,array("name" => "Alvin3", "prefs" => ["year" => 0])
 	);*/
-  #echo(count($people) . ' people total. <br />');
-  #printGroups(kickoff(1,$people));
-  list($allNights, $buckets) = getTrioBuckets();
-	printTrioBuckets($buckets);
+	#echo(count($people) . ' people total. <br />');
+	#printGroups(kickoff(1,$people));
+	list($allNights, $buckets) = getTrioBuckets();
+	//printTrioBuckets($buckets);
+	$nights = distributeBucketsIntoNights($allNights, $buckets);
+	//printNights($nights);
 	
-	
+	$allGroups = array();
+	foreach ($nights as $night=>$trios)
+	{
+		$people = flattenTrios($trios);
+		$allGroups[$night] = kickoff($night,$people);
+	}
   
-  return;
-  
-  $form['some_text'] = array(
-      '#markup' => count($people) . ' people total. <br />' . outputGroups(kickoff(1,$people)));
-  
-  $form['name'] = array(
-    '#type' => 'textfield', //you can find a list of available types in the form api
-    '#title' => "What is Your Name?",
-    '#size' => 10,
-    '#maxlength' => 10,
-    '#required' => TRUE, //make this field required 
-  );
-  
-  $form['price'] = array(
-    '#type' => 'textfield', //you can find a list of available types in the form api
-    '#title' => 'What is Your Price?',
-    '#size' => 10,
-    '#maxlength' => 10,
-    '#required' => TRUE, //make this field required 
-  );
+	$form['some_text'] = array(
+	  '#markup' =>
+	  count($people) . ' people total. <br />' . outputAllGroups($allGroups)
+	  );
 
-  $form['submit_button'] = array(
-    '#type' => 'submit',
-    '#value' => t('Click Here!'),
-  );
-  
-  return $form;
+	$form['name'] = array(
+	'#type' => 'textfield', //you can find a list of available types in the form api
+	'#title' => "What is Your Name?",
+	'#size' => 10,
+	'#maxlength' => 10,
+	'#required' => TRUE, //make this field required 
+	);
+
+	$form['price'] = array(
+	'#type' => 'textfield', //you can find a list of available types in the form api
+	'#title' => 'What is Your Price?',
+	'#size' => 10,
+	'#maxlength' => 10,
+	'#required' => TRUE, //make this field required 
+	);
+
+	$form['submit_button'] = array(
+	'#type' => 'submit',
+	'#value' => t('Click Here!'),
+	);
+
+	return $form;
 }
 
 function kickoff_form_validate($form, &$form_state)
@@ -212,9 +246,8 @@ function kickoff_form_validate($form, &$form_state)
 
 function kickoff_form_submit($form, &$form_state)
 {
-  $values = $form_state['values'];
-  db_insert('dbtng_example')
-    ->fields(array('name' => $values['name'], 'price' => $values['price']))
-    ->execute();
-
+	$values = $form_state['values'];
+	db_insert('dbtng_example')
+	->fields(array('name' => $values['name'], 'price' => $values['price']))
+	->execute();
 }
