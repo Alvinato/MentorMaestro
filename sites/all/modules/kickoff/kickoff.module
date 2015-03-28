@@ -109,13 +109,50 @@ function printTrioBuckets($trioBuckets)
 }
 
 
-function lengthSort($array1, $array2)
+function distributeBucketsIntoNights($allNights)
 {
-	/*$count1 = count($array1);
-	$count2 = count($array2);
-	if ($count1 === $count2) return 0;
-	return $count1[0] < $count2[0] ? -1 : 1;*/
-	return count($array2) - count($array1);
+	$returnNights = array();
+	ksort($buckets);
+	
+	foreach ($allNights as $night=>$value)
+	{
+		$returnNights[$night] = array();
+	}
+	
+	foreach ($buckets as $nightsAvailable => $trios)
+	{
+		if ($nightsAvailable === 1)
+		{
+			foreach ($trios as $trio)
+			{
+				$nightAvailable = null;
+				foreach ($trio['kickoff'] as $night=>$available)
+				{
+					if ($available === 1) { $nightAvailable = $night; break; }
+				}
+				array_push($returnNights[$nightAvailable], $trio);
+			}
+		}
+		else
+		{
+			foreach ($trios as $trio)
+			{
+				$nightsAvailable = array();
+				foreach ($trio['kickoff'] as $night=>$available)
+				{
+					if ($available === 1) { $nightsAvailable[$night] = count($returnNights[$night]); }
+				}
+				
+				asort($nightsAvailable);
+				reset($nightsAvailable);
+				$nightWithFewestTrios = key($nightsAvailable);
+				array_push($returnNights[$nightWithFewestTrios], $trio);
+			}
+			
+		}
+	}
+	
+	return $returnNights;
 }
 
 function kickoff_form($form, &$form_state)
@@ -134,45 +171,7 @@ function kickoff_form($form, &$form_state)
   list($allNights, $buckets) = getTrioBuckets();
 	printTrioBuckets($buckets);
 	
-	$bucketsSorted = ksort($buckets);
 	
-	$arrayLengthHeap = new ArrayLengthHeap();
-	foreach ($allNights as $night=>value)
-	{
-		$a = array();
-		$allNights[$night] = $a;
-	}
-	
-	foreach ($bucketsSorted as $nightsAvailable => $trios)
-	{
-		if ($nightsAvailable == 1)
-		{
-			foreach ($trios as $trio)
-			{
-				$nightAvailable = null;
-				foreach ($trio->$kickoff as $night=>$available)
-				{
-					if ($available == 1) { $nightAvailable = $night; break; }
-				}
-				array_push($allNights[$nightAvailable], $trio);
-			}
-		}
-		else
-		{
-			foreach ($trios as $trio)
-			{
-				$nightsAvailable = array();
-				foreach ($trio->$kickoff as $night=>$available)
-				{
-					if ($available == 1) { array_push($nightsAvailable, $night); }
-				}
-				array_push($allNights[$nightAvailable], $trio);
-			}
-			usort($allNights, lengthSort);
-			reset($allNights);
-			$nightWithFewestTrios = current($allNights);
-		}
-	}
   
   return;
   
