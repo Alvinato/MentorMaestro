@@ -16,30 +16,11 @@ function saveGroups($groups, $year, $percentage, $weighting) {
 }
 
 /*
- * Get current year
- */
-function getYear() {
-    return db_select('maestro_years', 'my')
-        ->fields('my')
-        ->condition('active', 1, '=')
-        ->execute()
-        ->fetchObject()
-        ->{'year'};
-}
-
-/*
  * Gets participants from the database
  */
 function getParticipants($year, $weighting) {
     // First get name of participant tables
-    $obj = db_select('maestro_years', 'my')
-        ->fields('my')
-        ->condition('year', $year, '=')
-        ->execute()
-        ->fetchObject();
-
-    $mentor_table_name = $obj->{'mentor_table_name'};
-    $student_table_name = $obj->{'student_table_name'};
+    list($mentor_table_name, $student_table_name) = getDatabaseTableNames($year);
 
     // ================= get mentors =================
     $mentors_from_db = db_select($mentor_table_name, 'mtn')

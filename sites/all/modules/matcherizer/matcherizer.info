@@ -1,4 +1,5 @@
 name = Matcherizer
 description = Provides stable matching for trio groups.
 core = 7.x
-
+package = Mentor Maestro
+dependencies[] = yearmanager
