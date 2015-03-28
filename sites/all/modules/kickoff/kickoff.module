@@ -166,7 +166,7 @@ function flattenTrios($trios)
 		
 	}
 	
-	//return $people;
+	return $people;
 }
 
 function outputAllGroups($allGroups)
@@ -174,11 +174,12 @@ function outputAllGroups($allGroups)
 	$html = '';
 	foreach ($allGroups as $night=>$groups)
 	{
-		$temp = 'Groups for Night ' . $night . '<br />';
+		$temp = '<div style="float: left; padding-right: 2em;"><h2>Groups for Night ' . $night . '</h2>';
 		$temp .= outputGroups($groups);
-		$temp .= '<br />';
+		$temp .= '</div>';
 		$html .= $temp;
 	}
+	$html .= '<div style="clear: both;">&nbsp;</div>';
 	return $html;
 }
 
@@ -204,7 +205,9 @@ function kickoff_form($form, &$form_state)
 	foreach ($nights as $night=>$trios)
 	{
 		$people = flattenTrios($trios);
-		$allGroups[$night] = kickoff($night,$people);
+		$groups = kickoff($night,$people);
+		//$fixedGroups = fixGroups($groups);
+		$allGroups[$night] = $groups;
 	}
   
 	$form['some_text'] = array(

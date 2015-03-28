@@ -59,7 +59,7 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentTri
 		$choseAtLeastOne = false;
 		for ($x = 0; $x < count($people); ++$x)
 		{
-			if (!array_key_exists($night, $people[$x]['nights']) || array_key_exists($people[$x]['trio'], $currentTrioIds)) { continue; }
+			if (array_key_exists($people[$x]['trio'], $currentTrioIds)) { continue; }
 			$diff = $people[$x]['prefs']['year'] - $currentAverage + getDifferentHobbies($people[$x]['prefs']['hobbies'],$groupHobbies);
 			if ($diff > $currentDiff)
 			{
@@ -70,6 +70,13 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentTri
 		}
 		if (!$choseAtLeastOne)
 		{
+			for ($x = 0; $x < count($people); ++$x)
+			{
+				if (array_key_exists($people[$x]['trio'], $currentTrioIds)) { continue; }
+				
+				$person = $x;
+				return $person;
+			}
 			echo 'WARNING: Could not choose a person optimally. Relaxing constraints. ' . $people[$person]['name'] . ' will not be happy. <br />';
 		}
 		return $person;
@@ -111,17 +118,36 @@ function kickoff($night, $people)
 		array_push($currentGroup, $people[$person]);
 		$currentTrioIds[$people[$person]["trio"]] = true;
 		array_splice($people, $person, 1);
-		if (count($currentGroup) == $GLOBALS['MAX_GROUP_SIZE'])
+		if (count($currentGroup) === $GLOBALS['MAX_GROUP_SIZE'])
 		{
-			array_push($groups, $currentGroup);
+			array_push($groups, array($currentGroup, $currentTrioIds));
 			$currentGroup = array();
 			$currentPrefs = array();
+			$currentTrioIds = array();
 		}
 	}
 
 	if (!empty($currentGroup))
 	{
-		array_push($groups, $currentGroup);
+		if (count($currentGroup) > $GLOBALS['MAX_GROUP_SIZE'] - 2)
+		{
+			array_push($groups, array($currentGroup, $currentTrioIds));
+		}
+		else
+		{
+			foreach ($currentGroup as $person)
+			{
+				foreach ($groups as $group)
+				{
+					list($personList, $trioIds) = $group;
+					if (!array_key_exists($person['trio'], $trioIds))
+					{
+						array_push($personList, $person);
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	return $groups;
@@ -132,13 +158,14 @@ function outputGroups($groups)
 	$output = '';
 	for ($x = 0; $x < count($groups); ++$x)
 	{
-		$output = $output . '<strong>Group ' . ($x + 1) . '</strong>';
+		$output = $output . '<h3>Group ' . ($x + 1) . '</h3>';
 		$output = $output . '<br />';
-			for ($y = 0; $y < count($groups[$x]); ++$y)
-			{
-					$output = $output . $groups[$x][$y]['name'];
-					$output = $output . '<br />';
-			}
+		list($personList, $trioIds) = $groups[$x];
+		foreach ($personList as $person)
+		{
+			$output = $output . $person['name'] . ' <span style="color: #bbb;">' . $person['trio'] . ' ' . $person['title'] . '</span>';
+			$output = $output . '<br />';
+		}
 	}
 	return $output;
 }
