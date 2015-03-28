@@ -1,0 +1,4 @@
+name = Year Manager
+description = Manages the years of the Mentor Maestro program
+core = 7.x
+package = Mentor Maestro
