@@ -1,7 +1,6 @@
 <?php
 
 module_load_include('inc', 'matcherizer', 'matcherizer');
-module_load_include('inc', 'yearmanager', 'db');
 
 function matcherizer_menu() {
     $items = array();

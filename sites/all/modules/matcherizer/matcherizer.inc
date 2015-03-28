@@ -3,6 +3,7 @@
 module_load_include('inc', 'matcherizer', 'attributematch');
 module_load_include('inc', 'matcherizer', 'stablematch');
 module_load_include('inc', 'matcherizer', 'db');
+module_load_include('inc', 'yearmanager', 'db');
 
 /*
  * Comparator function to sort attribute scores
