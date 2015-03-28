@@ -12,10 +12,10 @@ function getYear() {
         ->{'year'};
 }
 
-/* Get database table names
+/* Get database table names for signup form
  * Returns list(mentor, student)
  */
-function getDatabaseTableNames($year) {
+function getParticipantTableNames($year) {
     $obj = db_select('maestro_years', 'my')
         ->fields('my')
         ->condition('year', $year, '=')
