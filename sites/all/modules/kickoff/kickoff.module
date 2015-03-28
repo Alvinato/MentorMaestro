@@ -1,21 +1,23 @@
 <?php
 
 //include_once DRUPAL_ROOT . '/includes/database/database.inc';
+module_load_include('inc', 'yearmanager', 'db');
 module_load_include('inc', 'kickoff', 'kickoff');
 
-$GLOBALS['MAX_GROUP_SIZE'] = 3;
+$GLOBALS['MAX_GROUP_SIZE'] = 9;
 
 function get_person_from_db_row($record)
 {
 	return array("name" => $record->first_name, "prefs" => ["year" => 1, "hobbies" => explode(',', $record->hobbies_interests)]);
 }
 
-function get_person_info_from_db($id, $mentor)
+function get_person_info_from_db($id, $tableName)
 {
-	$tablePart = '';
-	if ($mentor) { $tablePart = 'mentor'; } else { $tablePart = 'student'; }
 	
-	$result = db_query("SELECT * FROM maestro_signup_$tablePart". "_20142015 WHERE id = :id", array(':id' => $id));
+	//$tablePart = '';
+	//if ($mentor) { $tablePart = 'mentor'; } else { $tablePart = 'student'; }
+	
+	$result = db_query("SELECT * FROM " . $tableName ." WHERE id = :id", array(':id' => $id));
 	
 	foreach ($result as $record)
 	{	
@@ -23,50 +25,62 @@ function get_person_info_from_db($id, $mentor)
 	}
 }
 
-function get_data()
+function countAvailability($availabilities)
 {
-	$result = db_query('SELECT * FROM maestro_matched_trios');
+	$count = 0;
+	foreach ($availabilities as $year => $availability) {if ($availability == 1) { ++$count; } }
+	return $count;
+}
+
+function getTrioBuckets()
+{
+	$currentYear = getYear();
+
+	$result = db_select('maestro_matched_trios', 'mmt')
+        ->fields('mmt')
+        ->condition('mentoring_year', $currentYear, '=')
+        ->execute()
+        ->fetchAll();
+		
+	echo $currentYear;
+	list($mentor_table_name, $student_table_name) = getParticipantTableNames($currentYear);
 // Result is returned as a iterable object that returns a stdClass object on each iteration
 	$jsonTrios = null;
 	$jsonResult = null;
 	
 	$people = array();
+	
+	# Classify trios depending on how many nights they are available on.
+	$trioBuckets = array();
+	$allNights = null;
+	
 	foreach ($result as $record)
 	{
 		$data = $record->trios;
 		$jsonResult = json_decode($data, true);
 		
-		//var_dump($jsonResult);
-		#[{"mentor":"90","senior":"200","junior":"40", "similarity":"0.44"}, {"mentor":"44","senior":"113","junior":"199", "similarity":"0.43"}, {"mentor":"10","senior":"22","junior":"2", "similarity":"0.42"}]
-		#array(4) { ["mentor"]=> string(2) "10" ["senior"]=> string(2) "22" ["junior"]=> string(2) "40" ["similarity"]=> string(4) "0.50" } 
 		$trioId = 0;
 		foreach ($jsonResult as $trio)
 		{
-			# [{"senior": 155, "junior": 160, "mentor": 84}, {}, {}]
-			$mentorId = intval($trio['mentor']);
-			$seniorId = intval($trio['senior']);
-			$juniorId = intval($trio['junior']);
+			$availability = $trio['kickoff'];
+			if ($allNights == null) { $allNights = $availability; }
+			$numNightsAvailable = countAvailability($availability);
+			if (array_key_exists($numNightsAvailable, $trioBuckets))
+			{
+				array_push($trioBuckets[$numNightsAvailable], $trio);
+			}
+			else
+			{
+				$trioBuckets[$numNightsAvailable] = array();
+			}
+			//echo $numNightsAvailable;
 			
-			$personInfo = get_person_info_from_db($mentorId, true);
-			$seniorInfo = get_person_info_from_db($seniorId, false);
-			$juniorInfo = get_person_info_from_db($juniorId, false);
-			$personInfo['trio'] = $trioId;
-			$seniorInfo['trio'] = $trioId;
-			$juniorInfo['trio'] = $trioId;
-			$personInfo['nights'] = array();
-			$juniorInfo['nights'] = array();
-			$seniorInfo['nights'] = array();
-			
-			array_push($people, $personInfo);
-			array_push($people, $seniorInfo);
-			array_push($people, $juniorInfo);
-			
-			++$trioId;
+			$trioId++;
 		}
 		break;
 	}
 	
-	return $people;
+	return array($allNights, $trioBuckets);
 }
 
 function kickoff_menu()
@@ -86,20 +100,81 @@ $items['kickoff'] = array( //this creates a URL that will call this form at "exa
 
 $items;
 }
+function printTrioBuckets($trioBuckets)
+{
+	foreach ($trioBuckets as $night => $trios)
+	{
+		echo $night;
+	}
+}
+
+
+function lengthSort($array1, $array2)
+{
+	/*$count1 = count($array1);
+	$count2 = count($array2);
+	if ($count1 === $count2) return 0;
+	return $count1[0] < $count2[0] ? -1 : 1;*/
+	return count($array2) - count($array1);
+}
 
 function kickoff_form($form, &$form_state)
 {
-  #$people = get_data();
-  $people = array(
+  //$people = get_data();
+ /* $people = array(
 	array("name" => "Bill", "trio" => 4, "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
 	,array("name" => "Eric", "trio" => 1, "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
 	,array("name" => "Ted", "trio" => 3, "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
 	,array("name" => "Alvin", "trio" => 2, "nights" => [4=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
 	//,array("name" => "Alvin2", "prefs" => ["year" => 0])
 	//,array("name" => "Alvin3", "prefs" => ["year" => 0])
-	);
+	);*/
   #echo(count($people) . ' people total. <br />');
   #printGroups(kickoff(1,$people));
+  list($allNights, $buckets) = getTrioBuckets();
+	printTrioBuckets($buckets);
+	
+	$bucketsSorted = ksort($buckets);
+	
+	$arrayLengthHeap = new ArrayLengthHeap();
+	foreach ($allNights as $night=>value)
+	{
+		$a = array();
+		$allNights[$night] = $a;
+	}
+	
+	foreach ($bucketsSorted as $nightsAvailable => $trios)
+	{
+		if ($nightsAvailable == 1)
+		{
+			foreach ($trios as $trio)
+			{
+				$nightAvailable = null;
+				foreach ($trio->$kickoff as $night=>$available)
+				{
+					if ($available == 1) { $nightAvailable = $night; break; }
+				}
+				array_push($allNights[$nightAvailable], $trio);
+			}
+		}
+		else
+		{
+			foreach ($trios as $trio)
+			{
+				$nightsAvailable = array();
+				foreach ($trio->$kickoff as $night=>$available)
+				{
+					if ($available == 1) { array_push($nightsAvailable, $night); }
+				}
+				array_push($allNights[$nightAvailable], $trio);
+			}
+			usort($allNights, lengthSort);
+			reset($allNights);
+			$nightWithFewestTrios = current($allNights);
+		}
+	}
+  
+  return;
   
   $form['some_text'] = array(
       '#markup' => count($people) . ' people total. <br />' . outputGroups(kickoff(1,$people)));
