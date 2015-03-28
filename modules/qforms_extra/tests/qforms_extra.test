@@ -1,0 +1,171 @@
+<?php
+
+/**
+ * @file
+ * Tests for the qforms extra module.
+ */
+
+class QformsExtrsTestCase extends DrupalWebTestCase {
+
+  private function getQformExtraDefinition() {
+    return array(
+      'qforms_element_1_number' => array(
+        'type' => 'number',
+        'id' => 'qforms_element_1_number',
+        'weight' => 1,
+        'visible' => 1,
+        'title' => 'Enter your number id',
+        'description' => 'Enter your number id for identification',
+        'required' => 0,
+        'size' => 0,
+      ),
+      'qforms_element_2_email' => array(
+        'type' => 'email',
+        'id' => 'qforms_element_2_email',
+        'weight' => 2,
+        'visible' => 1,
+        'title' => 'Your e-mail address',
+        'description' => 'Please enter your e-mail address that we can contact you',
+        'required' => 0,
+        'size' => 0,
+      ),
+      'qforms_element_3_url' => array(
+        'type' => 'url',
+        'id' => 'qforms_element_3_url',
+        'weight' => 3,
+        'visible' => 1,
+        'title' => 'Your site address',
+        'description' => 'If you have site you can enter address',
+        'required' => 0,
+        'size' => 0,
+      ),
+      'qforms_element_4_date' => array(
+        'type' => 'date',
+        'id' => 'qforms_element_4_date',
+        'weight' => 4,
+        'visible' => 1,
+        'title' => 'Dead line for support',
+        'description' => 'Date till we must support you',
+        'required' => 0,
+        'size' => 0,
+        // Here we do not test custom format we test only ordinary date format.
+        // In selenium test custom format is tested.
+        'format' => 'Y.d.m',
+      ),
+      'qforms_element_5_markup' => array(
+        'type' => 'markup',
+        'id' => 'qforms_element_5_markup',
+        'weight' => 5,
+        'visible' => 1,
+        'markup' => 'Our operator will contact you as soon as possible',
+      ),
+      'qforms_last_element_id' => 5,
+    );
+  }
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Qforms extra functionality',
+      'description' => 'Tests functionalities of qforms extra module.',
+      'group' => 'Qforms extra'
+    );
+  }
+
+  protected function setUp() {
+    parent::setUp('qforms', 'qforms_extra');
+
+    $perm = array('create qform content', 'edit own qform content', 'delete own qform content', 'view and submit qform');
+    $this->authUser = $this->drupalCreateUser($perm);
+    $this->drupalLogin($this->authUser);
+  }
+
+  public function testQformExtraContent() {
+    $this->addContent();
+    $this->drupalGet('node/1');
+    $passed = $this->assertText(t('Enter your number id'));
+    $passed = $passed && $this->assertField('qforms_element_1_number', t('Founded input number.'));
+    $passed = $passed && $this->assertText(t('Enter your number id for identification'));
+    $this->assert($passed, t('First field of a type number is OK'));
+    $passed = $this->assertText(t('Your e-mail address'));
+    $passed = $passed && $this->assertField('qforms_element_2_email', t('Founded input email.'));
+    $passed = $passed && $this->assertText(t('Please enter your e-mail address that we can contact you'));
+    $this->assert($passed, t('Second field of a type email is OK'));
+    $passed = $this->assertText(t('Your site address'));
+    $passed = $passed && $this->assertFieldByName('qforms_element_3_url', 'http://', t('Founded input site with default value "http://".'));
+    $passed = $passed && $this->assertText(t('If you have site you can enter address'));
+    $this->assert($passed, t('Third field of a type url is OK'));
+    $passed = $this->assertText(t('Dead line for support'));
+    $passed = $passed && $this->assertField('qforms_element_4_date', t('Founded input date.'));
+    $passed = $passed && $this-> assertText(t('Date till we must support you'));
+    $this->assert($passed, t('First field of a type number is OK'));
+    $passed = $this->assertText(t('Our operator will contact you as soon as possible'), t('Fifth field of type markup is OK'));
+
+    $this->addData();
+    // Test view of the node previously populated with data.
+    $this->drupalGet('node/1/qforms-result/1');
+    $passed = $this->assertFieldByName('qforms_element_1_number', 111, 'Number\'s value OK.');
+    $passed = $this->assertFieldByName('qforms_element_2_email', 'someuser@somesite.domain', 'Email\'s value OK.') && $passed;
+    $passed = $this->assertFieldByName('qforms_element_3_url', 'http://somesite.domain', 'Url\'s value OK.') && $passed;
+    $passed = $this->assertFieldByName('qforms_element_4_date', '2008.02.11', 'Date\'s value OK.') && $passed;
+    $passed = $this->assert($passed, 'View is OK.');
+
+    // Try to submit invalid data.
+    $this->addData(2, '11a', 'someuser#somesite', 'somesite.somedomain', '11-02-2011');
+    $passed = $this->assertText('You need to enter a valid number.', 'Number validation OK.');
+    $passed = $this->assertText('You need to enter a valid email address.', 'Email validation OK.') && $passed;
+    $passed = $this->assertText('You need to enter a valid url.', 'Url validation OK.') && $passed;
+    $passed = $this->assertText('You need to enter a valid date.', 'Date validation OK.') && $passed;
+    $this->assert($passed, 'Validation is OK.');
+  }
+
+  public function testExport() {
+    module_load_include('inc', 'qforms', 'qforms.pages_export');
+    $this->addContent();
+    // After data has been submited.
+    $this->addData();
+    $node = $this->drupalGetNodeByTitle(t('Support questionare'));
+    $exported_results = qforms_results_submissions_export_base($node);
+    $file_content = $exported_results['file_content'];
+
+    $passed = (substr_count($file_content, 'Our operator will contact you as soon as possible') > 0) ? FALSE : TRUE;
+    $this->assert($passed, t("Markup hasn't been exported"));
+  }
+
+  /**
+   *  Add qform content/node.
+   */
+  public function addContent($qform_extra_def = NULL, $node_id = NULL) {
+    $edit['title'] = t('Support questionare');
+    if ($qform_extra_def == NULL) {
+      $qform_extra_def = $this->getQformExtraDefinition();
+    }
+    if ($node_id == NULL) {
+      $node_id = 1;
+    }
+    $this->drupalPost('node/add/qform', $edit, t('Save'));
+    $this->assertText(t('Qform @title has been created.', array('@title' => $edit['title'])));
+    $this->drupalGet('node/' . $node_id);
+
+    $this->drupalGet('node/' . $node_id . '/edit');
+    qforms_db_delete_form($node_id);
+    qforms_db_save_form($node_id, serialize($qform_extra_def), '');
+
+    $this->drupalGet('node/' . $node_id . '/edit');
+  }
+
+  /**
+   *  Popoulate form with data.
+   */
+  public function addData($node_id = 1, $number = 111, $email = 'someuser@somesite.domain',
+    $url = 'http://somesite.domain', $date = '2008.02.11') {
+
+    $this->drupalGet('node/' . $node_id);
+    $datas['qforms_element_1_number'] = $number;
+    $datas['qforms_element_2_email'] = $email;
+    $datas['qforms_element_3_url'] = $url;
+    $datas['qforms_element_4_date'] = $date;
+
+    $this->drupalPost('node/1', $datas, t('Submit'));
+    $this->assertText(t('Submission results'));
+  }
+}
