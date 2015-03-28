@@ -1,12 +1,15 @@
 <?php
 
+module_load_include('inc', 'yearmanager', 'db');
+
 /*
  * Stores grouping into database
  */
-function saveGroups($groups, $year, $percentage, $weighting) {
+function saveGroups($groups, $year, $percentage, $weighting, $nickname) {
     db_insert('maestro_matched_trios')
         ->fields(array(
             'timestamp' => date('Y-m-d H:i:s'),
+            'nickname' => $nickname,
             'mentoring_year' => $year,
             'weightings'  => json_encode($weighting),
             'percentage'  => $percentage,
@@ -16,11 +19,25 @@ function saveGroups($groups, $year, $percentage, $weighting) {
 }
 
 /*
+ * Verifies that the nickname is valid
+ */
+function verifyValidNickname($nickname) {
+    $year = getYear();
+    $db_this_year = db_select('maestro_matched_trios', 'mmt')
+        ->fields('mmt')
+        ->condition('nickname', $nickname, '=')
+        ->condition('mentoring_year', $year, '=')
+        ->execute()
+        ->fetchAll();
+    return count($db_this_year) == 0;
+}
+
+/*
  * Gets participants from the database
  */
 function getParticipants($year, $weighting) {
     // First get name of participant tables
-    list($mentor_table_name, $student_table_name) = getDatabaseTableNames($year);
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
     // ================= get mentors =================
     $mentors_from_db = db_select($mentor_table_name, 'mtn')

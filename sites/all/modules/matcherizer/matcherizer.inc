@@ -24,7 +24,7 @@ function sortAttributes(&$attr) {
 /*
  * Generates matches from the database entry
  */
-function match($year, $weighting) {
+function match($year, $weighting, $nickname) {
     list($students, $mentors) = getParticipants($year, $weighting);
 
     // Split students into junior and senior
@@ -71,11 +71,19 @@ function match($year, $weighting) {
     $groups = array();
 
     for ($i = 0; $i < count($groups_ms); ++$i) {
+        $rand_a = 0; $rand_b = 0; $rand_c = 0;
+        while ($rand_a == 0 && $rand_b == 0 && $rand_c == 0) {
+            $rand_a = rand(0, 1);
+            $rand_b = rand(0, 1);
+            $rand_c = rand(0, 1);
+        }
+
         $curr = array(
             'mentor' => strval($mentors[$groups_ms[$i]['mentor']]['id']),
             'senior' => strval($seniors[$groups_ms[$i]['senior']]['id']),
             'junior' => strval($juniors[$groups_js[$i]['junior']]['id']),
             'similarity' => strval(($groups_js[$i]['similarity'] + $groups_ms[$i]['similarity']) / $max_score),
+            'kickoff' => array('1' => $rand_a, '2' => $rand_b, '3' => $rand_c),
             );
         array_push($groups, $curr);
         $total_score += ($groups_js[$i]['similarity'] + $groups_ms[$i]['similarity']);
@@ -86,7 +94,7 @@ function match($year, $weighting) {
     $percentage = $total_score / $count / $max_score;
 
     // Store into database
-    saveGroups($groups, $year, $percentage, $weighting);
+    saveGroups($groups, $year, $percentage, $weighting, $nickname);
 }
 
 /*
