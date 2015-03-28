@@ -1,0 +1,146 @@
+<?php
+
+//include_once DRUPAL_ROOT . '/includes/database/database.inc';
+module_load_include('inc', 'kickoff', 'kickoff');
+
+$GLOBALS['MAX_GROUP_SIZE'] = 3;
+
+function get_person_from_db_row($record)
+{
+	return array("name" => $record->first_name, "prefs" => ["year" => 1, "hobbies" => explode(',', $record->hobbies_interests)]);
+}
+
+function get_person_info_from_db($id, $mentor)
+{
+	$tablePart = '';
+	if ($mentor) { $tablePart = 'mentor'; } else { $tablePart = 'student'; }
+	
+	$result = db_query("SELECT * FROM maestro_signup_$tablePart". "_20142015 WHERE id = :id", array(':id' => $id));
+	
+	foreach ($result as $record)
+	{	
+		return get_person_from_db_row($record);
+	}
+}
+
+function get_data()
+{
+	$result = db_query('SELECT * FROM maestro_matched_trios');
+// Result is returned as a iterable object that returns a stdClass object on each iteration
+	$jsonTrios = null;
+	$jsonResult = null;
+	
+	$people = array();
+	foreach ($result as $record)
+	{
+		$data = $record->trios;
+		$jsonResult = json_decode($data, true);
+		
+		//var_dump($jsonResult);
+		#[{"mentor":"90","senior":"200","junior":"40", "similarity":"0.44"}, {"mentor":"44","senior":"113","junior":"199", "similarity":"0.43"}, {"mentor":"10","senior":"22","junior":"2", "similarity":"0.42"}]
+		#array(4) { ["mentor"]=> string(2) "10" ["senior"]=> string(2) "22" ["junior"]=> string(2) "40" ["similarity"]=> string(4) "0.50" } 
+		$trioId = 0;
+		foreach ($jsonResult as $trio)
+		{
+			# [{"senior": 155, "junior": 160, "mentor": 84}, {}, {}]
+			$mentorId = intval($trio['mentor']);
+			$seniorId = intval($trio['senior']);
+			$juniorId = intval($trio['junior']);
+			
+			$personInfo = get_person_info_from_db($mentorId, true);
+			$seniorInfo = get_person_info_from_db($seniorId, false);
+			$juniorInfo = get_person_info_from_db($juniorId, false);
+			$personInfo['trio'] = $trioId;
+			$seniorInfo['trio'] = $trioId;
+			$juniorInfo['trio'] = $trioId;
+			$personInfo['nights'] = array();
+			$juniorInfo['nights'] = array();
+			$seniorInfo['nights'] = array();
+			
+			array_push($people, $personInfo);
+			array_push($people, $seniorInfo);
+			array_push($people, $juniorInfo);
+			
+			++$trioId;
+		}
+		break;
+	}
+	
+	return $people;
+}
+
+function kickoff_menu()
+{
+  $items = array();
+  
+
+$items['kickoff'] = array( //this creates a URL that will call this form at "examples/form-example"
+    'title' => 'Kickoff Night Group Generator', //page title
+    'description' => 'Generates kickoff night groups.',
+    'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'page arguments' => array('kickoff_form'), //put the name of the form here
+    'access callback' => TRUE
+  );
+  
+  return 
+
+$items;
+}
+
+function kickoff_form($form, &$form_state)
+{
+  #$people = get_data();
+  $people = array(
+	array("name" => "Bill", "trio" => 4, "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
+	,array("name" => "Eric", "trio" => 1, "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
+	,array("name" => "Ted", "trio" => 3, "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
+	,array("name" => "Alvin", "trio" => 2, "nights" => [4=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
+	//,array("name" => "Alvin2", "prefs" => ["year" => 0])
+	//,array("name" => "Alvin3", "prefs" => ["year" => 0])
+	);
+  #echo(count($people) . ' people total. <br />');
+  #printGroups(kickoff(1,$people));
+  
+  $form['some_text'] = array(
+      '#markup' => count($people) . ' people total. <br />' . outputGroups(kickoff(1,$people)));
+  
+  $form['name'] = array(
+    '#type' => 'textfield', //you can find a list of available types in the form api
+    '#title' => "What is Your Name?",
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#required' => TRUE, //make this field required 
+  );
+  
+  $form['price'] = array(
+    '#type' => 'textfield', //you can find a list of available types in the form api
+    '#title' => 'What is Your Price?',
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#required' => TRUE, //make this field required 
+  );
+
+  $form['submit_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Click Here!'),
+  );
+  
+  return $form;
+}
+
+function kickoff_form_validate($form, &$form_state)
+{
+	if (!($form_state['values']['price'] > 0))
+	{
+		form_set_error('price', t('Price must be a positive number.'));
+	}
+}
+
+function kickoff_form_submit($form, &$form_state)
+{
+  $values = $form_state['values'];
+  db_insert('dbtng_example')
+    ->fields(array('name' => $values['name'], 'price' => $values['price']))
+    ->execute();
+
+}
