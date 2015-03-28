@@ -12,7 +12,31 @@ function getYear() {
         ->{'year'};
 }
 
-/* Get database table names for signup form
+/*
+ * Get all years and information
+ */
+function getYearsInfo() {
+    $values = db_select('maestro_years', 'my')
+        ->fields('my')
+        ->execute()
+        ->fetchAll();
+
+    $result = array();
+    foreach ($values as $curr) {
+        $cv = array(
+            'year'     =>        $curr->{'year'},
+            'active'   => (bool) $curr->{'active'},
+            'archived' => (bool) $curr->{'archived'},
+            );
+
+        array_push($result, $cv);
+    }
+
+    return $result;
+}
+
+/*
+ * Get database table names for signup form
  * Returns list(mentor, student)
  */
 function getParticipantTableNames($year) {
