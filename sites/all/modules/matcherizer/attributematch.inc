@@ -2,6 +2,7 @@
 
 module_load_include('inc', 'yearmanager', 'db');
 module_load_include('inc', 'matcherizer', 'db');
+module_load_include('inc', 'matcherizer', 'stablematch');
 
 /*
  * Generate attribute scores within a trio
@@ -47,6 +48,7 @@ function getAttributeScoreTrio($trio, $weights) {
 
     $from = array($mentor, $senior, $senior, $junior, $junior);
     $to   = array($senior, $mentor, $junior, $senior, $mentor);
+    $high = array(TRUE,    FALSE,   TRUE,    FALSE,   FALSE);
 
     $score = 0.0;
     $max_score = 0.0;
@@ -54,8 +56,11 @@ function getAttributeScoreTrio($trio, $weights) {
     for ($i = 0; $i < 5; ++$i) {
         $curr_from = $from[$i];
         $curr_to   = $to[$i];
+        if (!goodKickoff($curr_from['kickoff'], $curr_to['kickoff'])) {
+            continue;
+        }
         foreach ($weights as $pref_name => $pref_weight) {
-            if (goodMatch($curr_from, $curr_to, $pref_name)) {
+            if (goodMatch($curr_from, $curr_to, $pref_name, $high[$i])) {
                 $score += $pref_weight;
             }
             $max_score += $pref_weight;
@@ -63,7 +68,61 @@ function getAttributeScoreTrio($trio, $weights) {
     }
 
     return $score / $max_score;
-    //return array($score / $max_score, '{"1":0,"2":1,"3":1}');
+}
+
+/*
+ * Returns the kickoff availability of the trio
+ */
+function getKickoffAvailabilityTrio($trio) {
+
+    $mentor_id = $trio['mentor'];
+    $senior_id = $trio['senior'];
+    $junior_id = $trio['junior'];
+
+    $weights = json_decode($weights);
+
+    // Get participants
+    $year = getYear();
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
+
+    $mentor = getMentor(
+        db_select($mentor_table_name, 'mtn')
+            ->fields('mtn')
+            ->condition('id', $mentor_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
+
+    $senior = getStudent(
+        db_select($student_table_name, 'stn')
+            ->fields('stn')
+            ->condition('id', $senior_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
+
+    $junior = getStudent(
+        db_select($student_table_name, 'stn')
+            ->fields('stn')
+            ->condition('id', $junior_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
+
+    $kickoff_availability = getKickoffAvailability(
+        getKickoffAvailability(
+            $mentor['kickoff'],
+            $senior['kickoff'],
+            TRUE
+            ),
+        $junior['kickoff'],
+        FALSE
+        );
+
+    return $kickoff_availability;
 }
 
 /*

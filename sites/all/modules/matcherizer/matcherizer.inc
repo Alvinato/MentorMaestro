@@ -102,8 +102,7 @@ function match($year, $weighting) {
             'senior'     => strval($seniors[$groups_jsm[$i]['senior']]['id']),
             'junior'     => strval($juniors[$groups_jsm[$i]['junior']]['id']),
             'similarity' => strval($groups_jsm[$i]['similarity'] / $max_score),
-            'kickoff'    => $groups_jsm[$i]['kickoff'],
-            //'kickoff'    => array('Sep 24, 2014' => $rand_a, 'Sep 25, 2014' => $rand_b, 'Oct 2, 2014' => $rand_c),
+            'kickoff'    => $groups_jsm[$i]['kickoff']
             );
         array_push($groups, $curr);
         $total_score += $groups_jsm[$i]['similarity'];

@@ -4,7 +4,7 @@
  * Returns whether the two people can attend the same kickoff night
  * If one person is unable to attend any, return true
  */
-function getKickoffAvailability($from, $to) {
+function getKickoffAvailability($from, $to, $allowZeroes) {
     $from_no = TRUE;
     $to_no = TRUE;
     $availability = array();
@@ -14,8 +14,10 @@ function getKickoffAvailability($from, $to) {
         if ($from_curr) $from_no = FALSE;
         if ($to_curr)   $to_no   = FALSE;
     }
-    if ($from_no) $availability = $to;
-    if ($to_no)   $availability = $from;
+    if ($allowZeroes) {
+        if ($from_no) $availability = $to;
+        if ($to_no)   $availability = $from;
+    }
     return $availability;
 }
 
@@ -63,7 +65,7 @@ function stableMatch($ab_rank, $ba_rank, $a_name, $b_name, $a_kickoff, $b_kickof
             $curr_ba_score = $curr_b_ranks[$curr_a][1];
 
             // Kickoff availability of the new match
-            $kickoff_availability = getKickoffAvailability($curr_a_kickoff, $curr_b_kickoff);
+            $kickoff_availability = getKickoffAvailability($curr_a_kickoff, $curr_b_kickoff, TRUE);
 
             // if score of new guy is higher
             if ($curr_ba_score > $old_ba_score) {
@@ -80,7 +82,7 @@ function stableMatch($ab_rank, $ba_rank, $a_name, $b_name, $a_kickoff, $b_kickof
             $curr_ba_score = $curr_b_ranks[$curr_a][1];
 
             // Kickoff availability of the new match
-            $kickoff_availability = getKickoffAvailability($curr_a_kickoff, $curr_b_kickoff);
+            $kickoff_availability = getKickoffAvailability($curr_a_kickoff, $curr_b_kickoff, TRUE);
 
             // Match the two together
             $matched_b[$curr_b] = array($curr_a, $curr_ab_score + $curr_ba_score, $kickoff_availability);
@@ -148,7 +150,7 @@ function stableMatchGroup($jg_rank, $gj_rank, $groups, $j_kickoff) {
             $curr_gj_score = $curr_g_ranks[$curr_j][1];
 
             // Kickoff availability of the new match
-            $kickoff_availability = getKickoffAvailability($curr_j_kickoff, $curr_g_kickoff);
+            $kickoff_availability = getKickoffAvailability($curr_j_kickoff, $curr_g_kickoff, FALSE);
 
             // if score of new guy is higher
             if ($curr_gj_score > $old_gj_score) {
@@ -165,7 +167,7 @@ function stableMatchGroup($jg_rank, $gj_rank, $groups, $j_kickoff) {
             $curr_gj_score = $curr_g_ranks[$curr_j][1];
 
             // Kickoff availability of the new match
-            $kickoff_availability = getKickoffAvailability($curr_j_kickoff, $curr_g_kickoff);
+            $kickoff_availability = getKickoffAvailability($curr_j_kickoff, $curr_g_kickoff, FALSE);
 
             // Match the two together
             $matched_g[$curr_g] = array($curr_j, $curr_jg_score + $curr_gj_score, $kickoff_availability);
