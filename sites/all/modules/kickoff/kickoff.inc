@@ -105,6 +105,19 @@ function getIdFromTitle($title)
 	return 0;
 }
 
+function getTitleFromId($id)
+{
+	switch ($id)
+	{
+		case 1:
+			return 'junior';
+		case 2:
+			return 'senior';
+		default:
+			return 'mentor';
+	}
+}
+
 class Group
 {
 	private $people = array();
@@ -126,7 +139,15 @@ class Group
 	public function getSeniors() { return $people[1]; }
 	public function getJuniors() { return $people[2]; }
 	
-	
+	public function getPersonIds($type)
+	{
+		$ids = array();
+		foreach ($this->people[$type] as $person)
+		{
+			array_push($ids, $person['id']);
+		}
+		return $ids;
+	}
 	
 	public function addPerson($person)
 	{

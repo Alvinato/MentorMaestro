@@ -36,18 +36,33 @@ function countAvailability($availabilities)
 	return $count;
 }
 
-function getTrioBuckets()
+function getMatchings($year)
 {
-	$currentYear = getYear();
-
 	$result = db_select('maestro_matched_trios', 'mmt')
-        ->fields('mmt')
-        ->condition('mentoring_year', $currentYear, '=')
+        ->fields('mmt',array('id', 'timestamp', 'percentage'))
+        ->condition('mentoring_year', $year, '=')
+        ->execute()
+        ->fetchAll();
+		
+	$matchings = array();
+	foreach ($result as $record)
+	{
+		$matchings[$record->id] = $record->timestamp . " (Percentage: " . $record->percentage. ")";
+	}
+	return $matchings;
+}
+
+function getTrioBuckets($id)
+{
+	$result = db_select('maestro_matched_trios', 'mmt')
+        ->fields('mmt', array('trios'))
+        //->condition('mentoring_year', $year, '=')
+        ->condition('id', $id, '=')
         ->execute()
         ->fetchAll();
 		
 	#echo $currentYear;
-	list($mentor_table_name, $student_table_name) = getParticipantTableNames($currentYear);
+	list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 // Result is returned as a iterable object that returns a stdClass object on each iteration
 	$jsonTrios = null;
 	$jsonResult = null;
@@ -186,6 +201,38 @@ function outputAllGroups($allGroups)
 	return $html;
 }
 
+function ajax_callback($form, $form_state)
+{
+	//$whichMatching = $form_state['values']['matching'];
+	// rebuild whole form with new values
+    //$form_state['rebuild'] = true;
+	//return $whichMatching . ' ' . outputAllGroups(generateGroups());
+
+	return $form['result'];
+}
+
+function generateGroups($id)
+{
+	list($allNights, $buckets) = getTrioBuckets($id);
+	//printTrioBuckets($buckets);
+	$nights = distributeBucketsIntoNights($allNights, $buckets);
+	//printNights($nights);
+	
+	$allGroups = array();
+	foreach ($nights as $night=>$trios)
+	{
+		$people = flattenTrios($trios);
+		$groups = kickoff($night,$people);
+		//$fixedGroups = fixGroups($groups);
+		$allGroups[$night] = $groups;
+		//writeToDatabase($currentYear, $night, $groups);
+	}
+	
+	return $allGroups;
+}
+
+$currentYear = 0;
+
 function kickoff_form($form, &$form_state)
 {
 	//$people = get_data();
@@ -200,46 +247,49 @@ function kickoff_form($form, &$form_state)
 	$groups = kickoff(1, $people);*/
 	#echo(count($people) . ' people total. <br />');
 	#printGroups(kickoff(1,$people));
-	list($allNights, $buckets) = getTrioBuckets();
-	//printTrioBuckets($buckets);
-	$nights = distributeBucketsIntoNights($allNights, $buckets);
-	//printNights($nights);
 	
-	$allGroups = array();
-	foreach ($nights as $night=>$trios)
+	$currentYear = getYear();
+	$matchings = getMatchings($currentYear);
+	
+	$form['matching'] = array(
+		'#type' => 'select',
+		'#options' => $matchings,
+		'#title' => t('Matching:'),
+		
+		'#ajax' => array(
+			'callback' => 'ajax_callback',
+			'wrapper' => 'result_div'
+		)
+	);
+	
+	/*$form['blah'] = array(
+		'#type' => 'button',
+		'#value' => 'Generate',
+		'#ajax' => array(
+			'callback' => 'ajax_callback',
+			'wrapper' => 'result_div'
+		)
+	);*/
+	
+	if (array_key_exists('values', $form_state))
 	{
-		$people = flattenTrios($trios);
-		$groups = kickoff($night,$people);
-		//$fixedGroups = fixGroups($groups);
-		$allGroups[$night] = $groups;
+		$content = outputAllGroups(generateGroups($form_state['values']['matching']));
+	}
+	else
+	{
+		$content = '';
 	}
 	
+	$form['result'] = array(
+	  '#prefix' => '<div id="result_div">',
+	  '#markup' => $content,
+	  '#suffix' => '</div>'
+	  );
   
-	$form['some_text'] = array(
+	/*$form['some_text'] = array(
 	  '#markup' =>
 	  count($people) . ' people total. <br />' . outputAllGroups($allGroups)
-	  );
-
-	$form['name'] = array(
-	'#type' => 'textfield', //you can find a list of available types in the form api
-	'#title' => "What is Your Name?",
-	'#size' => 10,
-	'#maxlength' => 10,
-	'#required' => TRUE, //make this field required 
-	);
-
-	$form['price'] = array(
-	'#type' => 'textfield', //you can find a list of available types in the form api
-	'#title' => 'What is Your Price?',
-	'#size' => 10,
-	'#maxlength' => 10,
-	'#required' => TRUE, //make this field required 
-	);
-
-	$form['submit_button'] = array(
-	'#type' => 'submit',
-	'#value' => t('Click Here!'),
-	);
+	  );*/
 
 	return $form;
 }
@@ -250,6 +300,28 @@ function kickoff_form_validate($form, &$form_state)
 	{
 		form_set_error('price', t('Price must be a positive number.'));
 	}
+}
+
+function writeToDatabase($year, $night, $groups)
+{
+	$jsonGroups = array();
+	foreach ($groups as $group)
+	{
+		$json = array();
+		for ($x = 0; $x < 3; ++$x)
+		{
+			$json[getTitleFromId($x)] = $group->getPersonIds($x);
+		}
+		array_push($jsonGroups, $json);
+	}
+	
+	$jsonStringGroups = json_encode($jsonGroups);
+	
+	db_insert('maestro_matched_kickoff_groups')
+	->fields(array('timestamp' => date('Y-m-d H:i:s'),
+	'mentoring_year' => $year, 'kickoff_night' => $night
+	, 'groups' => $jsonStringGroups))
+	->execute();
 }
 
 function kickoff_form_submit($form, &$form_state)
