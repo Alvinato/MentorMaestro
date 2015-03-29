@@ -6,6 +6,7 @@ require_once DRUPAL_ROOT . '/includes/common.inc';
 require_once DRUPAL_ROOT . '/includes/module.inc';
 require_once DRUPAL_ROOT . '/includes/unicode.inc';
 require_once DRUPAL_ROOT . '/includes/file.inc';
+module_load_include('inc', 'matcherizer', 'attributematch');
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
 include 'ChromePhp.php';
@@ -93,29 +94,105 @@ Chromephp::log($args);
 
 // this function updates the json file when there is any movement inside the javascript
 // we need it to recalculate the weights and output them onto the screen...
+// arguments1 is the json file that is sent from javascript...
 function add($arguments1){  
-  
+   // Chromephp::log("inside the add function");
   $decoded = json_decode($arguments1);
 
-  json_fixer($decoded);  
+  Chromephp::log("add is running");
+  // loop through this...
+  for ($g = 0; $g < count($decoded->children); $g++){  
+        $current_group = $decoded->children[$g];  
+       //  Chromephp::log("inside the first loop"); 
+        Chromephp::log($current_group); 
+         // check if the size is three... 
+       
+
+         $MENTOR_INDEX = -1;  // holds the index that we are going to get...
+         $SENIOR_INDEX = -1;
+         $JUNIOR_INDEX = -1;
+         
+        $applicant_senior;  
+        $applicant_mentor;
+        $applicant_junior;
+           if (count($current_group->children) != 3){
+          continue;
+        }
+         // lets go through every single one now..
+        for($r=0; $r < count($current_group->children);$r++){
+          
+           // Chromephp::log("inside teh second loop");
+            $applicant = $current_group->children[$r];
+            $applicant_name = $applicant->name;
+            $applicant_familyname = $applicant->familyname;
+            // we need to push something to this array. 
+            // now we need to call his function... 
+            $applicant_position = $applicant->position;
+            $mentor = "Mentor";
+        //   Chromephp::log("before the first loop...");
+            if ($applicant_position == $mentor){
+         //     Chromephp::log("we found a mentor");
+              $applicant_mentor = $applicant; // set the mentor object...
+              $MENTOR_INDEX = traverser($applicant_name, $applicant_familyname, "mentor");
+            }
+            $junior = "Junior";
+            if ($applicant_position == $junior){
+              $applicant_junior = $applicant; // set the junior
+              $JUNIOR_INDEX = traverser($applicant_name, $applicant_familyname, "junior");
+            }
+            $senior = "Senior";
+            if ($applicant_position == $senior){
+              $applicant_senior = $applicant; // set the senior object...
+              $SENIOR_INDEX = traverser($applicant_name, $applicant_familyname, "senior");
+            }
+
+     //       Chromephp::log("after gatherign everything.");
+        }
+
+        // calculate the weighting after the loop...
+        // need to create the correct array..
+        // now lets create the trio... 
+        if($MENTOR_INDEX == -1)
+          continue;
+        if($JUNIOR_INDEX == -1)
+          continue;
+        if($JUNIOR_INDEX == -1)
+          continue;
+
+         $trio = array('mentor' => $MENTOR_INDEX,
+                  'senior' => $SENIOR_INDEX, 
+                  'junior' => $JUNIOR_INDEX
+              );
+
+         //we also have to query the weights.. hardcode for now
+         $weights = '{"gender_pref":"4","cs_interests":"5","hobbies_interests":"1"}';
+
+        $percentage1 = getAttributeScoreTrio($trio, $weights);
+   //     Chromephp::log("this is the percentage found:  ". $percentage1);   
+        $applicant_senior->{'weighting'} = $percentage1;
+        $applicant_mentor->{'weighting'} = $percentage1;
+        $applicant_junior->{'weighting'} = $percentage1;
+        /*Chromephp::log($applicant_senior);
+        Chromephp::log($applicant_mentor);
+        Chromephp::log($applicant_junior);*/
+
+  } 
+
+  Chromephp::log("the loop finished");
+  // we alter the json file before sending it in
+ // Chromephp::log("outside the important part here");
+  //Chromephp::log($decoded);
+  $encode = json_encode($decoded);
   $file = 'TESTING.json';  
-  file_put_contents($file, $arguments1);
+  file_put_contents($file, $encode);
 
-Chromephp::log("after altering the json file"); 
-Chromephp::log("we are going to call weight changer "); 
 
-$weights = computeWeights();
-
+//TODO!! 
+// right here we are going to calculate the overrall score and return... 
 
 }
 
 
-
-// might not need this function because we can just place it right into the json file... 
-function computeWeights(){
-
-
-}
 // function saves the json file into the database.
 // we need a checker in the start that says whether or not we can save because some groups are not trios...
 function save($arguments1){
@@ -123,12 +200,12 @@ function save($arguments1){
   
   $decoded = json_decode($arguments1);  // takes in the json file
       
-//$answer=right_form_checker($decoded); // if this is null then continue, elsereturn
+$answer=right_form_checker($decoded); // if this is null then continue, elsereturn
 
-/*if(!is_null($answer)){
- if returned msg.
+if(!is_null($answer)){
+// if returned msg.
   return $answer;
-}*/
+}
 
   Chromephp::log($decoded);
   
@@ -194,7 +271,7 @@ array_push($thearray, $myArray); // push the array...
   
   // lets print the array and see... 
 Chromephp::log($thearray);
-$encode = json_encode($thearray);
+$encode = json_encode($thearray);  // this
 Chromephp::log($encode);
 
 
@@ -220,7 +297,7 @@ function traverser($firstname, $lastname, $choose){
   }else{
     
     $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-    Chromephp::log($query);
+    //Chromephp::log($query);
   }
     $result1 = db_query($query)->fetchAll();
       
@@ -283,7 +360,6 @@ for ($g = 0; $g < count($json_input->children); $g++){  // go through the json f
   }
 
   }
-  }
-
+  }  
 
 ?>

@@ -247,7 +247,7 @@ function d3_examples_mentor()
       array_push($final_array[children], $group_array_start);
     }
   }
-    Chromephp::log("changing the json file before rendering the page..."); 
+    //Chromephp::log("changing the json file before rendering the page..."); 
   $encodedJson = json_encode($final_array);
 
   $file = 'TESTING.json';  

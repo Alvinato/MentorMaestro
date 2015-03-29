@@ -68,22 +68,22 @@
         var steps = [];  // an empty array for now...
         var stepCount = -2; // this will hold the index that we should move back on...
         function undo(){
-            console.log(stepCount);
+          //  console.log(stepCount);
             if(stepCount <= -1){
                 alert("nothing left to undo!");
                 return;
             }
 
-            console.log(steps[stepCount]);
+           // console.log(steps[stepCount]);
             var jsonStringinput = steps[stepCount];  // this is holding the json input...
-            console.log(steps);
+           // console.log(steps);
             steps.pop();// pops the last element off;
             stepCount--;
-            console.log("after popping the last step");
-            console.log(steps);
+            //console.log("after popping the last step");
+            //console.log(steps);
             var input = JSON.parse(jsonStringinput);
             circleSetup(input, true);
-            console.log("running the undo function right now...");
+            //console.log("running the undo function right now...");
 
 
         }
@@ -100,7 +100,7 @@
           // every time this run we need to save it to the previouss step...
 
             data = root;
-            console.log(root);
+            //console.log(root);
             // saving what is in the instance into the json file...
 
             var o = {};
@@ -129,13 +129,8 @@
             //console.log(result);
             if(!undoo) {
                 steps.push(result);  // pushes the list of strings onto the list...
-                console.log(steps.length);  // print out the length of the array...
-                console.log(steps); // print out the array of json strings...
                 stepCount++;
             }
-            /*for(var i = 0; i < steps.length; i++){
-                console.log(steps[i]); // print out every string that is going to be added...
-            }*/
 
             var object =  jQuery.ajax({
                 type: "POST",
@@ -145,17 +140,31 @@
 
                 success: function (obj, textstatus) {
                     if( !('error' in obj)) {
-                        yourVariable = obj.result;
+                    //    console.log("this is running right now");
+                        var result = obj.result;
+
+                       // console.log("the result from the javascript side " + obj.result);
+
+                        // now we need to change the text file...
+
+                        var similaritiesNumber = keys.append("g"); // this is going to set up just text that will show the overrall similarities
+
+                        similaritiesNumber.append("text")
+                            .text(function(){
+
+                                // return the overrall score!!...
+                                return "Similarity Rating: " + result;
+
+                            })
+                            .attr("x",550)
+                            .attr("y",10);
+
                     }
                     else {
 
                     }
                 }
             });
-
-
-
-
             ary.splice(0,ary.length);
             ary2.splice(0,ary.length);
             // because of this we need to place the legend stuff inside here...
@@ -255,17 +264,18 @@
 
                     success: function (obj, textstatus) {
                         if( !('error' in obj) ) {
-                            yourVariable = obj.result;
+                            //yourVariable = obj.result;
                             // TODO!! going to return an error message.
                             //  going to be a string saying how the trios arent matched properly.
                             // and then we are going to return an alert message...
+
                              if (obj.result != null){
                                  alert(obj.result);  }
 
                         }
                         else {
 
-                                  console.log(obj.error);
+                             //     console.log(obj.error);
                         }
                     }
                 });
@@ -273,9 +283,9 @@
             });
 
            var button3 = keys.append("g").on("click", function(){
-               var myWindow = window.open("examples/bubbles#overlay-context=", "", "width=400, height=400"); 
+               var myWindow = window.open("examples/bubbles#overlay-context=", "", "width=400, height=400");
                 // we need the add button to send input through to this window here...
-                // why dont we just call a php function here.    
+                // why dont we just call a php function here.
            });
             var button4 = keys.append("g").on("click", function(){  // comparison button
                 // comparing with itself right now...
@@ -289,20 +299,6 @@
 
             });
 
-            var similaritiesNumber = keys.append("g"); // this is going to set up just text that will show the overrall similarities
-
-            similaritiesNumber.append("text")
-                                .text(function(){
-
-                                console.log("inside the text figuring out what to write");
-
-                                 // here we are going to call the ajax function...
-
-                                return "Similarity Rating: " + "80%";
-
-                })
-                                .attr("x",550)
-                                .attr("y",10);
 
             button1.append("rect")
                 .attr("fill", "white")
@@ -771,7 +767,7 @@
                 var radius = gr + r;                // adding the two radius to compare.
                 // have to make sure that it is not the same group...
                 if (radius >= distance){
-                    console.log("OVERLAPP!!!");
+                  //  console.log("OVERLAPP!!!");
                     daName = gName;
                     // once you find where its overlap send the name of the overlap group and the thing that was dragged...
                     jsonChanger(daName, d, false);  // input the group name and the thing that was dragged.
@@ -817,7 +813,7 @@
 
         // this function will run everytime a circle is placed outside of another group... it will form its own group...
         function addGroup(d){
-            console.log("add a group is running right now!!");
+           // console.log("add a group is running right now!!");
             var theEmail = d.Email;
             for (var i in data){
                 for(var t in data[i]){
@@ -886,8 +882,8 @@
 
 // accepts name of group and the dragged item.
         function jsonChanger(daName, d, remove){
-           console.log("inside the json changer right now!!");
-            console.log("this is the remove value"+ remove);  // this is the remove value...
+         //  console.log("inside the json changer right now!!");
+          //  console.log("this is the remove value"+ remove);  // this is the remove value...
             // deleting from a certain group...
             var theEmail = d.Email;
             for (var i in data){
@@ -899,7 +895,7 @@
                             //console.log(currentThing[k].Email);
                             if(currentThing[k].Email == theEmail){
                                 var index = currentThing.indexOf(currentThing[k]);
-                                console.log(currentThing[index]);
+            //                    console.log(currentThing[index]);
                                 currentThing.splice(index, 1);
                             }
                         }
@@ -1186,10 +1182,31 @@
                             }
                         }
                     }
-                   x = x + r - 90; // making it the top right hand side
-                    y = y - r + 30;
+                   x = x + r ; // making it the top right hand side
+                    y = y - r + 0;
                     return 'translate(' +  x + ',' + y + ')'; }); // use x and y for now...
-            d3.tooltip(tooltip, "80%");
+
+
+                //TODO!!
+                // then make it so that it reads json so we get an updated version. if anything changes.
+
+         //   console.log(d);
+           // just check the json file for a new weighting...
+            // this is going to find the new weighting...
+            d3.json("TESTING.json", function(dataa){
+               // now lets go through adn find d.name
+                //console.log(dataa);
+                var weighting = returnweightingfromjson(dataa, d);
+
+               // console.log(weighting);
+                // we need to extract it from the json file...
+                var string =  weighting;
+
+                d3.tooltip(tooltip, string);
+
+            });
+
+
         }
 
         function hideToolTip(d, obj) {
@@ -1222,6 +1239,36 @@ function select()
 {
 document.getElementById("demo").innerHTML="The select function is called.";
 }
+
+
+function returnweightingfromjson(dataa, check){
+           //console.log(dataa)
+
+    for (var i in data) {
+        for (var t in data[i]) {
+         //   console.log(data[i][t]);
+           // console.log("inside the loop");
+            // for every group we have to find every person...
+            for (var a in data[i][t]) {
+                var currentThing = data[i][t][a];
+                for(var k in currentThing){
+               //     console.log("inside the last loop");
+             //   console.log(currentThing[k]);
+                    if(check.Email == currentThing[k].Email){
+                 //       console.log("found it!!");
+                        var weighting = currentThing[k].weighting;
+                   //     console.log("this is the weighting that we need:  " + weighting);
+                        return weighting;
+
+                    }
+            }
+        }
+        }
+    }
+
+
+}
+
 
 
 
