@@ -1,6 +1,7 @@
 <?php
 
 $GLOBALS['MAX_GROUP_SIZE'] = 9;
+$GLOBALS['MAX_MENTORS'] = 3;
 
 // diff year levels and hobbies
 $people = array(
@@ -57,12 +58,25 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentGro
 		if ($x != 0) { $currentAverage /= $x; }
 		
 		$person = 0;
-		$currentDiff = 0;
+		$currentDiff = ~PHP_INT_MAX;
+		$numMentors = $currentGroup->getNumberOfMentors();
+		error_log($numMentors);
 		$choseAtLeastOne = false;
 		for ($x = 0; $x < count($people); ++$x)
 		{
-			if (array_key_exists($people[$x]['trio'], $currentTrioIds)) { continue; }
-			$diff = $people[$x]['prefs']['year'] - $currentAverage + getDifferentHobbies($people[$x]['prefs']['hobbies'],$groupHobbies);
+			$p = $people[$x];
+			$isMentor = $p['title'] === 'mentor';
+			if ($isMentor && $numMentors === $GLOBALS['MAX_MENTORS'])
+			{
+				continue;
+			}
+			else if (!$isMentor && $numMentors < $GLOBALS['MAX_MENTORS'])
+			{
+				continue;
+			}
+			
+			if (array_key_exists($p['trio'], $currentTrioIds)) { continue; }
+			$diff = $p['prefs']['year'] - $currentAverage + getDifferentHobbies($p['prefs']['hobbies'],$groupHobbies);
 			if ($diff > $currentDiff)
 			{
 				$choseAtLeastOne = true;
@@ -79,7 +93,7 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentGro
 				$person = $x;
 				return $person;
 			}
-			echo 'WARNING: Could not choose a person optimally. Relaxing constraints. ' . $people[$person]['name'] . ' will not be happy. <br />';
+			error_log('WARNING: Could not choose a person optimally. Relaxing constraints. ' . $people[$person]['name'] . ' will not be happy. <br />');
 		}
 		return $person;
 	//}
@@ -131,13 +145,14 @@ class Group
 		}
 	}
 	
-	public function addTrioId($id) { $trioIds[$id] = true; } 
+	public function addTrioId($id) { $this->trioIds[$id] = true; } 
 	public function getTrioIds() { return $this->trioIds; }
 	
 	public function getAllPeople() { return array_merge($this->people[0],$this->people[1],$this->people[2]); }
-	public function getMentors() { return $people[0]; }
-	public function getSeniors() { return $people[1]; }
-	public function getJuniors() { return $people[2]; }
+	public function getMentors() { return $this->people[0]; }
+	public function getNumberOfMentors() { return count($this->people[0]); }
+	public function getSeniors() { return $this->people[1]; }
+	public function getJuniors() { return $this->people[2]; }
 	
 	public function getPersonIds($type)
 	{

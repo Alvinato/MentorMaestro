@@ -250,6 +250,7 @@ function kickoff_form($form, &$form_state)
 	
 	$currentYear = getYear();
 	$matchings = getMatchings($currentYear);
+	array_unshift($matchings, "Choose a matching...");
 	
 	$form['matching'] = array(
 		'#type' => 'select',
