@@ -1,38 +1,69 @@
 <?php
 
+module_load_include('inc', 'yearmanager', 'db');
+module_load_include('inc', 'matcherizer', 'db');
+
 /*
  * Generate attribute scores within a trio
  */
 function getAttributeScoreTrio($trio, $weights) {
 
-    $mentor = $trio['mentor'];
-    $senior = $trio['senior'];
-    $junior = $trio['junior'];
+    $mentor_id = $trio['mentor'];
+    $senior_id = $trio['senior'];
+    $junior_id = $trio['junior'];
 
-    $max_score = 0.0;
-    // calculate max score
-    foreach ($weights as $pref_name => $pref_weight) {
-        $max_score += $pref_weight;
-    }
+    $weights = json_decode($weights);
 
-    $max_score *= 5;
+    // Get participants
+    $year = getYear();
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
+
+    $mentor = getMentor(
+        db_select($mentor_table_name, 'mtn')
+            ->fields('mtn')
+            ->condition('id', $mentor_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
+
+    $senior = getStudent(
+        db_select($student_table_name, 'stn')
+            ->fields('stn')
+            ->condition('id', $senior_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
+
+    $junior = getStudent(
+        db_select($student_table_name, 'stn')
+            ->fields('stn')
+            ->condition('id', $junior_id, '=')
+            ->execute()
+            ->fetchObject(),
+        $weights
+        );
 
     $from = array($mentor, $senior, $senior, $junior, $junior);
     $to   = array($senior, $mentor, $junior, $senior, $mentor);
 
     $score = 0.0;
+    $max_score = 0.0;
     // calculate actual score
     for ($i = 0; $i < 5; ++$i) {
         $curr_from = $from[$i];
         $curr_to   = $to[$i];
         foreach ($weights as $pref_name => $pref_weight) {
             if (goodMatch($curr_from, $curr_to, $pref_name)) {
-                $score[$i][$j] += $pref_weight;
+                $score += $pref_weight;
             }
+            $max_score += $pref_weight;
         }
     }
 
     return $score / $max_score;
+    //return array($score / $max_score, '{"1":0,"2":1,"3":1}');
 }
 
 /*

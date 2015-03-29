@@ -43,7 +43,7 @@ function stableMatch($ab_rank, $ba_rank, $a_name, $b_name) {
 
             // if score of new guy is higher
             if ($curr_ba_score > $old_ba_score) {
-                    $matched_b[$curr_b] = array($curr_a, $curr_ab_score + $curr_ba_score);
+                    $matched_b[$curr_b]   = array($curr_a, $curr_ab_score + $curr_ba_score);
                     $keys_a[$b_old_match] = $b_old_match;
                     unset($keys_a[$curr_a]);
             }
@@ -66,8 +66,8 @@ function stableMatch($ab_rank, $ba_rank, $a_name, $b_name) {
 
     for ($i = 0; $i < count($matched_b); ++$i) {
         array_push($matches, array(
-            $a_name => $matched_b[$i][0],
-            $b_name => $i,
+            $a_name      => $matched_b[$i][0],
+            $b_name      => $i,
             'similarity' => $matched_b[$i][1],
             ));
     }

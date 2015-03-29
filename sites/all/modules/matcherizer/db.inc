@@ -1,18 +1,65 @@
 <?php
 
+module_load_include('inc', 'yearmanager', 'db');
+
 /*
  * Stores grouping into database
  */
 function saveGroups($groups, $year, $percentage, $weighting) {
     db_insert('maestro_matched_trios')
         ->fields(array(
-            'timestamp' => date('Y-m-d H:i:s'),
+            'timestamp'      => date('Y-m-d H:i:s'),
             'mentoring_year' => $year,
-            'weightings'  => json_encode($weighting),
-            'percentage'  => $percentage,
-            'trios'  => json_encode($groups),
+            'weightings'     => json_encode($weighting),
+            'percentage'     => $percentage,
+            'trios'          => json_encode($groups),
             ))
         ->execute();
+}
+
+/*
+ * Get mentor array from mentor obj
+ */
+function getMentor($mentor_obj, $weighting) {
+        $mentor = array();
+
+        // put hardcoded items in
+        $mentor['id']          = $mentor_obj->{'id'};
+        $mentor['gender']      = $mentor_obj->{'gender'};
+        $mentor['gender_pref'] = $mentor_obj->{'gender_pref'};
+        $mentor['kickoff']     = $mentor_obj->{'kickoff'};
+
+        // put weighted items
+        foreach ($weighting as $k => $v) {
+            if (isset($mentor_obj->{$k}))
+                $mentor[$k] = $mentor_obj->{$k};
+        }
+
+        return $mentor;
+}
+
+/*
+ * Get student array from mentor obj
+ */
+function getStudent($student_obj, $weighting) {
+        $student = array();
+
+        // put hardcoded items in
+        $student['id']          = $student_obj->{'id'};
+        $student['gender']      = $student_obj->{'gender'};
+        $student['gender_pref'] = $student_obj->{'gender_pref'};
+        $student['kickoff']     = $student_obj->{'kickoff'};
+        $student['previous_tm'] = $student_obj->{'previous_tm'};
+        $student['year']        = $student_obj->{'year'};
+        $student['num_courses'] = $student_obj->{'num_courses'};
+
+        // put weighted items
+        foreach ($weighting as $k => $v) {
+            if (isset($student_obj->{$k}))
+                $student[$k] = $student_obj->{$k};
+        }
+
+        return $student;
 }
 
 /*
@@ -20,7 +67,7 @@ function saveGroups($groups, $year, $percentage, $weighting) {
  */
 function getParticipants($year, $weighting) {
     // First get name of participant tables
-    list($mentor_table_name, $student_table_name) = getDatabaseTableNames($year);
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
     // ================= get mentors =================
     $mentors_from_db = db_select($mentor_table_name, 'mtn')
@@ -31,21 +78,7 @@ function getParticipants($year, $weighting) {
     $mentors = array();
 
     foreach ($mentors_from_db as $curr) {
-        $curr_mentor = array();
-
-        // put hardcoded items in
-        $curr_mentor['id'] = $curr->{'id'};
-        $curr_mentor['gender'] = $curr->{'gender'};
-        $curr_mentor['gender_pref'] = $curr->{'gender_pref'};
-        $curr_mentor['kickoff'] = $curr->{'kickoff'};
-
-        // put weighted items
-        foreach ($weighting as $k => $v) {
-            if (isset($curr->{$k}))
-                $curr_mentor[$k] = $curr->{$k};
-        }
-
-        array_push($mentors, $curr_mentor);
+        array_push($mentors, getMentor($curr, $weighting));
     }
 
     $num_mentors = count($mentors);
@@ -60,24 +93,7 @@ function getParticipants($year, $weighting) {
     $students = array();
 
     foreach ($students_from_db as $curr) {
-        $curr_student = array();
-
-        // put hardcoded items in
-        $curr_student['id'] = $curr->{'id'};
-        $curr_student['gender'] = $curr->{'gender'};
-        $curr_student['gender_pref'] = $curr->{'gender_pref'};
-        $curr_student['kickoff'] = $curr->{'kickoff'};
-        $curr_student['previous_tm'] = $curr->{'previous_tm'};
-        $curr_student['year'] = $curr->{'year'};
-        $curr_student['num_courses'] = $curr->{'num_courses'};
-
-        // put weighted items
-        foreach ($weighting as $k => $v) {
-            if (isset($curr->{$k}))
-                $curr_student[$k] = $curr->{$k};
-        }
-
-        array_push($students, $curr_student);
+        array_push($students, getStudent($curr, $weighting));
     }
 
     $num_students = count($students);
