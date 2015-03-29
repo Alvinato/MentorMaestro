@@ -12,7 +12,73 @@ function getYear() {
         ->{'year'};
 }
 
-/* Get database table names for signup form
+/*
+ * Set the given year active/inactive
+ */
+function setYearActive($year, $active) {
+    db_update('maestro_years')
+        ->fields(array(
+            'active' => $active ? 1 : 0,
+            ))
+        ->condition('year', $year, '=')
+        ->execute();
+}
+
+/*
+ * Set the given year as archived
+ */
+function setYearArchived($year) {
+    db_update('maestro_years')
+        ->fields(array(
+            'archived' => 1,
+            ))
+        ->condition('year', $year, '=')
+        ->execute();
+}
+
+/*
+ * Create a new year
+ */
+function createNewYear($year) {
+    $year_suffix = substr($year, 0, 4).substr($year, 5, 4);
+    $stn = 'maestro_signup_student_'.$year_suffix;
+    $mtn = 'maestro_signup_mentor_'.$year_suffix;
+    db_insert('maestro_years')
+        ->fields(array(
+            'year'     => $year,
+            'active'   => 0,
+            'archived' => 0,
+            'student_table_name' => $stn,
+            'mentor_table_name'  => $mtn,
+            ))
+        ->execute();
+}
+
+/*
+ * Get all years and information
+ */
+function getYearsInfo() {
+    $values = db_select('maestro_years', 'my')
+        ->fields('my')
+        ->execute()
+        ->fetchAll();
+
+    $result = array();
+    foreach ($values as $curr) {
+        $cv = array(
+            'year'     =>        $curr->{'year'},
+            'active'   => (bool) $curr->{'active'},
+            'archived' => (bool) $curr->{'archived'},
+            );
+
+        array_push($result, $cv);
+    }
+
+    return $result;
+}
+
+/*
+ * Get database table names for signup form
  * Returns list(mentor, student)
  */
 function getParticipantTableNames($year) {
