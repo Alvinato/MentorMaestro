@@ -1,0 +1,5 @@
+name = Survey Response Editor
+description = Edits survey responses.
+core = 7.x
+package = Mentor Maestro
+dependencies[] = yearmanager

@@ -1,0 +1,37 @@
+<?php
+
+module_load_include('inc', 'yearmanager', 'db');
+
+
+function responseeditor_menu()
+{
+  $items = array();
+	$items['responseeditor'] = array( //this creates a URL that will call this form at "examples/form-example"
+    'title' => 'Survey Response Editor', //page title
+    'description' => 'Edits survey responses.',
+    'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'page arguments' => array('response_editor_form'), //put the name of the form here
+    'access callback' => TRUE
+  );
+  
+  return $items;
+}
+
+function response_editor_form($form, &$form_state)
+{
+	
+	$form['result'] = array(
+	  '#prefix' => '<div id="result_div">',
+	  '#markup' => '',
+	  '#suffix' => '</div>'
+	  );
+  
+	/*$form['some_text'] = array(
+	  '#markup' =>
+	  count($people) . ' people total. <br />' . outputAllGroups($allGroups)
+	  );*/
+
+	return $form;
+}
+
+
