@@ -16,12 +16,6 @@ function matcherizer_menu() {
 
 function matcherizer_form($form, &$form_state) {
 
-    $form['nickname'] = array(
-        '#title' => t('Matching nickname'),
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        );
-
     // TODO Dynamically generate these based on question selection
     $form['gender_pref'] = array(
         '#title' => t('Gender Preference'),
@@ -55,14 +49,7 @@ function check_valid_number($name, $short, &$form_state) {
 }
 
 function matcherizer_form_validate($form, &$form_state) {
-    //dpm(unserialize('a:18:{s:26:"qforms_element_2_textfield";s:4:"Ross";s:26:"qforms_element_3_textfield";s:6:"Geller";s:23:"qforms_element_4_number";s:7:"5757575";s:22:"qforms_element_5_email";s:20:"rosssyross@gmail.com";s:27:"qforms_element_7_checkboxes";a:3:{s:15:"October 2, 2016";s:15:"October 2, 2016";s:15:"October 3, 2016";s:15:"October 3, 2016";s:15:"October 1, 2016";i:0;}s:23:"qforms_element_8_number";s:4:"1971";s:25:"qforms_element_9_textarea";s:24:"Some comment on kick off";s:24:"qforms_element_10_select";s:6:"Female";s:24:"qforms_element_11_select";s:46:"BCS (Bachelor of Computer Science, 2nd degree)";s:30:"qforms_element_11_select_other";s:0:"";s:24:"qforms_element_12_select";s:1:"3";s:24:"qforms_element_14_select";s:2:"23";s:24:"qforms_element_15_select";s:38:"Not in co-op but interested in joining";s:28:"qforms_element_16_checkboxes";a:6:{s:18:"Work for a startup";s:18:"Work for a startup";s:19:"Own my own business";s:19:"Own my own business";s:53:"Work in a CS-related job immediately after graduation";i:0;s:27:"Complete a Masters or a PhD";i:0;s:16:"Work as academic";i:0;s:25:"Career plans still unsure";i:0;}s:26:"qforms_element_17_textarea";s:36:"coding, more coding, and more CODING";s:26:"qforms_element_18_textarea";s:28:"swimming, reading, dinosaurs";s:26:"qforms_element_19_textarea";s:14:"CHEERS we done";s:24:"qforms_element_20_select";s:2:"No";}'));
-
-    $nickname = $form_state['values']['nickname'];
-
-    if (!verifyValidNickname($nickname)) {
-        form_set_error('nickname', t('Nickname "'.$nickname.'" for current year exists already.'));
-    }
-
+    // TODO
     check_valid_number('Gender Preference', 'gender_pref', $form_state);
     check_valid_number('CS Interests', 'cs_interests', $form_state);
     check_valid_number('Hobbies and Interests', 'hobbies_interests', $form_state);
@@ -76,5 +63,5 @@ function matcherizer_form_submit($form, &$form_state) {
         'hobbies_interests' => $form_state['values']['hobbies_interests'],
         );
 
-    match(getYear(), $states, $form_state['values']['nickname']);
+    match(getYear(), $states);
 }

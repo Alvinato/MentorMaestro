@@ -24,7 +24,7 @@ function sortAttributes(&$attr) {
 /*
  * Generates matches from the database entry
  */
-function match($year, $weighting, $nickname) {
+function match($year, $weighting) {
     list($students, $mentors) = getParticipants($year, $weighting);
 
     // Split students into junior and senior
@@ -95,7 +95,7 @@ function match($year, $weighting, $nickname) {
     $percentage = $total_score / $count / $max_score;
 
     // Store into database
-    saveGroups($groups, $year, $percentage, $weighting, $nickname);
+    saveGroups($groups, $year, $percentage, $weighting);
 }
 
 /*

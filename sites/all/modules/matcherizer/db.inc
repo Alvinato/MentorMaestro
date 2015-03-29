@@ -5,31 +5,16 @@ module_load_include('inc', 'yearmanager', 'db');
 /*
  * Stores grouping into database
  */
-function saveGroups($groups, $year, $percentage, $weighting, $nickname) {
+function saveGroups($groups, $year, $percentage, $weighting) {
     db_insert('maestro_matched_trios')
         ->fields(array(
             'timestamp'      => date('Y-m-d H:i:s'),
-            'nickname'       => $nickname,
             'mentoring_year' => $year,
             'weightings'     => json_encode($weighting),
             'percentage'     => $percentage,
             'trios'          => json_encode($groups),
             ))
         ->execute();
-}
-
-/*
- * Verifies that the nickname is valid
- */
-function verifyValidNickname($nickname) {
-    $year = getYear();
-    $db_this_year = db_select('maestro_matched_trios', 'mmt')
-        ->fields('mmt')
-        ->condition('nickname', $nickname, '=')
-        ->condition('mentoring_year', $year, '=')
-        ->execute()
-        ->fetchAll();
-    return count($db_this_year) == 0;
 }
 
 /*
