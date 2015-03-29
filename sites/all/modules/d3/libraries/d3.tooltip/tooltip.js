@@ -23,13 +23,13 @@
    *   width of container group
    */
   d3.tooltip = function(tipjar, txt, h, w) {
-        console.log(tipjar);
-      console.log(txt);
-      console.log("is this the undefined one" + h);
-      console.log("is this the undefined one" + w);
+    //    console.log(tipjar);
+     // console.log(txt);
+     // console.log("is this the undefined one" + h);
+     // console.log("is this the undefined one" + w);
 
-      console.log("this is the money parameter");
-      console.log($)
+      //console.log("this is the money parameter");
+      //console.log($)
     var tooltip = {
       w: 65,
       h: 40,
