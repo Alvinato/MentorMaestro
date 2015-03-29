@@ -9,7 +9,10 @@ $GLOBALS['MAX_GROUP_SIZE'] = 9;
 
 function getPersonFromDbRow($record)
 {
-	return array("name" => $record->first_name, "prefs" => ["year" => 1, "hobbies" => explode(',', $record->hobbies_interests)]);
+	return array("name" => $record->first_name,
+	"id" => $record->id,
+	"prefs" => ["year" => 1,
+	"hobbies" => explode(',', $record->hobbies_interests)]);
 }
 
 function getPersonInfoFromDb($id, $tableName)
@@ -186,14 +189,15 @@ function outputAllGroups($allGroups)
 function kickoff_form($form, &$form_state)
 {
 	//$people = get_data();
-	/* $people = array(
-	array("name" => "Bill", "trio" => 4, "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
-	,array("name" => "Eric", "trio" => 1, "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
-	,array("name" => "Ted", "trio" => 3, "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
-	,array("name" => "Alvin", "trio" => 2, "nights" => [4=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
+	 /*$people = array(
+	array("name" => "Bill", "trio" => 4, "title"=>"mentor", "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
+	,array("name" => "Eric", "trio" => 1, "title"=>"mentor", "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
+	,array("name" => "Ted", "trio" => 3, "title"=>"mentor", "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
+	,array("name" => "Alvin", "trio" => 2, "title"=>"mentor", "nights" => [4=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
 	//,array("name" => "Alvin2", "prefs" => ["year" => 0])
 	//,array("name" => "Alvin3", "prefs" => ["year" => 0])
-	);*/
+	);
+	$groups = kickoff(1, $people);*/
 	#echo(count($people) . ' people total. <br />');
 	#printGroups(kickoff(1,$people));
 	list($allNights, $buckets) = getTrioBuckets();
@@ -209,6 +213,7 @@ function kickoff_form($form, &$form_state)
 		//$fixedGroups = fixGroups($groups);
 		$allGroups[$night] = $groups;
 	}
+	
   
 	$form['some_text'] = array(
 	  '#markup' =>

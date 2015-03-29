@@ -36,13 +36,15 @@ $people2 = array(
 	);
 
 //'
-function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentTrioIds)
+function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentGroup)
 {
 	if (empty($currentPrefs))
 	{
 		if (empty($people)) { return -1; }
 		//else{	return 0; }
 	}
+	
+	$currentTrioIds = $currentGroup->getTrioIds();
 	//else
 	//{
 		$currentAverage = 0;
@@ -96,17 +98,68 @@ function getDifferentHobbies($personHobbies, $groupHobbies)
 	return $diff;
 }
 
+function getIdFromTitle($title)
+{
+	if ($title === 'senior') { return 1; }
+	else if ($title === 'junior') { return 2; }
+	return 0;
+}
+
+class Group
+{
+	private $people = array();
+	private $trioIds = array();
+	
+	function Group()
+    {
+		for ($x = 0; $x < 3; ++$x)
+		{
+			array_push($this->people, array());
+		}
+	}
+	
+	public function addTrioId($id) { $trioIds[$id] = true; } 
+	public function getTrioIds() { return $this->trioIds; }
+	
+	public function getAllPeople() { return array_merge($this->people[0],$this->people[1],$this->people[2]); }
+	public function getMentors() { return $people[0]; }
+	public function getSeniors() { return $people[1]; }
+	public function getJuniors() { return $people[2]; }
+	
+	
+	
+	public function addPerson($person)
+	{
+		$id = getIdFromTitle($person['title']);
+		array_push($this->people[$id], $person);
+	}
+	
+	private function add($which, $person) { array_push($people[$which], $person); }
+	public function addToMentors($person) { add(0, $person); }
+	public function addToSeniors($person) { add(1, $person); }
+	public function addToJuniors($person) { add(2, $person); }
+	
+	public function getSize()
+	{
+		return count($this->people[0]) + count($this->people[1]) + count($this->people[2]);
+	}
+	
+	public function isEmpty()
+	{
+		return $this->getSize() === 0;
+	}
+}
+
 function kickoff($night, $people)
 {
 	$groups = array();
-	$currentGroup = array();
+	$currentGroup = new Group();
 	$currentPrefs = array();
 	$currentHobbies = array();
-	$currentTrioIds = array();
 
 	while (!empty($people))
 	{
-		$person = choosePerson($night, $people, $currentPrefs, $currentHobbies, $currentTrioIds);
+		$person = choosePerson($night, $people, $currentPrefs, $currentHobbies, $currentGroup);
 		
 		array_push($currentPrefs, $people[$person]["prefs"]);
 		
@@ -115,42 +168,46 @@ function kickoff($night, $people)
 			$currentHobbies[$people[$person]["prefs"]["hobbies"][$x]] = true;
 		}
 		
-		array_push($currentGroup, $people[$person]);
-		$currentTrioIds[$people[$person]["trio"]] = true;
+		$currentGroup->addPerson($people[$person]);
+		$currentGroup->addTrioId($people[$person]["trio"]);
 		array_splice($people, $person, 1);
-		if (count($currentGroup) === $GLOBALS['MAX_GROUP_SIZE'])
+		if ($currentGroup->getSize() === $GLOBALS['MAX_GROUP_SIZE'])
 		{
-			array_push($groups, array($currentGroup, $currentTrioIds));
-			$currentGroup = array();
+			array_push($groups, $currentGroup);
+			$currentGroup = new Group();
 			$currentPrefs = array();
-			$currentTrioIds = array();
 		}
 	}
 
-	if (!empty($currentGroup))
+	if ($currentGroup->isEmpty())
 	{
-		if (count($currentGroup) > $GLOBALS['MAX_GROUP_SIZE'] - 2)
+		if ($currentGroup->getSize() > $GLOBALS['MAX_GROUP_SIZE'] - 2)
 		{
-			array_push($groups, array($currentGroup, $currentTrioIds));
+			array_push($groups, $currentGroup);
 		}
 		else
 		{
-			foreach ($currentGroup as $person)
+			foreach ($currentGroup->getAllPeople() as $person)
 			{
-				foreach ($groups as $group)
-				{
-					list($personList, $trioIds) = $group;
-					if (!array_key_exists($person['trio'], $trioIds))
-					{
-						array_push($personList, $person);
-						break;
-					}
-				}
+				if (fixGroupHelper($groups, $person)) { break; }
 			}
 		}
 	}
 
 	return $groups;
+}
+
+function fixGroupHelper($allGroups, $person)
+{
+	foreach ($allGroups as $group)
+	{
+		if (!array_key_exists($person['trio'], $group->getTrioIds()))
+		{
+			array_push($personList, $person);
+			return true;
+		}
+	}
+	return false;
 }
 
 function outputGroups($groups)
@@ -160,8 +217,8 @@ function outputGroups($groups)
 	{
 		$output = $output . '<h3>Group ' . ($x + 1) . '</h3>';
 		$output = $output . '<br />';
-		list($personList, $trioIds) = $groups[$x];
-		foreach ($personList as $person)
+		$currentGroup = $groups[$x];
+		foreach ($currentGroup->getAllPeople() as $person)
 		{
 			$output = $output . $person['name'] . ' <span style="color: #bbb;">' . $person['trio'] . ' ' . $person['title'] . '</span>';
 			$output = $output . '<br />';
