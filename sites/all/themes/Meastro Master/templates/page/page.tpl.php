@@ -76,8 +76,11 @@ if ($clf_layout == '') {
         <?php print $fluidcontainerend; ?>
       </div>
       <?php print $fluidcontainerstart; ?>
-      <div id="ubc7-global-header" class="expand">
+      <div id="ubc7-global-header" class="expand" style="display:none;">
           <!-- Global Utility Header from CDN -->
+
+      </div>
+      <div style="background-color: #fff; height: 210px;">
       </div>
       <?php print $fluidcontainerend; ?>
   </div>

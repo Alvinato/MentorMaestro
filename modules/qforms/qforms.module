@@ -1,5 +1,7 @@
 <?php
 
+module_load_include('inc', 'qforms', 'frmHelper');
+
 /**
  * @file
  * Qforms module.
@@ -11,6 +13,7 @@
 /*************/
 /*** Hooks ***/
 /*************/
+
 
 /**
 * Implementation of hook_menu().
@@ -734,6 +737,7 @@ function qforms_submit_form_submit($form, &$form_state) {
       $data[$key] = $value;
     }
   }
+  $unserialized_data = $data;
   $data = serialize($data);
   if (empty($data)) {
     return;
@@ -744,7 +748,64 @@ function qforms_submit_form_submit($form, &$form_state) {
   watchdog('qforms', 'Submitted qform for node !nid. Submission sid is !sid', array('!nid' => $nid, '!sid' => $sid));
 
   // Now let's execute any custom submit action.
+  // -------------------------------------------------CUSTOM DATABASE SUBMIT!!!!
+  dpm($unserialized_data);
+  if($nid == 4){
+      db_insert('maestro_signup_student_20142015')
+        ->fields(array(
+              'timestamp'         => date('Y-m-d H:i:s'),
+              'first_name'        => $unserialized_data['qforms_element_2_textfield'],
+              'last_name'         => $unserialized_data['qforms_element_3_textfield'], 
+              'student_number'    => $unserialized_data['qforms_element_4_number'],
+              'email'             => $unserialized_data['qforms_element_5_email'],
+              'phone'             => $unserialized_data['qforms_element_21_number'],
+              'phone_alt'         => $unserialized_data['qforms_element_22_number'],
+              'gender'            => genderHelper($unserialized_data['qforms_element_23_select']), //needs to be string 'M'
+              'birth_year'        => $unserialized_data['qforms_element_8_number'],
+              'kickoff'           => kickoffHelper($unserialized_data['qforms_element_7_checkboxes']),
+              'availability_comments' => $unserialized_data['qforms_element_9_textarea'],
+              'gender_pref'       => genderHelper($unserialized_data['qforms_element_10_select']), //needs to be string 'N'
+              'program'           => $unserialized_data['qforms_element_11_select'],
+              'other_program'     => $unserialized_data['qforms_element_11_select_other'],
+              'year'              => $unserialized_data['qforms_element_12_select'],
+              'num_courses'       => $unserialized_data['qforms_element_14_select'],
+              'previous_tm'       => $unserialized_data['qforms_element_20_select'],
+              'coop_status'       => $unserialized_data['qforms_element_15_select'],
+              'career_plans'      => careerHelper($unserialized_data['qforms_element_16_checkboxes']),
+              'cs_interests'      => $unserialized_data['qforms_element_17_textarea'],
+              'hobbies_interests' => $unserialized_data['qforms_element_18_textarea'],
+              'comments'          => $unserialized_data['qforms_element_19_textarea'],
+          ))
+        ->execute();
+  }
 
+    if($nid == 5){
+      db_insert('maestro_signup_mentor_20142015')
+        ->fields(array(
+              'timestamp'         => date('Y-m-d H:i:s'),
+              'first_name'        => $unserialized_data['qforms_element_1_textfield'],
+              'last_name'         => $unserialized_data['qforms_element_2_textfield'], 
+              'email'             => $unserialized_data['qforms_element_4_email'],
+              'phone'             => $unserialized_data['qforms_element_5_number'],
+              'phone_alt'         => $unserialized_data['qforms_element_6_number'],
+              'current_employer'  => $unserialized_data['qforms_element_3_textfield'],
+              'current_title'     => $unserialized_data['qforms_element_8_textfield'],
+              'experience_years'  => $unserialized_data['qforms_element_11_select'],
+              'highest_education' => $unserialized_data['qforms_element_12_select'],
+              'gender'            => genderHelper($unserialized_data['qforms_element_13_select']),
+              'birth_year'        => $unserialized_data['qforms_element_14_number'],
+              'kickoff'           => kickoffHelper($unserialized_data['qforms_element_15_checkboxes']),
+              'availability_comments'   => $unserialized_data['qforms_element_16_textarea'],
+              'gender_pref'       => genderHelper($unserialized_data['qforms_element_17_select']),
+              'career_choice'     => careerHelper($unserialized_data['qforms_element_18_checkboxes']),
+              'cs_interests'      => $unserialized_data['qforms_element_19_textarea'],
+              'hobbies_interests' => $unserialized_data['qforms_element_20_textarea'],
+              'alumnus'           => alumniHelper($unserialized_data['qforms_element_21_radios']),
+              'comments'          => $unserialized_data['qforms_element_22_textarea'],
+          ))
+        ->execute();
+  }
+        
   // Load qform data.
   $qform = qforms_db_load_form($form_state['values']['entity_id']);
   $options = & $qform['form_options'];
@@ -1063,13 +1124,6 @@ function qforms_db_delete_form($entity_id) {
  */
 function qforms_db_save_submission($entity_id, $data) {
   global $user;
-
-  $test1 = "test question";
-  $test2 = "test short name";
-  $test3 = REQUEST_TIME;
-
-  $sql = "INSERT INTO maestro_questions(question, short_name, type) VALUES('$test1' , '$test2' , '$test3')";
-  db_query($sql);
 
   return db_insert('qforms_submission')
     ->fields(array(

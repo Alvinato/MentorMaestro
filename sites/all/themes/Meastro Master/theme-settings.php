@@ -173,6 +173,8 @@ function megatron_form_system_theme_settings_alter(&$form, &$form_state) {
         'Faculty of Science' => t('Faculty of Science'),
         'Graduate and Postdoctoral Studies' => t('Graduate and Postdoctoral Studies'),
         'Sauder School of Business' => t('Sauder School of Business'),
+        'Department of Computer Science' =>t('Department of Computer Science'),
+        '' => t('Empty'),
       ),
   );
   
