@@ -15,7 +15,6 @@ function matcherizer_menu() {
 }
 
 function matcherizer_form($form, &$form_state) {
-
     // TODO Dynamically generate these based on question selection
     $form['gender_pref'] = array(
         '#title' => t('Gender Preference'),

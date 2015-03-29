@@ -1,6 +1,7 @@
 <?php
 
 module_load_include('inc', 'qforms', 'frmHelper');
+module_load_include('inc', 'yearmanager', 'db');
 
 /**
  * @file
@@ -750,62 +751,129 @@ function qforms_submit_form_submit($form, &$form_state) {
   // Now let's execute any custom submit action.
   // -------------------------------------------------CUSTOM DATABASE SUBMIT!!!!
   dpm($unserialized_data);
-  if($nid == 4){
-      db_insert('maestro_signup_student_20142015')
-        ->fields(array(
-              'timestamp'         => date('Y-m-d H:i:s'),
-              'first_name'        => $unserialized_data['qforms_element_2_textfield'],
-              'last_name'         => $unserialized_data['qforms_element_3_textfield'], 
-              'student_number'    => $unserialized_data['qforms_element_4_number'],
-              'email'             => $unserialized_data['qforms_element_5_email'],
-              'phone'             => $unserialized_data['qforms_element_21_number'],
-              'phone_alt'         => $unserialized_data['qforms_element_22_number'],
-              'gender'            => genderHelper($unserialized_data['qforms_element_23_select']), //needs to be string 'M'
-              'birth_year'        => $unserialized_data['qforms_element_8_number'],
-              'kickoff'           => kickoffHelper($unserialized_data['qforms_element_7_checkboxes']),
-              'availability_comments' => $unserialized_data['qforms_element_9_textarea'],
-              'gender_pref'       => genderHelper($unserialized_data['qforms_element_10_select']), //needs to be string 'N'
-              'program'           => $unserialized_data['qforms_element_11_select'],
-              'other_program'     => $unserialized_data['qforms_element_11_select_other'],
-              'year'              => $unserialized_data['qforms_element_12_select'],
-              'num_courses'       => $unserialized_data['qforms_element_14_select'],
-              'previous_tm'       => $unserialized_data['qforms_element_20_select'],
-              'coop_status'       => $unserialized_data['qforms_element_15_select'],
-              'career_plans'      => careerHelper($unserialized_data['qforms_element_16_checkboxes']),
-              'cs_interests'      => $unserialized_data['qforms_element_17_textarea'],
-              'hobbies_interests' => $unserialized_data['qforms_element_18_textarea'],
-              'comments'          => $unserialized_data['qforms_element_19_textarea'],
-          ))
-        ->execute();
+
+  $current_year = getYear();
+  list($mentor_table_name, $student_table_name) = getParticipantTableNames($current_year);  
+
+  if($nid == 4 || $nid == 5){
+    $special_parse_field = array();
+    $regular_parse_field = array();
+    $database_name = NULL;
+    if ($nid == 4) {
+      $special_parse_field = array(
+        'gender'                => 'qforms_element_23_select',
+        'kickoff'               => 'qforms_element_7_checkboxes',
+        'gender_pref'           => 'qforms_element_10_select',
+        );
+      $regular_parse_field = array(
+        'student_number'        => 'qforms_element_4_number',
+        'email'                 => 'qforms_element_5_email',
+        'phone'                 => 'qforms_element_21_number',
+        'first_name'            => 'qforms_element_2_textfield',
+        'last_name'             => 'qforms_element_3_textfield',
+        'phone_alt'             => 'qforms_element_22_number',
+        'birth_year'            => 'qforms_element_8_number',
+        'availability_comments' => 'qforms_element_9_textarea',
+        'program'               => 'qforms_element_11_select',
+        'other_program'         => 'qforms_element_11_select_other',
+        'year'                  => 'qforms_element_12_select',
+        'num_courses'           => 'qforms_element_14_select',
+        'previous_tm'           => 'qforms_element_20_select',
+        'coop_status'           => 'qforms_element_15_select',
+        'career_plans'          => 'qforms_element_16_checkboxes',
+        'cs_interests'          => 'qforms_element_17_textarea',
+        'hobbies_interests'     => 'qforms_element_18_textarea',
+        'comments'              => 'qforms_element_19_textarea',
+        );
+      $database_name = $student_table_name;
+    } else {
+      $special_parse_field = array(
+        'gender'                => 'qforms_element_13_select',
+        'kickoff'               => 'qforms_element_15_checkboxes',
+        'gender_pref'           => 'qforms_element_17_select',
+        'alumnus'               => 'qforms_element_21_radios',
+        );
+      $regular_parse_field = array(
+        'email'                 => 'qforms_element_4_email',
+        'phone'                 => 'qforms_element_5_number',
+        'first_name'            => 'qforms_element_1_textfield',
+        'last_name'             => 'qforms_element_2_textfield',
+        'phone_alt'             => 'qforms_element_6_number',
+        'birth_year'            => 'qforms_element_14_number',
+        'availability_comments' => 'qforms_element_16_textarea',
+        'current_employer'      => 'qforms_element_3_textfield',
+        'current_title'         => 'qforms_element_8_textfield',
+        'experience_years'      => 'qforms_element_11_select',
+        'highest_education'     => 'qforms_element_12_select',
+        'career_choice'         => 'qforms_element_18_checkboxes',
+        'cs_interests'          => 'qforms_element_19_textarea',
+        'hobbies_interests'     => 'qforms_element_20_textarea',
+        'comments'              => 'qforms_element_22_textarea',
+        'coop_status'           => 'qforms_element_15_select',
+        );
+      $database_name = $mentor_table_name;
+    }
+
+    $insert_fields = array();
+    $insert_fields['timestamp'] = date('Y-m-d H:i:s');
+
+    foreach ($special_parse_field as $key => $value) {
+      if (array_key_exists($value, $unserialized_data) && $unserialized_data[$value]) {
+        switch ($key) {
+          case 'gender':
+          case 'gender_pref':
+            $insert_fields[$key] = genderHelper($unserialized_data[$value]);
+            break;
+          case 'kickoff':
+            $insert_fields[$key] = kickoffHelper($unserialized_data[$value]);
+            break;
+          case 'alumnus':
+            $insert_fields[$key] = alumniHelper($unserialized_data[$value]);
+            break;
+        }
+      }
+    }
+
+    foreach ($regular_parse_field as $key => $value) {
+      if (array_key_exists($value, $unserialized_data) && $unserialized_data[$value]) {
+        if (strpos($value, 'checkbox') != false) {
+          // is a checkbox
+          $insert_fields[$key] = checkboxHelper($unserialized_data[$value]);
+        } else {
+          // regular element
+          $insert_fields[$key] = $unserialized_data[$value];
+        }
+      }
+    }
+
+    $extra_fields = array();
+
+    foreach ($unserialized_data as $key => $value) {
+      if (in_array($key, $special_parse_field)) {
+        continue;
+      }
+      if (in_array($key, $regular_parse_field)) {
+        continue;
+      }
+      // value is not in either of two arrays, insert as necessary
+        if (strpos($key, 'checkbox') != false) {
+          // is a checkbox
+          $extra_fields[$key] = checkboxHelper($value);
+        } else {
+          // regular element
+          $extra_fields[$key] = $value;
+        }
+    }
+
+    if (count($extra_fields) > 0) {
+      $insert_fields['extra'] = json_encode($extra_fields);
+    }
+
+    db_insert($database_name)
+      ->fields($insert_fields)
+      ->execute();
   }
 
-    if($nid == 5){
-      db_insert('maestro_signup_mentor_20142015')
-        ->fields(array(
-              'timestamp'         => date('Y-m-d H:i:s'),
-              'first_name'        => $unserialized_data['qforms_element_1_textfield'],
-              'last_name'         => $unserialized_data['qforms_element_2_textfield'], 
-              'email'             => $unserialized_data['qforms_element_4_email'],
-              'phone'             => $unserialized_data['qforms_element_5_number'],
-              'phone_alt'         => $unserialized_data['qforms_element_6_number'],
-              'current_employer'  => $unserialized_data['qforms_element_3_textfield'],
-              'current_title'     => $unserialized_data['qforms_element_8_textfield'],
-              'experience_years'  => $unserialized_data['qforms_element_11_select'],
-              'highest_education' => $unserialized_data['qforms_element_12_select'],
-              'gender'            => genderHelper($unserialized_data['qforms_element_13_select']),
-              'birth_year'        => $unserialized_data['qforms_element_14_number'],
-              'kickoff'           => kickoffHelper($unserialized_data['qforms_element_15_checkboxes']),
-              'availability_comments'   => $unserialized_data['qforms_element_16_textarea'],
-              'gender_pref'       => genderHelper($unserialized_data['qforms_element_17_select']),
-              'career_choice'     => careerHelper($unserialized_data['qforms_element_18_checkboxes']),
-              'cs_interests'      => $unserialized_data['qforms_element_19_textarea'],
-              'hobbies_interests' => $unserialized_data['qforms_element_20_textarea'],
-              'alumnus'           => alumniHelper($unserialized_data['qforms_element_21_radios']),
-              'comments'          => $unserialized_data['qforms_element_22_textarea'],
-          ))
-        ->execute();
-  }
-        
   // Load qform data.
   $qform = qforms_db_load_form($form_state['values']['entity_id']);
   $options = & $qform['form_options'];
