@@ -77,42 +77,66 @@ function stringMatch(&$from, &$to) {
 
 /*
  * Determine whether two people have a good match for this attribute
+ * $bigger specifies whether $from is ``higher'' than $to, for birth year matching
  */
-function goodMatch(&$from, &$to, $name) {
-    // TODO add different type of matching e.g. courses
-    if ($name == 'gender_pref') {
-        // different matching procedure for gender pref
-        if ($from[$name] == 'N') return True;
-        return $from[$name] == $to['gender'];
-    } else {
-        // regular matching
-        
-        // Split string into arrays
-        $from_pref = explode(',', $from[$name]);
-        $to_pref = explode(',', $to[$name]);
+function goodMatch(&$from, &$to, $name, $higher) {
+    if (array_key_exists($name, $from) && array_key_exists($name, $to)) {
+        // TODO add different type of matching e.g. courses
+        if ($name == 'gender_pref') {
+            // different matching procedure for gender pref
+            if ($from[$name] == 'N') return True;
+            return $from[$name] == $to['gender'];
+        } else if ($name == 'birth_year') {
+            // matching birth year
+            // if $higher, $from has to be higher year than $to
+            return $higher ? $from[$name] >= $to[$name] : $from[$name] <= $to[$name];
+        } else {
+            // regular matching
+            // Split string into arrays
+            $from_pref = explode(',', $from[$name]);
+            $to_pref = explode(',', $to[$name]);
 
-        // If any pair of strings match return true
-        for ($i = 0; $i < count($from_pref); ++$i) {
-            $from_curr = $from_pref[$i];
-            for ($j = 0; $j < count($to_pref); ++$j) {
-                $to_curr = $to_pref[$j];
-                if (stringMatch($from_curr, $to_curr)) {
-                    unset($from_pref);
-                    unset($to_pref);
-                    return True;
+            // If any pair of strings match return true
+            for ($i = 0; $i < count($from_pref); ++$i) {
+                $from_curr = trim($from_pref[$i]);
+                for ($j = 0; $j < count($to_pref); ++$j) {
+                    $to_curr = trim($to_pref[$j]);
+                    if (stringMatch($from_curr, $to_curr)) {
+                        unset($from_pref);
+                        unset($to_pref);
+                        return True;
+                    }
                 }
             }
+            unset($from_pref);
+            unset($to_pref);
         }
-        unset($from_pref);
-        unset($to_pref);
-        return False;
     }
+    return False;
+}
+
+/*
+ * Returns whether the two people can attend the same kickoff night
+ * If one person is unable to attend any, return true
+ */
+function goodKickoff(&$from, &$to) {
+    $from_no = TRUE;
+    $to_no = TRUE;
+    foreach ($from as $date => $from_curr) {
+        $to_curr = $to[$date];
+        if ($from_curr && $to_curr) return TRUE;
+        if ($from_curr) $from_no = FALSE;
+        if ($to_curr)   $to_no   = FALSE;
+    }
+    return $from_no || $to_no;
 }
 
 /*
  * Generate attribute scores from a set to a set
+ * $bigger specifies whether $from is ``higher'' than $to, for birth year matching
  */
-function getAttributeScores(&$from, &$to, &$weights) {
+function getAttributeScores(&$from, &$to, &$weights, $higher) {
+    // array of scores and multipliers
     $score = array();
     $multiplier = array();
 
@@ -129,7 +153,6 @@ function getAttributeScores(&$from, &$to, &$weights) {
     }
 
     $max_score = 0.0;
-    $max_multiplier = 1.0;
     // calculate max score
     foreach ($weights as $pref_name => $pref_weight) {
         $max_score += $pref_weight;
@@ -141,9 +164,20 @@ function getAttributeScores(&$from, &$to, &$weights) {
         for ($j = 0; $j < count($to); ++$j) {
             $curr_to = $to[$j];
             foreach ($weights as $pref_name => $pref_weight) {
-                if (goodMatch($curr_from, $curr_to, $pref_name)) {
+                if (goodMatch($curr_from, $curr_to, $pref_name, $higher)) {
                     $score[$i][$j] += $pref_weight;
                 }
+            }
+        }
+    }
+
+    // Match kickoff availabilities as multiplier
+    for ($i = 0; $i < count($from); ++$i) {
+        $curr_from = $from[$i]['kickoff'];
+        for ($j = 0; $j < count($to); ++$j) {
+            $curr_to = $to[$j]['kickoff'];
+            if (!goodKickoff($curr_from, $curr_to)) {
+                $multiplier[$i][$j] = 0.0;
             }
         }
     }
@@ -156,5 +190,5 @@ function getAttributeScores(&$from, &$to, &$weights) {
     }
 
     // Return the scores + max score
-    return array($score, $max_score * $max_multiplier);
+    return array($score, $max_score);
 }

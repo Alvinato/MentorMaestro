@@ -31,19 +31,31 @@ function match($year, $weighting) {
     list($juniors, $seniors) = splitStudents($students);
 
     // Generate mentor/senior attribute scores
-    list($sm_attribute, $sm_maxscore) = getAttributeScores($seniors, $mentors, $weighting);
-    list($ms_attribute, $ms_maxscore) = getAttributeScores($mentors, $seniors, $weighting);
+    list($sm_attribute, $sm_maxscore) = getAttributeScores($seniors, $mentors, $weighting, FALSE);
+    list($ms_attribute, $ms_maxscore) = getAttributeScores($mentors, $seniors, $weighting, TRUE);
 
     // sort the attributes
     sortAttributes($ms_attribute);
 
+    // generate mentor kickoff availability
+    $m_kickoff = array();
+    for ($i = 0; $i < count($mentors); ++$i) {
+        $m_kickoff[$i] = $mentors[$i]['kickoff'];
+    }
+
+    // generate senior kickoff availability
+    $s_kickoff = array();
+    for ($i = 0; $i < count($seniors); ++$i) {
+        $s_kickoff[$i] = $seniors[$i]['kickoff'];
+    }
+
     // Rank mentor/senior based on attribute scores, sorted by senior
-    $groups_ms = stableMatch($ms_attribute, $sm_attribute, 'mentor', 'senior');
+    $groups_ms = stableMatch($ms_attribute, $sm_attribute, 'mentor', 'senior', $m_kickoff, $s_kickoff);
 
     // Generate junior/senior attribute scores
-    list($js_attribute, $js_maxscore) = getAttributeScores($juniors, $seniors, $weighting);
-    list($jm_attribute, $jm_maxscore) = getAttributeScores($juniors, $mentors, $weighting);
-    list($sj_attribute, $sj_maxscore) = getAttributeScores($seniors, $juniors, $weighting);
+    list($js_attribute, $js_maxscore) = getAttributeScores($juniors, $seniors, $weighting, FALSE);
+    list($jm_attribute, $jm_maxscore) = getAttributeScores($juniors, $mentors, $weighting, FALSE);
+    list($sj_attribute, $sj_maxscore) = getAttributeScores($seniors, $juniors, $weighting, TRUE);
 
     // Combine the jm attribute with the js attribute score based on the ms groupings
     foreach ($groups_ms as $i => $curr_group) {
@@ -58,8 +70,14 @@ function match($year, $weighting) {
     // sort the attributes
     sortAttributes($js_attribute);
 
-    // Rank junior/senior based on attribute scores, sorted by senior
-    $groups_js = stableMatch($js_attribute, $sj_attribute, 'junior', 'senior');
+    // generate junior kickoff availability
+    $j_kickoff = array();
+    for ($i = 0; $i < count($juniors); ++$i) {
+        $j_kickoff[$i] = $juniors[$i]['kickoff'];
+    }
+
+    // Rank junior/senior based on attribute scores
+    $groups_jsm = stableMatchGroup($js_attribute, $sj_attribute, $groups_ms, $j_kickoff);
 
     // Get total scores possible
     $max_score = $sm_maxscore + $ms_maxscore + $js_maxscore + $sj_maxscore + $jm_maxscore;
@@ -80,14 +98,15 @@ function match($year, $weighting) {
         }
 
         $curr = array(
-            'mentor'     => strval($mentors[$groups_ms[$i]['mentor']]['id']),
-            'senior'     => strval($seniors[$groups_ms[$i]['senior']]['id']),
-            'junior'     => strval($juniors[$groups_js[$i]['junior']]['id']),
-            'similarity' => strval(($groups_js[$i]['similarity'] + $groups_ms[$i]['similarity']) / $max_score),
-            'kickoff'    => array('1' => $rand_a, '2' => $rand_b, '3' => $rand_c),
+            'mentor'     => strval($mentors[$groups_jsm[$i]['mentor']]['id']),
+            'senior'     => strval($seniors[$groups_jsm[$i]['senior']]['id']),
+            'junior'     => strval($juniors[$groups_jsm[$i]['junior']]['id']),
+            'similarity' => strval($groups_jsm[$i]['similarity'] / $max_score),
+            'kickoff'    => $groups_jsm[$i]['kickoff'],
+            //'kickoff'    => array('Sep 24, 2014' => $rand_a, 'Sep 25, 2014' => $rand_b, 'Oct 2, 2014' => $rand_c),
             );
         array_push($groups, $curr);
-        $total_score += ($groups_js[$i]['similarity'] + $groups_ms[$i]['similarity']);
+        $total_score += $groups_jsm[$i]['similarity'];
         ++$count;
     }
 

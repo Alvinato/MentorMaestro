@@ -15,22 +15,16 @@ function matcherizer_menu() {
 }
 
 function matcherizer_form($form, &$form_state) {
-    // TODO Dynamically generate these based on question selection
-    $form['gender_pref'] = array(
-        '#title' => t('Gender Preference'),
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        );
-    $form['cs_interests'] = array(
-        '#title' => t('CS Interests'),
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        );
-    $form['hobbies_interests'] = array(
-        '#title' => t('Hobbies and Interests'),
-        '#type' => 'textfield',
-        '#required' => TRUE,
-        );
+    $fields_to_match = getFieldsToMatch();
+
+    foreach ($fields_to_match as $short_name => $visible_name) {
+        $form[$short_name] = array(
+            '#title' => t($visible_name),
+            '#type' => 'textfield',
+            '#required' => TRUE,
+            );
+    }
+
     $form['submit'] = array(
         '#value' => 'Submit',
         '#type' => 'submit',
@@ -38,29 +32,30 @@ function matcherizer_form($form, &$form_state) {
     return $form;
 }
 
-function check_valid_number($name, $short, &$form_state) {
-    if (is_numeric($form_state['values'][$short]) == False) {
+function check_valid_number($name, $short, &$values) {
+    if (is_numeric($values[$short]) == False) {
         form_set_error($short, t($name.' weighting must be a number.'));
     }
-    else if (!($form_state['values'][$short] >= 0)) {
+    else if (!($values[$short] >= 0)) {
         form_set_error($short, t($name.' weighting must be non-negative.'));
     }
 }
 
 function matcherizer_form_validate($form, &$form_state) {
-    // TODO
-    check_valid_number('Gender Preference', 'gender_pref', $form_state);
-    check_valid_number('CS Interests', 'cs_interests', $form_state);
-    check_valid_number('Hobbies and Interests', 'hobbies_interests', $form_state);
+    $fields_to_match = getFieldsToMatch();
+    foreach ($fields_to_match as $short_name => $visible_name) {
+        check_valid_number($visible_name, $short_name, $form_state['values']);
+    }
 }
 
 function matcherizer_form_submit($form, &$form_state) {
     // TODO get states from the database
-    $states = array(
-        'gender_pref'       => $form_state['values']['gender_pref'],
-        'cs_interests'      => $form_state['values']['cs_interests'],
-        'hobbies_interests' => $form_state['values']['hobbies_interests'],
-        );
+    $states = array();
+
+    $fields_to_match = getFieldsToMatch();
+    foreach ($fields_to_match as $short_name => $visible_name) {
+        $states[$short_name] = $form_state['values'][$short_name];
+    }
 
     match(getYear(), $states);
 }

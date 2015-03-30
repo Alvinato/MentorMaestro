@@ -26,8 +26,7 @@ function getMentor($mentor_obj, $weighting) {
         // put hardcoded items in
         $mentor['id']          = $mentor_obj->{'id'};
         $mentor['gender']      = $mentor_obj->{'gender'};
-        $mentor['gender_pref'] = $mentor_obj->{'gender_pref'};
-        $mentor['kickoff']     = $mentor_obj->{'kickoff'};
+        $mentor['kickoff']     = json_decode($mentor_obj->{'kickoff'}, true);
 
         // put weighted items
         foreach ($weighting as $k => $v) {
@@ -46,11 +45,10 @@ function getStudent($student_obj, $weighting) {
 
         // put hardcoded items in
         $student['id']          = $student_obj->{'id'};
-        $student['gender']      = $student_obj->{'gender'};
-        $student['gender_pref'] = $student_obj->{'gender_pref'};
-        $student['kickoff']     = $student_obj->{'kickoff'};
-        $student['previous_tm'] = $student_obj->{'previous_tm'};
         $student['year']        = $student_obj->{'year'};
+        $student['gender']      = $student_obj->{'gender'};
+        $student['kickoff']     = json_decode($student_obj->{'kickoff'}, true);
+        $student['previous_tm'] = $student_obj->{'previous_tm'};
         $student['num_courses'] = $student_obj->{'num_courses'};
 
         // put weighted items
@@ -116,4 +114,20 @@ function getParticipants($year, $weighting) {
     // Make sure we have the same number of students and mentors
 
     return array($students, $mentors);
+}
+
+/*
+ * Get all fields for the matcherizer to match
+ */
+function getFieldsToMatch() {
+    $fields_to_match = array(
+        'gender_pref'       => 'Gender Preference',
+        'cs_interests'      => 'CS Interests',
+        'hobbies_interests' => 'Hobbies and Interests',
+        'birth_year'        => 'Birth Year',
+        'program'           => 'Degree Program',
+        'career'            => 'Career Plans',
+        // TODO parse "extra" stuff in here
+        );
+    return $fields_to_match;
 }
