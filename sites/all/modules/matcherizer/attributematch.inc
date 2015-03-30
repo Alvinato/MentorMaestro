@@ -50,6 +50,26 @@ function getAttributeScoreTrio($trio, $weights) {
     $to   = array($senior, $mentor, $junior, $senior, $mentor);
     $high = array(TRUE,    FALSE,   TRUE,    FALSE,   FALSE);
 
+    $kickoff_availability = getKickoffAvailability(
+        getKickoffAvailability(
+            $mentor['kickoff'],
+            $senior['kickoff'],
+            TRUE
+            ),
+        $junior['kickoff'],
+        FALSE
+        );
+
+    $okay_kickoff = FALSE;
+    foreach ($kickoff_availability as $date => $avail) {
+        if ($avail) {
+            $okay_kickoff = TRUE;
+            break;
+        }
+    }
+
+    if (!$okay_kickoff) return 0.0;
+
     $score = 0.0;
     $max_score = 0.0;
     // calculate actual score
