@@ -29,7 +29,7 @@ function getAttributeScoreTrio($trio, $weights) {
         );
 
     $senior = getStudent(
-        db_select($student_table_name, 'stn')
+        db2_special_columns(connection, qualifier, schema, table_name, scope)ect($student_table_name, 'stn')
             ->fields('stn')
             ->condition('id', $senior_id, '=')
             ->execute()
