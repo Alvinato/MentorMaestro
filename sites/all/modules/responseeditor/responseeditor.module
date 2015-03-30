@@ -85,8 +85,17 @@ function choose_person_ajax_callback($form, &$form_state)
 
 function response_editor_form_submit($form, &$form_state)
 {
-  $values = $form_state['values'];
-  error_log(print_r($form_state['values'], TRUE));
+	$values = $form_state['values'];
+	$nid = $values['id'];
+	
+	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
+	$typeChar = $form_state['values']['person_type'];
+	$tableName = ($typeChar === 'M') ? $mentorTableName : $studentTableName;
+  
+  error_log(print_r($values, TRUE));
+  $num_deleted = db_delete($tableName)
+  ->condition('id', $nid)
+  ->execute();
 }
 
 function edit_button_callback($form, &$form_state)
@@ -239,11 +248,19 @@ function response_editor_form($form, &$form_state)
 			)
 		);
 		
+		$form['form_group']['remove'] =
+		array
+		(
+			'#type' => 'submit',
+			'#value' => t('Remove Participant')
+		);
+		
 		$form['form_group']['edit_result'] = array(
 		  '#markup' => 'Edited.',
 		  '#prefix' => '<div id="edit_div">',
 		  '#suffix' => '</div>'
 		);
+		
 		hide($form['form_group']['edit_result']);
 	 }
 	
