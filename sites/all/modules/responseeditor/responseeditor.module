@@ -60,6 +60,20 @@ function searchParticipantsByName($name)
 		'last_name' => $row->last_name,
 		'email' => $row->email);
 	}
+	
+	$result2 = db_select($studentTableName, 'mmt')
+        ->fields('mmt',array('id','first_name', 'last_name', 'email'))
+        ->condition($or)
+        ->execute()
+        ->fetchAll();
+		
+	foreach ($result2 as $row)
+	{
+		$results['S' . $row->id] = array('first_name' => $row->first_name,
+		'last_name' => $row->last_name,
+		'email' => $row->email);
+	}
+	
 	return $results;
 }
 
@@ -80,20 +94,48 @@ function edit_button_callback($form, &$form_state)
 	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
 	$typeChar = $form_state['values']['person_type'];
 	error_log('type_char: ' . $typeChar);
-	drupal_set_message('<pre>' . print_r($form_state['values'], TRUE) . '</pre>');
+	//drupal_set_message('<pre>' . print_r($form_state['values'], TRUE) . '</pre>');
 
 	error_log('First Name: ' . $form_state['values']['first_name']);
 	error_log('First Name: ' . $form['form_group']['first_name']['#value']);
 	$tableName = ($typeChar === 'M') ? $mentorTableName : $studentTableName;
 	
+	$columns = $form_state['values']['columns'];
+	$fields = array();
+	foreach ($columns as $column)
+	{
+		if ($column === 'id' || $column === 'timestamp') { continue; }
+		$fields[$column] = $form_state['values'][$column];
+	}
+	
+	error_log("FIELDDUMP" . print_r($fields, true));
+	
 	$num_updated = db_update($tableName)
-	  ->fields(array(
-		'first_name' => $form_state['values']['first_name'],
-		'last_name' => $form_state['values']['last_name'],
-	  ))
+	  ->fields($fields)
 	  ->condition('id', $form_state['values']['id'], '=')
 	  ->execute();
+	  
+	show($form['form_group']['edit_result']);
 	return $form['edit_result'];
+}
+
+function createTextField($title, $defaultValue)
+{
+	return array(
+		  '#type' => 'textfield',
+		  '#title' => t($title),
+		  '#default_value' => $defaultValue
+		);
+}
+
+function getFriendlyName($column)
+{
+	/*if ($column === 'first_name') { return 'First Name'; }
+	if ($column === 'last_name') { return 'Last Name'; }
+	if ($column === 'current_employer') { return 'Current Employer'; }
+	
+	return $column;*/
+	return ucwords(str_replace('_', ' ', $column));
 }
 
 function response_editor_form($form, &$form_state)
@@ -171,33 +213,20 @@ function response_editor_form($form, &$form_state)
 			'#type' => 'hidden',
 			'#value' => $numId
 		);
+		$form['form_group']['columns'] = array(
+			'#type' => 'hidden',
+			'#value' => array_keys(get_object_vars($personData))
+		);
 		
-		error_log($personId);
-	
-		hide($form['result']);
-			$form['form_group']['first_name'] = array(
-		  '#type' => 'textfield',
-		  '#title' => t('First Name'),
-		  '#default_value' => $personData->first_name
-		);
-
-		$form['form_group']['last_name'] = array(
-		  '#type' => 'textfield',
-		  '#title' => t('Last Name'),
-		  '#default_value' => $personData->last_name
-		);
-
-		$form['form_group']['email'] = array(
-		  '#type' => 'textfield',
-		  '#title' => t('Email'),
-		  '#default_value' => $personData->email
-		);
-
-		$form['form_group']['employer'] = array(
-		  '#type' => 'textfield',
-		  '#title' => t('Current Employer'),
-		  '#default_value' => $personData->current_employer
-		);
+		error_log('PD: ' . print_r($personData, true));
+		error_log('PDK: ' . print_r(array_keys(get_object_vars($personData)), true));
+		
+		foreach ($personData as $column=>$value)
+		{
+			if ($column === 'id' || $column === 'timestamp') { continue; }
+			$form['form_group'][$column] =
+				createTextField(getFriendlyName($column), $value);
+		}
 		
 		$form['form_group']['edit'] =
 		array
@@ -215,6 +244,7 @@ function response_editor_form($form, &$form_state)
 		  '#prefix' => '<div id="edit_div">',
 		  '#suffix' => '</div>'
 		);
+		hide($form['form_group']['edit_result']);
 	 }
 	
 	return $form;
