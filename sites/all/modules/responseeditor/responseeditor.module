@@ -17,20 +17,206 @@ function responseeditor_menu()
   return $items;
 }
 
+function response_editor_ajax_callback($form, $form_state)
+{
+	return $form['result'];
+}
+
+function getPersonData($isMentor, $id)
+{
+	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
+	
+	$tableName = ($isMentor) ? $mentorTableName : $studentTableName;
+	
+	$result = db_select($tableName, 'mmt')
+        ->fields('mmt')
+        ->condition('id', $id, '=')
+        ->execute()
+        ->fetchAll();
+		
+	foreach ($result as $row)
+	{
+		return $row;
+	}
+}
+
+function searchParticipantsByName($name)
+{
+	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
+	$or = db_or();
+	$or->condition('first_name', '%' . $name . '%', 'like');
+	$or->condition('last_name', '%' . $name . '%', 'like');
+	
+	$result = db_select($mentorTableName, 'mmt')
+        ->fields('mmt',array('id','first_name', 'last_name', 'email'))
+        ->condition($or)
+        ->execute()
+        ->fetchAll();
+		
+	$results = array();
+	foreach ($result as $row)
+	{
+		$results['M' . $row->id] = array('first_name' => $row->first_name,
+		'last_name' => $row->last_name,
+		'email' => $row->email);
+	}
+	return $results;
+}
+
+function choose_person_ajax_callback($form, &$form_state)
+{
+	error_log('hi3');
+	return $form['form_group'];
+}
+
+function response_editor_form_submit($form, &$form_state)
+{
+  $values = $form_state['values'];
+  error_log(print_r($form_state['values'], TRUE));
+}
+
+function edit_button_callback($form, &$form_state)
+{
+	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
+	$typeChar = $form_state['values']['person_type'];
+	error_log('type_char: ' . $typeChar);
+	drupal_set_message('<pre>' . print_r($form_state['values'], TRUE) . '</pre>');
+
+	error_log('First Name: ' . $form_state['values']['first_name']);
+	error_log('First Name: ' . $form['form_group']['first_name']['#value']);
+	$tableName = ($typeChar === 'M') ? $mentorTableName : $studentTableName;
+	
+	$num_updated = db_update($tableName)
+	  ->fields(array(
+		'first_name' => $form_state['values']['first_name'],
+		'last_name' => $form_state['values']['last_name'],
+	  ))
+	  ->condition('id', $form_state['values']['id'], '=')
+	  ->execute();
+	return $form['edit_result'];
+}
+
 function response_editor_form($form, &$form_state)
 {
+	$form['searchName'] = array
+	(
+		'#type' => 'textfield',
+		'#title' => t('Find a participant')
+	);
 	
-	$form['result'] = array(
-	  '#prefix' => '<div id="result_div">',
-	  '#markup' => '',
-	  '#suffix' => '</div>'
-	  );
-  
-	/*$form['some_text'] = array(
-	  '#markup' =>
-	  count($people) . ' people total. <br />' . outputAllGroups($allGroups)
-	  );*/
+	$form['go'] = array
+	(
+		'#type' => 'button',
+		'#value' => 'Search',
+		'#attributes' => array('class' => array('container-inline')), 
+		'#ajax' => array(
+			'callback' => 'response_editor_ajax_callback',
+			'wrapper' => 'result_div',
+			'effect' => 'fade'
+		)
+	);
+	
+	$form['spacer'] = array('#markup' => '<div style="clear:both;">&nbsp;</div>');
+	
+	if (array_key_exists('values', $form_state))
+	{
+		$content = searchParticipantsByName($form_state['values']['searchName']);
+	}
+	else
+	{
+		$content = array();
+	}
+	
+	$editing = array_key_exists('values', $form_state) && $form_state['values']['result'] != '';
 
+	$form['result'] = array(
+	  '#type' => 'tableselect',
+	  '#header' => array('first_name' => 'First Name', 'last_name' => 'Last Name', 'email' => 'Email'),
+	  '#options' => $content,
+	  '#prefix' => '<div id="result_div" style="float:left;margin-right: 2em;">',
+	  '#suffix' => '</div>',
+	  '#multiple' => false,
+	  '#ajax' => array(
+			'callback' => 'choose_person_ajax_callback',
+			'wrapper' => 'group_div'
+		)
+	  );
+	  
+	 $form['form_group'] = array(
+		  '#type' => 'fieldset',
+		  '#title' => t('Edit Fields'),
+		  '#collapsible' => FALSE,
+		  '#collapsed' => FALSE,
+		  '#prefix' => '<div id="group_div" style="float: left;">',
+		  '#suffix' => '</div>'
+		);
+
+	 if ($editing)
+	{
+		$personId = $form_state['values']['result'];
+		
+		$typeChar = substr($personId, 0, 1);
+		$isMentor = $typeChar === 'M';
+		$numId = substr($personId, 1);
+		
+		$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
+		
+		$personData = getPersonData($isMentor, $numId);
+		
+		$form['form_group']['person_type'] = array(
+			'#type' => 'hidden',
+			'#value' => $typeChar
+		);
+		$form['form_group']['id'] = array(
+			'#type' => 'hidden',
+			'#value' => $numId
+		);
+		
+		error_log($personId);
+	
+		hide($form['result']);
+			$form['form_group']['first_name'] = array(
+		  '#type' => 'textfield',
+		  '#title' => t('First Name'),
+		  '#default_value' => $personData->first_name
+		);
+
+		$form['form_group']['last_name'] = array(
+		  '#type' => 'textfield',
+		  '#title' => t('Last Name'),
+		  '#default_value' => $personData->last_name
+		);
+
+		$form['form_group']['email'] = array(
+		  '#type' => 'textfield',
+		  '#title' => t('Email'),
+		  '#default_value' => $personData->email
+		);
+
+		$form['form_group']['employer'] = array(
+		  '#type' => 'textfield',
+		  '#title' => t('Current Employer'),
+		  '#default_value' => $personData->current_employer
+		);
+		
+		$form['form_group']['edit'] =
+		array
+		(
+			'#type' => 'submit',
+			'#value' => t('Edit'),
+			'#ajax' => array(
+				'callback' => 'edit_button_callback',
+				'wrapper' => 'edit_div'
+			)
+		);
+		
+		$form['form_group']['edit_result'] = array(
+		  '#markup' => 'Edited.',
+		  '#prefix' => '<div id="edit_div">',
+		  '#suffix' => '</div>'
+		);
+	 }
+	
 	return $form;
 }
 
