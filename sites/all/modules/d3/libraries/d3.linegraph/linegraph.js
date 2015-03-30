@@ -25,6 +25,11 @@
     Drupal.d3.linegraph = function (select, settings) {
 
         var key = settings.legend;
+        var theweights = settings.weightings;  // this is going to be the weightings...
+        console.log("this is going to be the weightings");
+        console.log(theweights);   // send in the weights when we are saving...
+
+
         var margin = 20,
             diameter = 700,
             width = 700,
@@ -82,7 +87,7 @@
             //console.log("after popping the last step");
             //console.log(steps);
             var input = JSON.parse(jsonStringinput);
-            circleSetup(input, true);
+            circleSetup(input, true, null);  // there is nothing that was last moved...
             //console.log("running the undo function right now...");
 
 
@@ -92,11 +97,11 @@
         d3.json("TESTING.json", function (error, root) {
              data3 = cloneJSON(root);
              // we assign data3 with the original...
-            circleSetup(root, false);
+            circleSetup(root, false, null); // nothing that was last changed here...
         });
 
 
-        function circleSetup(root, undoo){
+        function circleSetup(root, undoo, lastChanged){
           // every time this run we need to save it to the previouss step...
 
             data = root;
@@ -156,7 +161,7 @@
                                 return "Similarity Rating: " + result;
 
                             })
-                            .attr("x",550)
+                            .attr("x",520)
                             .attr("y",10);
 
                     }
@@ -270,7 +275,10 @@
                             // and then we are going to return an alert message...
 
                              if (obj.result != null){
-                                 alert(obj.result);  }
+                                 alert(obj.result);  }else{
+
+                                 alert("Changes were saved successfully!!");
+                             }
 
                         }
                         else {
@@ -297,6 +305,16 @@
                // alert("this is opening the window to choose other trios to visualize...");
                 var myWindow = window.open("examples/mentor", "", "width=400, height=400");
 
+            });
+
+
+            var button6 = keys.append("g").on("click", function(){  // comparison button
+                // comparing with itself right now...
+                // alert("this is opening the window to choose other trios to visualize...");
+                // var myWindow = window.open("examples/mentor", "", "width=400, height=400");
+                // this needs to open another window here...
+                // make the new window now..
+                var myWindow = window.open("examples/group", "", "width=400, height=400");
             });
 
 
@@ -332,7 +350,7 @@
                 .attr("width", 70)
                 .attr("height", 16)
                 .attr("x", 600)
-                .attr("y", 30)
+                .attr("y", 30);
 
             button5.append("rect")
                 .attr("fill", "white")
@@ -340,13 +358,26 @@
                 .attr("width", 70)
                 .attr("height", 16)
                 .attr("x", 600)
-                .attr("y", 70)
+                .attr("y", 70);
 
+            button6.append("rect")
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("width", 70)
+                .attr("height", 16)
+                .attr("x", 600)
+                .attr("y", 100);
 
-                .append("title")
+              /*  .append("title")
                 //.append("text")
                 .text("new group")
-                .attr("dy", "1em");
+                .attr("dy", "1em");*/
+
+            button6.append("text")// the save text...
+                .text("KickOff")
+                .attr("x", 606)
+                .attr("y", 114);
+
 
             button2.append("text")// the save text...
                 .text("save")
@@ -401,6 +432,16 @@
 
             var gState = gStates.enter()
                 .append("g")
+                .attr("id", function(d){
+                        // the d function...
+                    if (d.name == ""){
+                        return "first";
+                    }
+                    if(d.name.substr(0,5) == "Group"){
+                        return d.name;
+                    }
+                    return d.name + d.familyname;  // concat the first and last name ...
+                })
                 .attr("transform", "translate(0,0)")
                 .attr("class", function (d) {
                  //   console.log(d.name);
@@ -518,6 +559,20 @@
             }
 
             function colorize(d) {
+
+                if(d.name.substr(0,5) == "Group"){
+                  //  console.log("we have found a group");
+                        //console.log(d);
+                       var error =  check_error_in_group(d);
+                    if (error == 1){
+                    //    console.log("returning purple");
+                        return "purple";
+                    }else{
+                      //  console.log("returning orange");
+                        return "orange";
+                    }
+                }
+
                 if (d.position == "Mentor") {
                     //  console.log("found mentee");
                     return "green";
@@ -531,6 +586,87 @@
                 }
                 return "orange";
             }
+
+
+            function check_error_in_group(d) {
+                //console.log("before the loop");
+                //console.log(d);  // this is the one we are looking for
+
+                for (var i in data){
+                    //console.log(data[i]);
+                    for (var t in data[i]) {
+                        //console.log(data[i][t]);
+                        if (data[i][t].name != undefined) {
+                            //console.log(data[i][t].name.substr(0, 5));
+                            if (data[i][t].name == d.name) {
+                  //              console.log("we have found teh group...");
+                               // console.log(data[i][t].children);
+                               // console.log(data[i][t].children.length);
+                                if (data[i][t].children.length != 3 ) {
+                                 //   console.log("found one with the wrong number");
+                                    return 1;  // meaning that this is worng
+                                }
+                                var mentor=0;
+                                var junior=0;
+                                var senior=0;
+                                // we need to go through the children...
+                                for(var m = 0; m < 3; m++){
+                    //                console.log("printing the children");
+                     //               console.log(data[i][t].children[m].position);
+                                    if(data[i][t].children[m].position == "Mentor"){
+                                       mentor = 1;
+                                    }
+                                    if(data[i][t].children[m].position == "Senior"){
+                                        senior = 1;
+                                    }
+
+                                    if(data[i][t].children[m].position == "Junior"){
+                                        junior = 1;
+                                    }
+                                }
+                                if (mentor == 0|| junior == 0 || senior == 0){
+                                    return 1;
+                                }
+
+                            }
+                        }
+                    }
+                }
+                return 0;
+            }
+
+            if(lastChanged != null)
+            {
+
+
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                console.log(myCircle);
+
+                myCircle.transition().delay(50).duration(1000)
+                    .attr("transform", "translate(320, 0)")
+                  //.style("opacity", "0")// this should change the opacity of the g element...
+                    //.style("fill", "purple")
+                    .each("end", myCallback);
+
+            }
+
+            function myCallback(){
+                console.log("omg the transition has ended");
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                myCircle.transition().delay(10).duration(1000)
+                    .attr("transform", "translate(0, 0)")  // this
+                    .style("fill", "purple")
+                    .each("end", myCallback1);
+
+
+            }
+            function myCallback1(){
+                console.log("omg the transition has ended");
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                myCircle.style("fill", "white");
+
+            }
+
         }
 
 
@@ -771,7 +907,7 @@
                     daName = gName;
                     // once you find where its overlap send the name of the overlap group and the thing that was dragged...
                     jsonChanger(daName, d, false);  // input the group name and the thing that was dragged.
-                    circleSetup(data, false);
+                    circleSetup(data, false, d);  // d is going to be the last thing that was added... we need to make it light up...
                     overlap = 1;
                     break;
                 }else{
@@ -785,7 +921,7 @@
               //  console.log("no overlap with any groups");
                 overlap = 0;
                 addGroup(d);  // this is going to place the circle outside...
-                circleSetup(data,false);
+                circleSetup(data,false, d);   // pass the last thing that was changed and make it light up for a bit...
             }
 
 
