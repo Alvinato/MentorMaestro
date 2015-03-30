@@ -1,0 +1,5 @@
+name = Participant Email Generator
+description = Generates an email list of all participants
+core = 7.x
+package = Mentor Maestro
+dependencies[] = yearmanager
