@@ -261,10 +261,98 @@ function add($arguments1){
 // we need a checker in the start that says whether or not we can save because some groups are not trios...
 function save($arguments1){
   Chromephp::log("the save function is running");
+
+
+  //!.) we need to identify whether this group is kickoff save or trio...  make a note at the start...
+
+
+
+
   
   $decoded = json_decode($arguments1);  // takes in the json file
   // right here we are going to calculate the overrall score and return... 
 
+  // this code here will save to the kickoff db...
+  Chromephp::log(substr($decoded->type, 0, 0));
+  Chromephp::log(substr($decoded->type, 0, 7));
+  Chromephp::log(substr($decoded->type, 7, 8));  
+
+if (substr($decoded->type, 0, 7) == "kickoff"){
+  // holds the list of numbers... 
+  
+$myArray1 = array();
+for ($g = 0; $g < count($decoded->children); $g++){  // go through the json file and search up the correct index.
+  $current_group = $decoded->children[$g];  // this is the current group that we are searching
+  $mentor_id = array();
+  $senior_id = array();
+  $junior_id = array();
+  for($r = 0; $r < count($current_group->children);$r++){
+      Chromephp::log($current_group->children[$r]);
+    $applicant = $current_group->children[$r];
+    $applicant_name = $applicant->name;
+    $applicant_familyname = $applicant->familyname;
+    $applicant_position = $applicant->position;
+
+    $mentor = 'Mentor';
+    if($applicant_position == $mentor){
+        Chromephp::log("found a mentor");
+        array_push($mentor_id, traverser($applicant_name, $applicant_familyname, "mentor"));
+        Chromephp::log($mentor_id);
+    }
+    $junior = "Junior";
+    if($applicant_position == $junior){
+      Chromephp::log("found a junior");
+        array_push($junior_id, traverser($applicant_name, $applicant_familyname, "student"));
+        Chromephp::log($junior_id);
+    }
+
+    $senior = "Senior";
+    if($applicant_position == $senior){
+        Chromephp::log("found a senior");
+        
+        array_push($senior_id, traverser($applicant_name, $applicant_familyname, "student"));
+        Chromephp::log($senior_id);
+    }
+  }
+  // this is one group...
+$myArray = array(
+      'mentor'=> $mentor_id,
+      'senior' => $senior_id,
+      'junior' => $junior_id,
+      );
+
+array_push($myArray1, $myArray);
+
+}
+
+Chromephp::log($myArray1);
+// loop through and check... 
+Chromephp::log("hello");
+Chromephp::log($senior_id);
+
+
+//array_push($thearray, $myArray); // push the array...
+
+$encode = json_encode($myArray1);  
+
+Chromephp::log($encode);
+
+
+  $query = "INSERT INTO TESTING.maestro_matched_kickoff_groups (timestamp, mentoring_year, kickoff_night, groups) VALUES (:ts, :my, :k, :t)";
+db_query($query, array(
+        ':ts' => date('Y-m-d H:i:s'),
+        ':my' => "20142015",
+        ':k'  => substr($decoded->type, 7, 8),               // find the correct night...
+        ':t'  => $encode,
+        ));
+  
+    Chromephp::log("after inserting into the db");
+}
+
+
+
+
+if ($decoded->type == "trio"){
   $overrall_percentage = 0;
   $elements = 0;
 
@@ -275,24 +363,14 @@ function save($arguments1){
               $applicant_name = $applicant->name;
               $applicant_familyname = $applicant->familyname;
               $applicant_weighting = $applicant ->weighting;
-              //Chromephp::log("the calculator function!!"); 
-              //Chromephp::log("tthe weighting");
-              //Chromephp::log($applicant);
-              //Chromephp::log($applicant->{"weighting"});
-              //Chromephp::log($applicant_weighting);
               if (!is_null($applicant_weighting)){
-                  // if its not null then keep summing it...
                   $overrall_percentage = $overrall_percentage + $applicant_weighting;
                   $elements++;
               }
       }
   }
-  //Chromephp::log("this is the overrall percentage");
-  //Chromephp::log($overrall_percentage);
-
+  
   $overrall_percentage  = $overrall_percentage /$elements;
-
-
 
 // this needs to be fixed...
 //$answer = right_form_checker($decoded); 
@@ -377,7 +455,7 @@ db_query($query, array(
     Chromephp::log("after inserting into the db");
   
   
-
+}
   }
 
 
