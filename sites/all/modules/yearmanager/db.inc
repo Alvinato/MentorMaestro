@@ -52,6 +52,13 @@ function createNewYear($year) {
             'mentor_table_name'  => $mtn,
             ))
         ->execute();
+    // Current year
+    $currentYear = getYear();
+    list($mtn_x, $stn_x) = getParticipantTableNames($currentYear);
+    // Create new student table
+    db_query("CREATE TABLE $stn SELECT * FROM $stn_x WHERE 1 = 2");
+    // Create new mentor table
+    db_query("CREATE TABLE $mtn SELECT * FROM $mtn_x WHERE 1 = 2");
 }
 
 /*
