@@ -25,6 +25,11 @@
     Drupal.d3.linegraph = function (select, settings) {
 
         var key = settings.legend;
+        var theweights = settings.weightings;  // this is going to be the weightings...
+        console.log("this is going to be the weightings");
+        console.log(theweights);   // send in the weights when we are saving...
+
+
         var margin = 20,
             diameter = 700,
             width = 700,
@@ -68,22 +73,22 @@
         var steps = [];  // an empty array for now...
         var stepCount = -2; // this will hold the index that we should move back on...
         function undo(){
-            console.log(stepCount);
+          //  console.log(stepCount);
             if(stepCount <= -1){
                 alert("nothing left to undo!");
                 return;
             }
 
-            console.log(steps[stepCount]);
+           // console.log(steps[stepCount]);
             var jsonStringinput = steps[stepCount];  // this is holding the json input...
-            console.log(steps);
+           // console.log(steps);
             steps.pop();// pops the last element off;
             stepCount--;
-            console.log("after popping the last step");
-            console.log(steps);
+            //console.log("after popping the last step");
+            //console.log(steps);
             var input = JSON.parse(jsonStringinput);
-            circleSetup(input, true);
-            console.log("running the undo function right now...");
+            circleSetup(input, true, null);  // there is nothing that was last moved...
+            //console.log("running the undo function right now...");
 
 
         }
@@ -92,15 +97,15 @@
         d3.json("TESTING.json", function (error, root) {
              data3 = cloneJSON(root);
              // we assign data3 with the original...
-            circleSetup(root, false);
+            circleSetup(root, false, null); // nothing that was last changed here...
         });
 
 
-        function circleSetup(root, undoo){
+        function circleSetup(root, undoo, lastChanged){
           // every time this run we need to save it to the previouss step...
 
             data = root;
-            console.log(root);
+            //console.log(root);
             // saving what is in the instance into the json file...
 
             var o = {};
@@ -129,13 +134,8 @@
             //console.log(result);
             if(!undoo) {
                 steps.push(result);  // pushes the list of strings onto the list...
-                console.log(steps.length);  // print out the length of the array...
-                console.log(steps); // print out the array of json strings...
                 stepCount++;
             }
-            /*for(var i = 0; i < steps.length; i++){
-                console.log(steps[i]); // print out every string that is going to be added...
-            }*/
 
             var object =  jQuery.ajax({
                 type: "POST",
@@ -145,17 +145,31 @@
 
                 success: function (obj, textstatus) {
                     if( !('error' in obj)) {
-                        yourVariable = obj.result;
+                    //    console.log("this is running right now");
+                        var result = obj.result;
+
+                       // console.log("the result from the javascript side " + obj.result);
+
+                        // now we need to change the text file...
+
+                        var similaritiesNumber = keys.append("g"); // this is going to set up just text that will show the overrall similarities
+
+                        similaritiesNumber.append("text")
+                            .text(function(){
+
+                                // return the overrall score!!...
+                                return "Similarity Rating: " + result;
+
+                            })
+                            .attr("x",520)
+                            .attr("y",10);
+
                     }
                     else {
 
                     }
                 }
             });
-
-
-
-
             ary.splice(0,ary.length);
             ary2.splice(0,ary.length);
             // because of this we need to place the legend stuff inside here...
@@ -255,17 +269,21 @@
 
                     success: function (obj, textstatus) {
                         if( !('error' in obj) ) {
-                            yourVariable = obj.result;
+                            //yourVariable = obj.result;
                             // TODO!! going to return an error message.
                             //  going to be a string saying how the trios arent matched properly.
                             // and then we are going to return an alert message...
+
                              if (obj.result != null){
-                                 alert(obj.result);  }
+                                 alert(obj.result);  }else{
+
+                                 alert("Changes were saved successfully!!");
+                             }
 
                         }
                         else {
 
-                                  console.log(obj.error);
+                             //     console.log(obj.error);
                         }
                     }
                 });
@@ -273,9 +291,9 @@
             });
 
            var button3 = keys.append("g").on("click", function(){
-               var myWindow = window.open("examples/bubbles#overlay-context=", "", "width=400, height=400"); 
+               var myWindow = window.open("examples/bubbles#overlay-context=", "", "width=400, height=400");
                 // we need the add button to send input through to this window here...
-                // why dont we just call a php function here.    
+                // why dont we just call a php function here.
            });
             var button4 = keys.append("g").on("click", function(){  // comparison button
                 // comparing with itself right now...
@@ -289,20 +307,16 @@
 
             });
 
-            var similaritiesNumber = keys.append("g"); // this is going to set up just text that will show the overrall similarities
 
-            similaritiesNumber.append("text")
-                                .text(function(){
+            var button6 = keys.append("g").on("click", function(){  // comparison button
+                // comparing with itself right now...
+                // alert("this is opening the window to choose other trios to visualize...");
+                // var myWindow = window.open("examples/mentor", "", "width=400, height=400");
+                // this needs to open another window here...
+                // make the new window now..
+                var myWindow = window.open("examples/group", "", "width=400, height=400");
+            });
 
-                                console.log("inside the text figuring out what to write");
-
-                                 // here we are going to call the ajax function...
-
-                                return "Similarity Rating: " + "80%";
-
-                })
-                                .attr("x",550)
-                                .attr("y",10);
 
             button1.append("rect")
                 .attr("fill", "white")
@@ -336,7 +350,7 @@
                 .attr("width", 70)
                 .attr("height", 16)
                 .attr("x", 600)
-                .attr("y", 30)
+                .attr("y", 30);
 
             button5.append("rect")
                 .attr("fill", "white")
@@ -344,13 +358,26 @@
                 .attr("width", 70)
                 .attr("height", 16)
                 .attr("x", 600)
-                .attr("y", 70)
+                .attr("y", 70);
 
+            button6.append("rect")
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("width", 70)
+                .attr("height", 16)
+                .attr("x", 600)
+                .attr("y", 100);
 
-                .append("title")
+              /*  .append("title")
                 //.append("text")
                 .text("new group")
-                .attr("dy", "1em");
+                .attr("dy", "1em");*/
+
+            button6.append("text")// the save text...
+                .text("KickOff")
+                .attr("x", 606)
+                .attr("y", 114);
+
 
             button2.append("text")// the save text...
                 .text("save")
@@ -405,6 +432,16 @@
 
             var gState = gStates.enter()
                 .append("g")
+                .attr("id", function(d){
+                        // the d function...
+                    if (d.name == ""){
+                        return "first";
+                    }
+                    if(d.name.substr(0,5) == "Group"){
+                        return d.name;
+                    }
+                    return d.name + d.familyname;  // concat the first and last name ...
+                })
                 .attr("transform", "translate(0,0)")
                 .attr("class", function (d) {
                  //   console.log(d.name);
@@ -522,6 +559,20 @@
             }
 
             function colorize(d) {
+
+                if(d.name.substr(0,5) == "Group"){
+                  //  console.log("we have found a group");
+                        //console.log(d);
+                       var error =  check_error_in_group(d);
+                    if (error == 1){
+                    //    console.log("returning purple");
+                        return "purple";
+                    }else{
+                      //  console.log("returning orange");
+                        return "orange";
+                    }
+                }
+
                 if (d.position == "Mentor") {
                     //  console.log("found mentee");
                     return "green";
@@ -535,6 +586,87 @@
                 }
                 return "orange";
             }
+
+
+            function check_error_in_group(d) {
+                //console.log("before the loop");
+                //console.log(d);  // this is the one we are looking for
+
+                for (var i in data){
+                    //console.log(data[i]);
+                    for (var t in data[i]) {
+                        //console.log(data[i][t]);
+                        if (data[i][t].name != undefined) {
+                            //console.log(data[i][t].name.substr(0, 5));
+                            if (data[i][t].name == d.name) {
+                  //              console.log("we have found teh group...");
+                               // console.log(data[i][t].children);
+                               // console.log(data[i][t].children.length);
+                                if (data[i][t].children.length != 3 ) {
+                                 //   console.log("found one with the wrong number");
+                                    return 1;  // meaning that this is worng
+                                }
+                                var mentor=0;
+                                var junior=0;
+                                var senior=0;
+                                // we need to go through the children...
+                                for(var m = 0; m < 3; m++){
+                    //                console.log("printing the children");
+                     //               console.log(data[i][t].children[m].position);
+                                    if(data[i][t].children[m].position == "Mentor"){
+                                       mentor = 1;
+                                    }
+                                    if(data[i][t].children[m].position == "Senior"){
+                                        senior = 1;
+                                    }
+
+                                    if(data[i][t].children[m].position == "Junior"){
+                                        junior = 1;
+                                    }
+                                }
+                                if (mentor == 0|| junior == 0 || senior == 0){
+                                    return 1;
+                                }
+
+                            }
+                        }
+                    }
+                }
+                return 0;
+            }
+
+            if(lastChanged != null)
+            {
+
+
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                console.log(myCircle);
+
+                myCircle.transition().delay(50).duration(1000)
+                    .attr("transform", "translate(320, 0)")
+                  //.style("opacity", "0")// this should change the opacity of the g element...
+                    //.style("fill", "purple")
+                    .each("end", myCallback);
+
+            }
+
+            function myCallback(){
+                console.log("omg the transition has ended");
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                myCircle.transition().delay(10).duration(1000)
+                    .attr("transform", "translate(0, 0)")  // this
+                    .style("fill", "purple")
+                    .each("end", myCallback1);
+
+
+            }
+            function myCallback1(){
+                console.log("omg the transition has ended");
+                var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
+                myCircle.style("fill", "white");
+
+            }
+
         }
 
 
@@ -771,11 +903,11 @@
                 var radius = gr + r;                // adding the two radius to compare.
                 // have to make sure that it is not the same group...
                 if (radius >= distance){
-                    console.log("OVERLAPP!!!");
+                  //  console.log("OVERLAPP!!!");
                     daName = gName;
                     // once you find where its overlap send the name of the overlap group and the thing that was dragged...
                     jsonChanger(daName, d, false);  // input the group name and the thing that was dragged.
-                    circleSetup(data, false);
+                    circleSetup(data, false, d);  // d is going to be the last thing that was added... we need to make it light up...
                     overlap = 1;
                     break;
                 }else{
@@ -789,7 +921,7 @@
               //  console.log("no overlap with any groups");
                 overlap = 0;
                 addGroup(d);  // this is going to place the circle outside...
-                circleSetup(data,false);
+                circleSetup(data,false, d);   // pass the last thing that was changed and make it light up for a bit...
             }
 
 
@@ -817,7 +949,7 @@
 
         // this function will run everytime a circle is placed outside of another group... it will form its own group...
         function addGroup(d){
-            console.log("add a group is running right now!!");
+           // console.log("add a group is running right now!!");
             var theEmail = d.Email;
             for (var i in data){
                 for(var t in data[i]){
@@ -886,8 +1018,8 @@
 
 // accepts name of group and the dragged item.
         function jsonChanger(daName, d, remove){
-           console.log("inside the json changer right now!!");
-            console.log("this is the remove value"+ remove);  // this is the remove value...
+         //  console.log("inside the json changer right now!!");
+          //  console.log("this is the remove value"+ remove);  // this is the remove value...
             // deleting from a certain group...
             var theEmail = d.Email;
             for (var i in data){
@@ -899,7 +1031,7 @@
                             //console.log(currentThing[k].Email);
                             if(currentThing[k].Email == theEmail){
                                 var index = currentThing.indexOf(currentThing[k]);
-                                console.log(currentThing[index]);
+            //                    console.log(currentThing[index]);
                                 currentThing.splice(index, 1);
                             }
                         }
@@ -1186,10 +1318,31 @@
                             }
                         }
                     }
-                   x = x + r - 90; // making it the top right hand side
-                    y = y - r + 30;
+                   x = x + r ; // making it the top right hand side
+                    y = y - r + 0;
                     return 'translate(' +  x + ',' + y + ')'; }); // use x and y for now...
-            d3.tooltip(tooltip, "80%");
+
+
+                //TODO!!
+                // then make it so that it reads json so we get an updated version. if anything changes.
+
+         //   console.log(d);
+           // just check the json file for a new weighting...
+            // this is going to find the new weighting...
+            d3.json("TESTING.json", function(dataa){
+               // now lets go through adn find d.name
+                //console.log(dataa);
+                var weighting = returnweightingfromjson(dataa, d);
+
+               // console.log(weighting);
+                // we need to extract it from the json file...
+                var string =  weighting;
+
+                d3.tooltip(tooltip, string);
+
+            });
+
+
         }
 
         function hideToolTip(d, obj) {
@@ -1222,6 +1375,36 @@ function select()
 {
 document.getElementById("demo").innerHTML="The select function is called.";
 }
+
+
+function returnweightingfromjson(dataa, check){
+           //console.log(dataa)
+
+    for (var i in data) {
+        for (var t in data[i]) {
+         //   console.log(data[i][t]);
+           // console.log("inside the loop");
+            // for every group we have to find every person...
+            for (var a in data[i][t]) {
+                var currentThing = data[i][t][a];
+                for(var k in currentThing){
+               //     console.log("inside the last loop");
+             //   console.log(currentThing[k]);
+                    if(check.Email == currentThing[k].Email){
+                 //       console.log("found it!!");
+                        var weighting = currentThing[k].weighting;
+                   //     console.log("this is the weighting that we need:  " + weighting);
+                        return weighting;
+
+                    }
+            }
+        }
+        }
+    }
+
+
+}
+
 
 
 

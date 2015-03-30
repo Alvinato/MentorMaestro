@@ -72,10 +72,324 @@ function d3_examples_menu()
     'page callback' => 'd3_examples_mentor',
     'access callback' => MENU_LOCAL_TASK,
   );
+  $items['examples/group'] = array( // trying to make another page... but think we are just going to change existing.
+    'title' => 'Group',
+    'description' => 'group adding',
+    'access callback' => TRUE,
+    'page callback' => 'd3_examples_Group',
+    'access callback' => MENU_LOCAL_TASK,
+  );
   return $items;
   }
 
 $boolean = 0;
+
+function d3_examples_group()
+  {
+
+  // delete anything with weightings and percentage...
+
+  $add_timestamp1 = $_GET["timestamp1"];
+  $add_mentoring_year1 = $_GET["mentoring_year1"];
+  $add_weightings = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
+  $id1 = $_GET["id1"];
+
+  // if one of them is not null
+
+  if (!is_null($add_timestamp1))
+    {
+    Chromephp::log(" button was pressed");
+
+    $query1 = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
+    $result1 = db_query($query1)->fetchAll();
+    Chromephp::log($result1);
+    for ($g = 0; $g < count($result1); $g++)
+      {
+       Chromephp::log("inside the second loop"); 
+      Chromephp::log($result1[$g]->id);
+      Chromephp::log($result1[$g]);
+      Chromephp::log("just before the if statement");
+      if ($result1[$g]->id == $id1)
+        {
+
+        // then we recreate the json file using this one...
+        // lets grab the trio string
+          Chromephp::log("inside the if right now");
+        $most_recent_trio = $result1[$g]->groups;
+        $manage = json_decode($most_recent_trio);
+        $array = array(
+          'name' => '',
+          'children' => $manage
+        );
+        $mentor_list = array(); // holds all mentors that we are adding.
+        $final_array = array(
+          'name' => '',
+          'children' => array()
+        );
+        for ($a = 0; $a < count($array[children]); $a++)
+          {
+          $group = $array[children][$a];
+          for ($e = 0; $e < count($group); $e++)
+            {
+          /*      
+            // the index's for the database
+            $mentor_index = $group->mentor;   // this is going to be a list of mentor index's
+            $senior_index = $group->senior; // this is also a list of senior index's ...
+            $junior_index = $group->junior;
+            Chromephp::log("just before printing the index");  
+            Chromephp::log($mentor_index);
+            // now that we have the mentor index we need tograb all his information and paste it into the json file...
+            // mentor query we are going to need a loop...
+              Chromephp::log(count($mentor_index));
+              $mentor_json = array();  // holds all information from each applicant
+              $junior_json = array();  // this holds all mentor list for the current group...
+              $senior_json = array();  // this holds all mentor list for the current group...
+            for ($i = 0; $i < count($mentor_index); $i++){
+              Chromephp::log("inside the for loop");
+              // make the query..
+           //   Chromephp::log($mentor_index[$i]);
+              $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index[$i];
+              // need to make this array and add it to the overrall array...
+              $list = db_query($mentor_query)->fetchAll();  
+             // Chromephp::log($list);
+              array_push($mentor_json, $list);  
+            }
+
+            for ($i = 0; $i < count($mentor_index); $i++){
+              //Chromephp::log("asdfasdf");
+              //Chromephp::log($mentor_json[$i]);
+            }
+            
+              // do the samething for studnets for this particular group...
+
+            for ($i = 0; $i < count($senior_index); $i++){
+              //Chromephp::log("inside the for loop");
+              // make the query..
+           //   Chromephp::log($mentor_index[$i]);
+              $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index[$i];
+              // need to make this array and add it to the overrall array...
+              $list1 = db_query($senior_query)->fetchAll();  
+              //Chromephp::log($list1);
+              array_push($senior_json, $list1);
+            }
+
+            for ($i = 0; $i < count($senior_index); $i++){
+             // Chromephp::log("qwer");
+              //Chromephp::log($senior_json[$i]);
+            }
+            
+            for ($i = 0; $i < count($junior_index); $i++){
+              Chromephp::log("inside the for loop");
+              // make the query..
+           //   Chromephp::log($mentor_index[$i]);
+              $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index[$i];
+              // need to make this array and add it to the overrall array...
+              $list2 = db_query($junior_query)->fetchAll();  
+              Chromephp::log($list2);
+              array_push($junior_json, $list2);
+            }
+
+            for ($i = 0; $i < count($junior_index); $i++){
+            //  Chromephp::log("zxcv");
+             // Chromephp::log($junior_json[$i]);
+            }
+            
+            for ($i = 0; $i < count($mentor_json); $i++){
+                // go through every object...
+            $mentor_first_name = $mentor_json[$i]->first_name;
+            $mentor_last_name = $mentor_json[$i]->last_name;
+            $mentor_email = $mentor_json[$i]->email;
+            $mentor_gender = $mentor_json[$i]->gender;
+            $mentor_phone = $mentor_json[$i]->phone;
+            $mentor_birth = $mentor_json[$i]->birth_year;
+
+              // this is one entry...
+              $group_array_mentor = array(
+              'position' => 'Mentor',
+              'name' => $mentor_first_name,
+              'familyname' => $mentor_last_name,
+              'Email' => $mentor_email,
+              'phone' => $mentor_phone,
+              'phonealt' => 'NA',
+              'gender' => $mentor_gender,
+              'birth year' => $mentor_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );  
+
+
+            }
+
+            // we have filled all the arrays...
+
+
+
+            // grab the info from every single one...
+            //$list = db_query($mentor_query)->fetchAll();
+
+
+
+
+            // Chromephp::log($list);
+            // Chromephp::log($list[0]->first_name);
+            // grab all the attributes of a particular mentor and add to array.
+
+           /* $mentor_first_name = $list[0]->first_name;
+            $mentor_last_name = $list[0]->last_name;
+            $mentor_email = $list[0]->email;
+            $mentor_gender = $list[0]->gender;
+            $mentor_phone = $list[0]->phone;
+            $mentor_birth = $list[0]->birth_year;
+
+            // junior student query...
+
+            $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
+            $list2 = db_query($junior_query)->fetchAll();
+
+            // Chromephp::log($list2[0]->first_name);
+
+            $junior_first_name = $list2[0]->first_name;
+            $junior_last_name = $list2[0]->last_name;
+            $junior_email = $list2[0]->email;
+            $junior_gender = $list2[0]->gender;
+            $junior_phone = $list2[0]->phone;
+            $junior_birth = $list2[0]->birth_year;
+
+            // senior student query...
+
+            $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
+            $list3 = db_query($senior_query)->fetchAll();
+
+            // Chromephp::log($list2[0]->first_name);
+
+            $senior_first_name = $list3[0]->first_name;
+            $senior_last_name = $list3[0]->last_name;
+            $senior_email = $list3[0]->email;
+            $senior_gender = $list3[0]->gender;
+            $senior_phone = $list3[0]->phone;
+            $senior_birth = $list3[0]->birth_year;
+
+            // mentor instance...
+
+            $group_array_mentor = array(
+              'position' => 'Mentor',
+              'name' => $mentor_first_name,
+              'familyname' => $mentor_last_name,
+              'Email' => $mentor_email,
+              'phone' => $mentor_phone,
+              'phonealt' => 'NA',
+              'gender' => $mentor_gender,
+              'birth year' => $mentor_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // junior student instance...
+
+            $group_array_junior = array(
+              'position' => 'Junior', // for now it should be Mentee... change later..
+              'name' => $junior_first_name,
+              'familyname' => $junior_last_name,
+              'Email' => $junior_email,
+              'phone' => $junior_phone,
+              'phonealt' => 'NA',
+              'gender' => $junior_gender,
+              'birth year' => $junior_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // senior student instance
+
+            $group_array_senior = array(
+              'position' => 'Senior', // going to have to chagne this late ...
+              'name' => $senior_first_name,
+              'familyname' => $senior_last_name,
+              'Email' => $senior_email,
+              'phone' => $senior_phone,
+              'phonealt' => 'NA',
+              'gender' => $senior_gender,
+              'birth year' => $senior_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // add this to children...
+
+            $group_array_start = array(
+              'name' => 'Group' . $a,
+              'children' => array(
+                $group_array_mentor,
+                $group_array_senior,
+                $group_array_junior
+              )
+            );
+            array_push($final_array[children], $group_array_start);*/
+            }
+          }
+
+        // Chromephp::log("changing the json file before rendering the page...");
+
+      /*  $encodedJson = json_encode($final_array);
+        $file = 'TESTING.json';
+        file_put_contents($file, $encodedJson);
+
+        // should allow u to cancel here
+
+        echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
+        echo '<script type="text/javascript">', 'jsfunction();', '</script>';*/
+
+        // now we need to close the window..
+
+        }
+      }
+    }
+
+  $query = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
+  $result = db_query($query)->fetchAll();
+  echo "<table style='width:90%'>";
+  echo "<tr>";
+  echo "<th>Timestamp</th>";
+  echo "<th>Mentoring Year</th> ";
+  echo "<th>Kickoff Night</th>";
+  echo "</tr>";
+  for ($i = 0; $i < count($result); $i++)
+    {
+
+    // gather all info...
+
+    $timestamp1 = $result[$i]->timestamp; // this is going to be the timestamp
+    $mentoring_year1 = $result[$i]->mentoring_year;
+    $kickoff_night = $result[$i]->kickoff_night;
+    $id = $result[$i]->id;
+
+    // populate the table...
+
+    echo "<tr>"; //
+    echo "<td>" . $timestamp1 . "</td>"; // this should show the first name
+    echo "<td>" . $mentoring_year1 . "</td> ";
+    echo "<td>" . $kickoff_night . "</td>";
+
+    // lets send something inside here...
+
+    echo "<td>";
+    echo "<form action='http://localhost/TESTING/examples/group' method='get'>";
+    echo "<input type='hidden' name='timestamp1' value=$timestamp1 />";
+    echo "<input type='hidden' name='mentoring_year1' value=$mentoring_year1 />";
+    echo "<input type='hidden' name='kickoff_night' value=$kickoff_night />";
+    echo "<input type='hidden' name='id1' value=$id />";
+    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "</form> ";
+    echo "</td";
+    echo "</tr>";
+    }
+
+  echo "</table>";
+  }
 
 function CheckifAdded($firstname, $lastname)
   {
@@ -100,340 +414,376 @@ function CheckifAdded($firstname, $lastname)
 
   return false;
   }
-// this is going to display all the trios to the user so that he/she can decide which year to look at and alter... 
+
+// this is going to display all the trios to the user so that he/she can decide which year to look at and alter...
+
 function d3_examples_mentor()
   {
-  $add_timestamp = $_GET["timestamp"]; 
-  $add_mentoring_year = $_GET["mentoring_year"]; 
-  $add_weightings = $_GET["weightings"]; 
+  $add_timestamp = $_GET["timestamp"];
+  $add_mentoring_year = $_GET["mentoring_year"];
+  $add_weightings = $_GET["weightings"];
   $add_percentage = $_GET["percentage"];
   $id = $_GET["id"];
 
   // if one of them is not null
-  if (!is_null($add_timestamp)){
+
+  if (!is_null($add_timestamp))
+    {
+
     // then the button was pressed and we need to change the json file to that of the year chosen...
-    //TODO!! change the json file first...
-    Chromephp::log("the button was pressed");
+    // TODO!! change the json file first...
 
+    Chromephp::log(" button was pressed");
     $query1 = "SELECT * FROM TESTING.maestro_matched_trios";
-    $result1 = db_query($query1)->fetchAll();  
-   
-     for ($g = 0; $g < count($result1); $g++)
+    $result1 = db_query($query1)->fetchAll();
+    for ($g = 0; $g < count($result1); $g++)
+      {
+      Chromephp::log($result1[$g]->id);
+      if ($result1[$g]->id == $id)
         {
-         Chromephp::log($result1[$g]->id);
-         if($result1[$g]->id == $id){
-          // then we recreate the json file using this one... 
-          // lets grab the trio string
-          $most_recent_trio = $result1[$g]->trios;
-          $manage = json_decode($most_recent_trio);
 
+        // then we recreate the json file using this one...
+        // lets grab the trio string
 
-  $array = array(
-    'name' =>'',
-    'children' => $manage
-    );
- // Chromephp::log($array);
-  //Chromephp::log($array[children]);
-    $mentor_list = array(); // holds all mentors that we are adding.
-      $final_array = array(
-      'name' => '',
-      'children' => array()
-      );
-  for($a = 0; $a <count($array[children]);$a++){
- 
-    $group = $array[children][$a];  
- 
-    for($e = 0; $e < count($group); $e++){
-      
-     
-     // the index's for the database
-      $mentor_index = $group->mentor;
-      $senior_index = $group->senior;
-      $junior_index = $group->junior;
-
-      // pushes all the index's that are going to be displayed.
-      // still need to take care of when something gets added and deleted.
-      array_push($mentee_index_list, $senior_index);
-      array_push($mentee_index_list, $junior_index);
-      array_push($mentor_index_list, $mentor_index); 
-
-      // now that we have the mentor index we need tograb all his information and paste it into the json file... 
-      // mentor query
-      $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =".$mentor_index;
-      //Chromephp:: log($mentor_query); 
-      $list = db_query($mentor_query)->fetchAll();
-      //Chromephp::log($list);
-      //Chromephp::log($list[0]->first_name); 
-      // grab all the attributes of a particular mentor and add to array.
-      $mentor_first_name =  $list[0]->first_name;
-      $mentor_last_name =  $list[0]->last_name;
-      $mentor_email =  $list[0]->email;
-      $mentor_gender =  $list[0]->gender;
-      $mentor_phone =  $list[0]->phone;
-      $mentor_birth = $list[0]->birth_year;
-     
-      // junior student query... 
-      $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =".$junior_index;
-      $list2 = db_query($junior_query)->fetchAll();
-      //Chromephp::log($list2[0]->first_name); 
-       $junior_first_name =  $list2[0]->first_name;
-      $junior_last_name =  $list2[0]->last_name;
-      $junior_email =  $list2[0]->email;
-      $junior_gender =  $list2[0]->gender;
-      $junior_phone =  $list2[0]->phone;
-      $junior_birth = $list2[0]->birth_year;
-
-      // senior student query... 
-      $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =".$senior_index;
-      $list3 = db_query($senior_query)->fetchAll();
-      //Chromephp::log($list2[0]->first_name); 
-       $senior_first_name =  $list3[0]->first_name;
-      $senior_last_name =  $list3[0]->last_name;
-      $senior_email =  $list3[0]->email;
-      $senior_gender =  $list3[0]->gender;
-      $senior_phone =  $list3[0]->phone;
-      $senior_birth = $list3[0]->birth_year;
-
-      // mentor instance...
-      $group_array_mentor = array(
-        'position' => 'Mentor',
-        'name'=> $mentor_first_name,
-        'familyname' => $mentor_last_name,
-        'Email' => $mentor_email,
-        'phone' => $mentor_phone,
-        'phonealt' => 'NA',
-        'gender' => $mentor_gender,
-        'birth year' => $mentor_birth,
-        'preferences' => 'NA',
-        'colour' => 'blue',
-        'size' => 500
-          );
-        // junior student instance... 
-      $group_array_junior = array(
-        'position' => 'Junior',  // for now it should be Mentee... change later..
-        'name'=> $junior_first_name,
-        'familyname' => $junior_last_name,
-        'Email' => $junior_email,
-        'phone' => $junior_phone,
-        'phonealt' => 'NA',
-        'gender' => $junior_gender,
-        'birth year' => $junior_birth,
-        'preferences' => 'NA',
-        'colour' => 'blue',
-        'size' => 500
-          );
-      // senior student instance
-      $group_array_senior = array(
-        'position' => 'Senior', // going to have to chagne this late ...
-        'name'=> $senior_first_name,
-        'familyname' => $senior_last_name,
-        'Email' => $senior_email,
-        'phone' => $senior_phone,
-        'phonealt' => 'NA',
-        'gender' => $senior_gender,
-        'birth year' => $senior_birth,
-        'preferences' => 'NA',
-        'colour' => 'blue',
-        'size' => 500
-          );
-
-      // add this to children...
-      $group_array_start = array(
-        'name'=> 'Group'.$a,
-        'children'=> array($group_array_mentor, $group_array_senior, 
-          $group_array_junior)
+        $most_recent_trio = $result1[$g]->trios;
+        $manage = json_decode($most_recent_trio);
+        $array = array(
+          'name' => '',
+          'children' => $manage
         );
 
-      array_push($final_array[children], $group_array_start);
+        // Chromephp::log($array);
+        // Chromephp::log($array[children]);
+
+        $mentor_list = array(); // holds all mentors that we are adding.
+        $final_array = array(
+          'name' => '',
+          'children' => array()
+        );
+        for ($a = 0; $a < count($array[children]); $a++)
+          {
+          $group = $array[children][$a];
+          for ($e = 0; $e < count($group); $e++)
+            {
+
+            // the index's for the database
+
+            $mentor_index = $group->mentor;
+            $senior_index = $group->senior;
+            $junior_index = $group->junior;
+
+            // pushes all the index's that are going to be displayed.
+            // still need to take care of when something gets added and deleted.
+
+            array_push($mentee_index_list, $senior_index);
+            array_push($mentee_index_list, $junior_index);
+            array_push($mentor_index_list, $mentor_index);
+
+            // now that we have the mentor index we need tograb all his information and paste it into the json file...
+            // mentor query
+
+            $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index;
+
+            // Chromephp:: log($mentor_query);
+
+            $list = db_query($mentor_query)->fetchAll();
+
+            // Chromephp::log($list);
+            // Chromephp::log($list[0]->first_name);
+            // grab all the attributes of a particular mentor and add to array.
+
+            $mentor_first_name = $list[0]->first_name;
+            $mentor_last_name = $list[0]->last_name;
+            $mentor_email = $list[0]->email;
+            $mentor_gender = $list[0]->gender;
+            $mentor_phone = $list[0]->phone;
+            $mentor_birth = $list[0]->birth_year;
+
+            // junior student query...
+
+            $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
+            $list2 = db_query($junior_query)->fetchAll();
+
+            // Chromephp::log($list2[0]->first_name);
+
+            $junior_first_name = $list2[0]->first_name;
+            $junior_last_name = $list2[0]->last_name;
+            $junior_email = $list2[0]->email;
+            $junior_gender = $list2[0]->gender;
+            $junior_phone = $list2[0]->phone;
+            $junior_birth = $list2[0]->birth_year;
+
+            // senior student query...
+
+            $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
+            $list3 = db_query($senior_query)->fetchAll();
+
+            // Chromephp::log($list2[0]->first_name);
+
+            $senior_first_name = $list3[0]->first_name;
+            $senior_last_name = $list3[0]->last_name;
+            $senior_email = $list3[0]->email;
+            $senior_gender = $list3[0]->gender;
+            $senior_phone = $list3[0]->phone;
+            $senior_birth = $list3[0]->birth_year;
+
+            // mentor instance...
+
+            $group_array_mentor = array(
+              'position' => 'Mentor',
+              'name' => $mentor_first_name,
+              'familyname' => $mentor_last_name,
+              'Email' => $mentor_email,
+              'phone' => $mentor_phone,
+              'phonealt' => 'NA',
+              'gender' => $mentor_gender,
+              'birth year' => $mentor_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // junior student instance...
+
+            $group_array_junior = array(
+              'position' => 'Junior', // for now it should be Mentee... change later..
+              'name' => $junior_first_name,
+              'familyname' => $junior_last_name,
+              'Email' => $junior_email,
+              'phone' => $junior_phone,
+              'phonealt' => 'NA',
+              'gender' => $junior_gender,
+              'birth year' => $junior_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // senior student instance
+
+            $group_array_senior = array(
+              'position' => 'Senior', // going to have to chagne this late ...
+              'name' => $senior_first_name,
+              'familyname' => $senior_last_name,
+              'Email' => $senior_email,
+              'phone' => $senior_phone,
+              'phonealt' => 'NA',
+              'gender' => $senior_gender,
+              'birth year' => $senior_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );
+
+            // add this to children...
+
+            $group_array_start = array(
+              'name' => 'Group' . $a,
+              'children' => array(
+                $group_array_mentor,
+                $group_array_senior,
+                $group_array_junior
+              )
+            );
+            array_push($final_array[children], $group_array_start);
+            }
+          }
+
+        // Chromephp::log("changing the json file before rendering the page...");
+
+        $encodedJson = json_encode($final_array);
+        $file = 'TESTING.json';
+        file_put_contents($file, $encodedJson);
+
+        // should allow u to cancel here
+
+        echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
+        echo '<script type="text/javascript">', 'jsfunction();', '</script>';
+
+        // now we need to close the window..
+
+        }
+      }
     }
-  }
-    Chromephp::log("changing the json file before rendering the page..."); 
-  $encodedJson = json_encode($final_array);
 
-  $file = 'TESTING.json';  
-  file_put_contents($file, $encodedJson);
-  // should allow u to cancel here
-  echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
-  echo '<script type="text/javascript">', 'jsfunction();', '</script>';
-  // now we need to close the window..
-         }
-        }
-  }
+  $query = "SELECT * FROM TESTING.maestro_matched_trios";
+  $result = db_query($query)->fetchAll();
+  echo "<table style='width:90%'>";
+  echo "<tr>";
+  echo "<th>Timestamp</th>";
+  echo "<th>Mentoring Year</th> ";
+  echo "<th>weightings</th>"; // birth might not be that important...
+  echo "<th>Percentage</th>";
+  echo "</tr>";
+  for ($i = 0; $i < count($result); $i++)
+    {
 
-   $query = "SELECT * FROM TESTING.maestro_matched_trios";
-      $result = db_query($query)->fetchAll();
-      echo "<table style='width:90%'>";
-        echo "<tr>";
-      echo "<th>Timestamp</th>";
-      echo "<th>Mentoring Year</th> ";
-      echo "<th>weightings</th>"; // birth might not be that important...
-      echo "<th>Percentage</th>";
-      echo "</tr>";
-       for ($i = 0; $i < count($result); $i++)
-        {
-          // gather all info... 
-          $timestamp = $result[$i]->timestamp;  // this is going to be the timestamp
-          $mentoring_year = $result[$i]->mentoring_year;  
-          $weightings = $result[$i]->weightings;  
-          $percentage = $result[$i]->percentage;  
-          $id = $result[$i]->id;  
+    // gather all info...
 
-          // populate the table...
-             echo "<tr>"; //
-        echo "<td>" . $timestamp. "</td>"; // this should show the first name
-        echo "<td>" . $mentoring_year . "</td> ";
-        echo "<td>" . $weightings . "</td>";
-        echo "<td>" . $percentage . "</td>";
-        // lets send something inside here...
-        echo "<td>";
-        echo "<form action='http://localhost/TESTING/examples/mentor' method='get'>"; 
-        echo "<input type='hidden' name='timestamp' value=$timestamp />";  
-        echo "<input type='hidden' name='mentoring_year' value=$mentoring_year />";  
-        echo "<input type='hidden' name='weightings' value=$weightings />";  
-        echo "<input type='hidden' name='percentage' value=$percentage />";  
-        echo "<input type='hidden' name='id' value=$id />";  
-        echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
-        echo "</form> ";
-        echo "</td";
-        echo "</tr>";
-        }
-        echo "</table>";
+    $timestamp = $result[$i]->timestamp; // this is going to be the timestamp
+    $mentoring_year = $result[$i]->mentoring_year;
+    $weightings = $result[$i]->weightings;
+    $percentage = $result[$i]->percentage;
+    $id = $result[$i]->id;
 
+    // populate the table...
+
+    echo "<tr>"; //
+    echo "<td>" . $timestamp . "</td>"; // this should show the first name
+    echo "<td>" . $mentoring_year . "</td> ";
+    echo "<td>" . $weightings . "</td>";
+    echo "<td>" . $percentage . "</td>";
+
+    // lets send something inside here...
+
+    echo "<td>";
+    echo "<form action='http://localhost/TESTING/examples/mentor' method='get'>";
+    echo "<input type='hidden' name='timestamp' value=$timestamp />";
+    echo "<input type='hidden' name='mentoring_year' value=$mentoring_year />";
+    echo "<input type='hidden' name='weightings' value=$weightings />";
+    echo "<input type='hidden' name='percentage' value=$percentage />";
+    echo "<input type='hidden' name='id' value=$id />";
+    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "</form> ";
+    echo "</td";
+    echo "</tr>";
+    }
+
+  echo "</table>";
   }
 
 // this makes the mentor list...
-function make_mentor_list(){
-      Chromephp::log("making mentor list is running");
-      $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
-      $result = db_query($query)->fetchAll();
 
-       echo "<table style='width:90%'>";
+function make_mentor_list()
+  {
+  Chromephp::log("making mentor list is running");
+  $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+  $result = db_query($query)->fetchAll();
+  echo "<table style='width:90%'>";
 
-      
-       // set up the headers...
-      echo "<tr>";
-      echo "<th>Firstname</th>";
-      echo "<th>Lastname</th> ";
-      echo "<th>Experience</th>"; // birth might not be that important...
-      echo "<th>Gender</th>";
-      echo "<th>Company</th>";
-      echo "</tr>";
+  // set up the headers...
 
-      // loop through every single instance...
-       for ($i = 0; $i < count($result); $i++)
-        {
+  echo "<tr>";
+  echo "<th>Firstname</th>";
+  echo "<th>Lastname</th> ";
+  echo "<th>Experience</th>"; // birth might not be that important...
+  echo "<th>Gender</th>";
+  echo "<th>Company</th>";
+  echo "</tr>";
 
-        // all variables displayed...
+  // loop through every single instance...
 
-        $firstName = $result[$i]->first_name;
-        $lastName = $result[$i]->last_name;
-        $birth = $result[$i]->birth_year;
-        $gender = $result[$i]->gender;
-        $year = $result[$i]->year;
-        $email = $result[$i]->email;
-        $phone = $result[$i]->phone;
-        $id = $result[$i]->id;
-        $experience_years = $result[$i]->experience_years;
-        $company = $result[$i]->current_employer;
-        // now lets make every single row here...
+  for ($i = 0; $i < count($result); $i++)
+    {
 
-        echo "<tr>"; //
-        echo "<td>" . $firstName . "</td>"; // this should show the first name
-        echo "<td>" . $lastName . "</td> ";
-        echo "<td>" . $experience_years . "</td>";
-        echo "<td>" . $gender . "</td>";
-        echo "<td>" . $company . "</td>";
+    // all variables displayed...
 
-        echo "<td>";
-        echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-        echo "<input type='hidden' name='maddid' value=$id />";
-        echo "<input type='hidden' name='maddlname' value=$lastName />";
-        echo "<input type='hidden' name='maddfname' value=$firstName />";
-        echo "<input type='hidden' name='maddbirth' value=$birth />";
-        echo "<input type='hidden' name='maddgender' value=$gender />";
-        echo "<input type='hidden' name='maddyear' value=$year />";
-        echo "<input type='hidden' name='maddemail' value=$email />";
-        echo "<input type='hidden' name='maddphone' value=$phone />";
-        echo "<input type='hidden' name='maddexperience' value=$experience_years />";
-        echo "<input type='hidden' name='maddcompany' value=$company />";
-        echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
-        echo "</form> ";
-        echo "</td";
-        echo "</tr>";
-        }
+    $firstName = $result[$i]->first_name;
+    $lastName = $result[$i]->last_name;
+    $birth = $result[$i]->birth_year;
+    $gender = $result[$i]->gender;
+    $year = $result[$i]->year;
+    $email = $result[$i]->email;
+    $phone = $result[$i]->phone;
+    $id = $result[$i]->id;
+    $experience_years = $result[$i]->experience_years;
+    $company = $result[$i]->current_employer;
 
-      echo "</table>";
+    // now lets make every single row here...
 
-}
+    echo "<tr>"; //
+    echo "<td>" . $firstName . "</td>"; // this should show the first name
+    echo "<td>" . $lastName . "</td> ";
+    echo "<td>" . $experience_years . "</td>";
+    echo "<td>" . $gender . "</td>";
+    echo "<td>" . $company . "</td>";
+    echo "<td>";
+    echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+    echo "<input type='hidden' name='maddid' value=$id />";
+    echo "<input type='hidden' name='maddlname' value=$lastName />";
+    echo "<input type='hidden' name='maddfname' value=$firstName />";
+    echo "<input type='hidden' name='maddbirth' value=$birth />";
+    echo "<input type='hidden' name='maddgender' value=$gender />";
+    echo "<input type='hidden' name='maddyear' value=$year />";
+    echo "<input type='hidden' name='maddemail' value=$email />";
+    echo "<input type='hidden' name='maddphone' value=$phone />";
+    echo "<input type='hidden' name='maddexperience' value=$experience_years />";
+    echo "<input type='hidden' name='maddcompany' value=$company />";
+    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "</form> ";
+    echo "</td";
+    echo "</tr>";
+    }
 
+  echo "</table>";
+  }
 
-function make_mentee_list(){
-  
-      Chromephp::log("making mentee list is running");
-      // just showing students for now... need to later make a function for mentor databse...
+function make_mentee_list()
+  {
+  Chromephp::log("making mentee list is running");
 
-      $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-      $result = db_query($query)->fetchAll();
+  // just showing students for now... need to later make a function for mentor databse...
 
-      // the table
+  $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+  $result = db_query($query)->fetchAll();
 
-      echo "<table style='width:90%'>";
+  // the table
 
-      // set up the headers...
+  echo "<table style='width:90%'>";
 
-      echo "<tr>";
-      echo "<th>Firstname</th>";
-      echo "<th>Lastname</th> ";
-      echo "<th>birth</th>";
-      echo "<th>gender</th>";
-      echo "<th>year</th>";
-      echo "</tr>";
+  // set up the headers...
 
-      // loop through everything...
+  echo "<tr>";
+  echo "<th>Firstname</th>";
+  echo "<th>Lastname</th> ";
+  echo "<th>birth</th>";
+  echo "<th>gender</th>";
+  echo "<th>year</th>";
+  echo "</tr>";
 
-      for ($i = 0; $i < count($result); $i++)
-        {
+  // loop through everything...
 
-        // all variables displayed...
+  for ($i = 0; $i < count($result); $i++)
+    {
 
-        $firstName = $result[$i]->first_name;
-        $lastName = $result[$i]->last_name;
-        $birth = $result[$i]->birth_year;
-        $gender = $result[$i]->gender;
-        $year = $result[$i]->year;
-        $email = $result[$i]->email;
-        $phone = $result[$i]->phone;
-        $id = $result[$i]->id;
+    // all variables displayed...
 
-        echo "<tr>"; //
-        echo "<td>" . $firstName . "</td>"; // this should show the first name
-        echo "<td>" . $lastName . "</td> ";
-        echo "<td>" . $birth . "</td>";
-        echo "<td>" . $gender . "</td>";
-        echo "<td>" . $year . "</td>";
+    $firstName = $result[$i]->first_name;
+    $lastName = $result[$i]->last_name;
+    $birth = $result[$i]->birth_year;
+    $gender = $result[$i]->gender;
+    $year = $result[$i]->year;
+    $email = $result[$i]->email;
+    $phone = $result[$i]->phone;
+    $id = $result[$i]->id;
+    echo "<tr>"; //
+    echo "<td>" . $firstName . "</td>"; // this should show the first name
+    echo "<td>" . $lastName . "</td> ";
+    echo "<td>" . $birth . "</td>";
+    echo "<td>" . $gender . "</td>";
+    echo "<td>" . $year . "</td>";
+    echo "<td>";
+    echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+    echo "<input type='hidden' name='addid' value=$id />";
+    echo "<input type='hidden' name='addlname' value=$lastName />";
+    echo "<input type='hidden' name='addfname' value=$firstName />";
+    echo "<input type='hidden' name='addbirth' value=$birth />";
+    echo "<input type='hidden' name='addgender' value=$gender />";
+    echo "<input type='hidden' name='addyear' value=$year />";
+    echo "<input type='hidden' name='addemail' value=$email />";
+    echo "<input type='hidden' name='addphone' value=$phone />";
+    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "</form> ";
+    echo "</td";
+    echo "</tr>";
+    }
 
-        echo "<td>";
-        echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-        echo "<input type='hidden' name='addid' value=$id />";
-        echo "<input type='hidden' name='addlname' value=$lastName />";
-        echo "<input type='hidden' name='addfname' value=$firstName />";
-        echo "<input type='hidden' name='addbirth' value=$birth />";
-        echo "<input type='hidden' name='addgender' value=$gender />";
-        echo "<input type='hidden' name='addyear' value=$year />";
-        echo "<input type='hidden' name='addemail' value=$email />";
-        echo "<input type='hidden' name='addphone' value=$phone />";
-        echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
-        echo "</form> ";
-        echo "</td";
+  echo "</table>";
+  }
 
-        echo "</tr>";
-        }
-
-      echo "</table>";
-}
-
-function add_button_pressed_mentee(){
-   $add_first_name = $_GET["addfname"]; // we need to send this through the submit button
+function add_button_pressed_mentee()
+  {
+  $add_first_name = $_GET["addfname"]; // we need to send this through the submit button
   $add_last_name = $_GET["addlname"]; // we need to send this through the submit button...
   $add_email = $_GET["addemail"]; // this isnt sending through right now...
   $add_gender = $_GET["addgender"];
@@ -445,13 +795,16 @@ function add_button_pressed_mentee(){
 
   if (!is_null($add_first_name) || !is_null($add_last_name) || !is_null($add_email) || !is_null($add_year) || !is_null($add_birth) || !is_null($add_gender))
     {
-      
-      // check if its been added before
+
+    // check if its been added before
+
     $beenadded = CheckifAdded($add_first_name, $add_last_name);
     Chromephp::log($beenadded);
     if ($beenadded == true)
       {
+
       // then we dont add this and instead we send alert...
+
       echo '<script language="javascript">';
       echo 'alert("This person has already been added")';
       echo '</script>';
@@ -462,8 +815,10 @@ function add_button_pressed_mentee(){
       $jsonString = file_get_contents('TESTING.json');
       $data = json_decode($jsonString);
       $group_number = count($data->children); // this gets the number of the children...
+
       // check if senior of junior student
-      if ($add_year > 2)                    
+
+      if ($add_year > 2)
         {
         $add_person_array = array(
           'position' => 'Senior',
@@ -510,9 +865,10 @@ function add_button_pressed_mentee(){
       echo '<script type="text/javascript">', 'jsfunction();', '</script>';
       }
     }
-}
+  }
 
-function add_button_pressed_mentor(){
+function add_button_pressed_mentor()
+  {
   $add_first_name = $_GET["maddfname"]; // we need to send this through the submit button
   $add_last_name = $_GET["maddlname"]; // we need to send this through the submit button...
   $add_email = $_GET["maddemail"]; // this isnt sending through right now...
@@ -521,18 +877,22 @@ function add_button_pressed_mentor(){
   $add_year = $_GET["maddyear"];
   $add_id = $_GET["maddid"];
   $add_experience = $_GET["maddexperience"];
-    $add_company = $_GET["maddcompany"];
+  $add_company = $_GET["maddcompany"];
+
   // this runs if the add button is pressed...
 
   if (!is_null($add_first_name) || !is_null($add_last_name) || !is_null($add_email) || !is_null($add_year) || !is_null($add_birth) || !is_null($add_gender))
     {
-      
-      // check if its been added before
+
+    // check if its been added before
+
     $beenadded = CheckifAdded($add_first_name, $add_last_name);
     Chromephp::log($beenadded);
     if ($beenadded == true)
       {
+
       // then we dont add this and instead we send alert...
+
       echo '<script language="javascript">';
       echo 'alert("This person has already been added")';
       echo '</script>';
@@ -543,22 +903,22 @@ function add_button_pressed_mentor(){
       $jsonString = file_get_contents('TESTING.json');
       $data = json_decode($jsonString);
       $group_number = count($data->children); // this gets the number of the children...
-      
-        $add_person_array = array(
-          'position' => 'Mentor',
-          'name' => $add_first_name,
-          'familyname' => $add_last_name,
-          'Email' => $add_email,
-          'phone' => $add_phone,
-          'phonealt' => 'NA',
-          'gender' => $add_gender,
-          'birth year' => $add_birth,
-          'preferences' => 'NA',
-          'colour' => 'blue',
-          'size' => 500
-        );
+      $add_person_array = array(
+        'position' => 'Mentor',
+        'name' => $add_first_name,
+        'familyname' => $add_last_name,
+        'Email' => $add_email,
+        'phone' => $add_phone,
+        'phonealt' => 'NA',
+        'gender' => $add_gender,
+        'birth year' => $add_birth,
+        'preferences' => 'NA',
+        'colour' => 'blue',
+        'size' => 500
+      );
 
-      //array_push($mentee_index_list, $add_id);
+      // array_push($mentee_index_list, $add_id);
+
       $group_array_start = array(
         'name' => 'Group' . $group_number,
         'children' => array(
@@ -572,200 +932,209 @@ function add_button_pressed_mentor(){
       echo '<script type="text/javascript">', 'jsfunction();', '</script>';
       }
     }
-}
-
+  }
 
 function d3_examples_bubbles()
   {
-    Chromephp::log("bubbles is running");
+  Chromephp::log("bubbles is running");
   $search_first_name = $_GET["fname"]; // this should be the first name
   $search_last_name = $_GET["lname"]; // this should be the second name.
 
   // might have to use something other then the GET function...
-    
+
   add_button_pressed_mentee();
   add_button_pressed_mentor();
   $show_mentee_list = $_GET["mentee"]; // check these values and see which one the user wants to see...
   $show_mentor_list = $_GET["mentor"]; //
-
-
-      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-      echo "First name: <input type='text' name='fname'><br />";
-      echo "Last name: <input type='text' name='lname'><br />";
-      echo "<input type='submit' value='Submit'>";
-      echo "</form>";
-      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-      echo "<input type='hidden' name='mentee' value='true' />";
-      echo "<input type='hidden' name='mentor' value='false' />";
-      echo "<input name='Mentee List' type='submit' value='Submit'>Mentee List</button> ";
-      echo "</form>";
-      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-      echo "<input type='hidden' name='mentee' value='false' />";
-      echo "<input type='hidden' name='mentor' value='true' />";
-      echo "<input name='Mentor List' type='submit' value='Submit'>Mentor List</button> ";
-      echo "</form>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "First name: <input type='text' name='fname'><br />";
+  echo "Last name: <input type='text' name='lname'><br />";
+  echo "<input type='submit' value='Submit'>";
+  echo "</form>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "<input type='hidden' name='mentee' value='true' />";
+  echo "<input type='hidden' name='mentor' value='false' />";
+  echo "<input name='Mentee List' type='submit' value='Submit'>Mentee List</button> ";
+  echo "</form>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "<input type='hidden' name='mentee' value='false' />";
+  echo "<input type='hidden' name='mentor' value='true' />";
+  echo "<input name='Mentor List' type='submit' value='Submit'>Mentor List</button> ";
+  echo "</form>";
 
   // Chromephp::log($show_mentee_list);
-   Chromephp::log("before checking if anything inputted into text bar");
 
+  Chromephp::log("before checking if anything inputted into text bar");
   if (is_null($search_first_name) || is_null($search_last_name))
     {
-      
     if ($show_mentee_list == 'true')
       {
-        Chromephp::log("making mentee list");
-        Chromephp::log($show_mentee_list);
-        make_mentee_list();  // make the mentee list
+      Chromephp::log("making mentee list");
+      Chromephp::log($show_mentee_list);
+      make_mentee_list(); // make the mentee list
       }
 
-    if($show_mentor_list == 'true')
+    if ($show_mentor_list == 'true')
       {
-
-        Chromephp::log("making mentor list");
-        Chromephp::log($show_mentor_list);
-       make_mentor_list();  // makes the mentor list...
+      Chromephp::log("making mentor list");
+      Chromephp::log($show_mentor_list);
+      make_mentor_list(); // makes the mentor list...
       }
     }
     else
     {
-      // the search bar...!!!
+
+    // the search bar...!!!
+
     searchBar($search_first_name, $search_last_name);
-
-
     }
   }
 
+// this gets called when the search bar is pressed...
 
-  // this gets called when the search bar is pressed... 
-function searchBar($firstname, $lastname){
-
+function searchBar($firstname, $lastname)
+  {
   Chromephp::log("running searrch bvar");
   $theqry = "SELECT * FROM TESTING.maestro_signup_student_20142015"; //WHERE first_name = '.$firstname.' OR last_name = '.$lastname;
   Chromephp::log($theqry);
   $result = db_query($theqry)->fetchAll();
+
   // just fetch everything and go through inside php...
 
-  $theqry2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";// WHERE first_name = ".$firstname." OR last_name = ".$lastname;
+  $theqry2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015"; // WHERE first_name = ".$firstname." OR last_name = ".$lastname;
   Chromephp::log($theqry2);
   $result2 = db_query($theqry2)->fetchAll();
 
-  // show the mentor list first... 
-  Chromephp::log("the mentor names");
-      echo "Mentor Search Results";
-      echo "<table style='width:90%'>";  
-      echo "<tr>";
-      echo "<th>Firstname</th>";
-      echo "<th>Lastname</th> ";
-      echo "<th>Experience</th>"; // birth might not be that important...
-      echo "<th>Gender</th>";
-      echo "<th>Company</th>";
-      echo "</tr>";
-$run = 0;
-  for ($i = 0; $i < count($result2); $i++){
-    Chromephp::log($result2[$i]->first_name);     
-    Chromephp::log($result2[$i]->last_name);
-    // if we have a first name match then we show... 
-    $mentors_first_name = $result2[$i]->first_name;  
-    $mentors_last_name = $result2[$i]->last_name;   
-    // if either of the names match then lets show it... 
-        $birth = $result2[$i]->birth_year;
-        $gender = $result2[$i]->gender;
-        $year = $result2[$i]->year;
-        $email = $result2[$i]->email;
-        $phone = $result2[$i]->phone;
-        $id = $result2[$i]->id;
-        $experience_years = $result2[$i]->experience_years;
-        $company = $result2[$i]->current_employer;
-      // check if the names match...
-        
-    if($mentors_first_name == $firstname || $mentors_last_name == $lastname){
-        $run = 1;
-        echo "<tr>"; 
-        echo "<td>" . $mentors_first_name . "</td>"; // this should show the first name
-        echo "<td>" . $mentors_last_name . "</td> ";
-        echo "<td>" . $experience . "</td>";
-        echo "<td>" . $gender . "</td>";
-        echo "<td>" . $company . "</td>";
+  // show the mentor list first...
 
-        echo "<td>";
-        echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-        echo "<input type='hidden' name='maddid' value=$id />";
-        echo "<input type='hidden' name='maddlname' value=$mentors_last_name />";
-        echo "<input type='hidden' name='maddfname' value=$mentors_first_name />";
-        echo "<input type='hidden' name='maddbirth' value=$birth />";
-        echo "<input type='hidden' name='maddgender' value=$gender />";
-        echo "<input type='hidden' name='maddyear' value=$year />";
-        echo "<input type='hidden' name='maddemail' value=$email />";
-        echo "<input type='hidden' name='maddphone' value=$phone />";
-        echo "<input type='hidden' name='maddexperience' value=$experience_years />";
-        echo "<input type='hidden' name='maddcompany' value=$company />";
-        echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
-        echo "</form> ";
-        echo "</td";
-        echo "</tr>";
+  Chromephp::log("the mentor names");
+  echo "Mentor Search Results";
+  echo "<table style='width:90%'>";
+  echo "<tr>";
+  echo "<th>Firstname</th>";
+  echo "<th>Lastname</th> ";
+  echo "<th>Experience</th>"; // birth might not be that important...
+  echo "<th>Gender</th>";
+  echo "<th>Company</th>";
+  echo "</tr>";
+  $run = 0;
+  for ($i = 0; $i < count($result2); $i++)
+    {
+    Chromephp::log($result2[$i]->first_name);
+    Chromephp::log($result2[$i]->last_name);
+
+    // if we have a first name match then we show...
+
+    $mentors_first_name = $result2[$i]->first_name;
+    $mentors_last_name = $result2[$i]->last_name;
+
+    // if either of the names match then lets show it...
+
+    $birth = $result2[$i]->birth_year;
+    $gender = $result2[$i]->gender;
+    $year = $result2[$i]->year;
+    $email = $result2[$i]->email;
+    $phone = $result2[$i]->phone;
+    $id = $result2[$i]->id;
+    $experience_years = $result2[$i]->experience_years;
+    $company = $result2[$i]->current_employer;
+
+    // check if the names match...
+
+    if ($mentors_first_name == $firstname || $mentors_last_name == $lastname)
+      {
+      $run = 1;
+      echo "<tr>";
+      echo "<td>" . $mentors_first_name . "</td>"; // this should show the first name
+      echo "<td>" . $mentors_last_name . "</td> ";
+      echo "<td>" . $experience . "</td>";
+      echo "<td>" . $gender . "</td>";
+      echo "<td>" . $company . "</td>";
+      echo "<td>";
+      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+      echo "<input type='hidden' name='maddid' value=$id />";
+      echo "<input type='hidden' name='maddlname' value=$mentors_last_name />";
+      echo "<input type='hidden' name='maddfname' value=$mentors_first_name />";
+      echo "<input type='hidden' name='maddbirth' value=$birth />";
+      echo "<input type='hidden' name='maddgender' value=$gender />";
+      echo "<input type='hidden' name='maddyear' value=$year />";
+      echo "<input type='hidden' name='maddemail' value=$email />";
+      echo "<input type='hidden' name='maddphone' value=$phone />";
+      echo "<input type='hidden' name='maddexperience' value=$experience_years />";
+      echo "<input type='hidden' name='maddcompany' value=$company />";
+      echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+      echo "</form> ";
+      echo "</td";
+      echo "</tr>";
+      }
     }
-  }
-  if ($run == 0){
-       echo "<tr>"; 
-        echo "<td>NO RESULTS for MENTORS</td>"; 
-        echo "</tr>";
-  }
+
+  if ($run == 0)
+    {
+    echo "<tr>";
+    echo "<td>NO RESULTS for MENTORS</td>";
+    echo "</tr>";
+    }
 
   echo "</table>";
-      echo "Mentee Search Results";
-      echo "<table style='width:90%'>";
-      echo "<tr>";
-      echo "<th>Firstname</th>";
-      echo "<th>Lastname</th> ";
-      echo "<th>birth</th>";
-      echo "<th>gender</th>";
-      echo "<th>year</th>";
-      echo "</tr>";
-      $run1 = 0;
-  for ($i= 0; $i < count($result); $i++){
-        $mentees_first_name = $result[$i]->first_name;  
-        $mentees_last_name = $result[$i]->last_name;   
-        $birth = $result[$i]->birth_year;
-        $gender = $result[$i]->gender;
-        $year = $result[$i]->year;
-        $email = $result[$i]->email;
-        $phone = $result[$i]->phone;
-        $id = $result[$i]->id;
+  echo "Mentee Search Results";
+  echo "<table style='width:90%'>";
+  echo "<tr>";
+  echo "<th>Firstname</th>";
+  echo "<th>Lastname</th> ";
+  echo "<th>birth</th>";
+  echo "<th>gender</th>";
+  echo "<th>year</th>";
+  echo "</tr>";
+  $run1 = 0;
+  for ($i = 0; $i < count($result); $i++)
+    {
+    $mentees_first_name = $result[$i]->first_name;
+    $mentees_last_name = $result[$i]->last_name;
+    $birth = $result[$i]->birth_year;
+    $gender = $result[$i]->gender;
+    $year = $result[$i]->year;
+    $email = $result[$i]->email;
+    $phone = $result[$i]->phone;
+    $id = $result[$i]->id;
 
     // check if any of the names match
-    if($mentees_first_name == $firstname || $mentees_last_name == $lastname){
-        $run1=1;
-        echo "<tr>"; 
-        echo "<td>" . $mentees_first_name . "</td>"; // this should show the first name
-        echo "<td>" . $mentees_last_name. "</td> ";
-        echo "<td>" . $birth . "</td>";
-        echo "<td>" . $gender . "</td>";
-        echo "<td>" . $year . "</td>";
-        echo "<td>";
-        echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
-        echo "<input type='hidden' name='addid' value=$id />";
-        echo "<input type='hidden' name='addlname' value=$mentees_last_name />";
-        echo "<input type='hidden' name='addfname' value=$mentees_first_name />";
-        echo "<input type='hidden' name='addbirth' value=$birth />";
-        echo "<input type='hidden' name='addgender' value=$gender />";
-        echo "<input type='hidden' name='addyear' value=$year />";
-        echo "<input type='hidden' name='addemail' value=$email />";
-        echo "<input type='hidden' name='addphone' value=$phone />";
-        echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
-        echo "</form> ";
-        echo "</td";
-        echo "</tr>";
-      } 
-}
 
-if ($run1 == 0){
-       echo "<tr>"; 
-        echo "<td>NO RESULTS for MENTEES</td>"; 
-        echo "</tr>";
+    if ($mentees_first_name == $firstname || $mentees_last_name == $lastname)
+      {
+      $run1 = 1;
+      echo "<tr>";
+      echo "<td>" . $mentees_first_name . "</td>"; // this should show the first name
+      echo "<td>" . $mentees_last_name . "</td> ";
+      echo "<td>" . $birth . "</td>";
+      echo "<td>" . $gender . "</td>";
+      echo "<td>" . $year . "</td>";
+      echo "<td>";
+      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+      echo "<input type='hidden' name='addid' value=$id />";
+      echo "<input type='hidden' name='addlname' value=$mentees_last_name />";
+      echo "<input type='hidden' name='addfname' value=$mentees_first_name />";
+      echo "<input type='hidden' name='addbirth' value=$birth />";
+      echo "<input type='hidden' name='addgender' value=$gender />";
+      echo "<input type='hidden' name='addyear' value=$year />";
+      echo "<input type='hidden' name='addemail' value=$email />";
+      echo "<input type='hidden' name='addphone' value=$phone />";
+      echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+      echo "</form> ";
+      echo "</td";
+      echo "</tr>";
+      }
+    }
+
+  if ($run1 == 0)
+    {
+    echo "<tr>";
+    echo "<td>NO RESULTS for MENTEES</td>";
+    echo "</tr>";
+    }
+
+  echo "</table>";
   }
-        echo "</table>";
-
-}
 
 function createJson_mentors()
   {
@@ -784,7 +1153,9 @@ function createJson_mentors()
     $cs_interests = $result2[$r]->cs_interests;
     $hobbies_interests = $result2[$r]->hobbies_interests;
     $birth_year = $result2[$r]->birth_year;
-    //$year = $result2[$r]->year;
+
+    // $year = $result2[$r]->year;
+
     $title = $result2[$r]->current_title;
     $highest_education = $result2[$r]->highest_education;
     $experience_years = $result2[$r]->experience_years;
@@ -904,7 +1275,6 @@ function createJson_mentors()
     }
   }
 
-
 function createJson_students()
   {
 
@@ -1023,15 +1393,24 @@ $mentor_index_list;
 
 function d3_examples_linegraph()
   {
-  createJson_students(); 
+  createJson_students();
   createJson_mentors();
   $jsonString = file_get_contents('TESTING.json');
-
-  if ($jsonString == "null") 
+  if ($jsonString == "null")
     {
     $query = "SELECT * FROM TESTING.maestro_matched_trios";
     $result = db_query($query)->fetchAll();
+    Chromephp::log($result);
     $most_recent_trio = $result[count($result) - 1]->trios;
+
+    // just send it to json file...
+
+    $most_recent_weightings = $result[count($result) - 1]->weightings;
+
+    // $encode_weightings = json_encode($most_recent_weightings);
+
+    $file = "weightings.json";
+    file_put_contents($file, $most_recent_weightings); // this is going to save the weightings to json.
     $manage = json_decode($most_recent_trio);
     $array = array(
       'name' => '',
@@ -1191,6 +1570,11 @@ function d3_examples_linegraph()
       'Junior Student',
       'Senior Student',
     ) ,
+    'weightings' => $most_recent_weightings
+
+    // we send in the most recent weightings so we can display and send into all our
+    // functions..
+
   );
   return d3_draw($chart);
   }
@@ -1380,18 +1764,24 @@ function d3_examples_pie()
 
 
 
+
 // right now this function is getting called once the submit button is pressed. 
 // it changes the json file
 
+
 function jsfunction(){
+
 
   // console.log("this function is being called when submitted");
    // window.onunload = refreshParent;
 
+
    refreshParent();   
     function refreshParent() {
 
+
         // console.log("just about to refresh the parent window right now");
+
 
         window.opener.location.reload();
           window.close();

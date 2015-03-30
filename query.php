@@ -6,6 +6,7 @@ require_once DRUPAL_ROOT . '/includes/common.inc';
 require_once DRUPAL_ROOT . '/includes/module.inc';
 require_once DRUPAL_ROOT . '/includes/unicode.inc';
 require_once DRUPAL_ROOT . '/includes/file.inc';
+module_load_include('inc', 'matcherizer', 'attributematch');
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
 include 'ChromePhp.php';
@@ -43,6 +44,7 @@ include 'ChromePhp.php';
                break;
 
             case 'save':
+
                 if(is_array($_POST['arguments'])) {
                 
                    $aResult['error'] = 'Error in arguments!';
@@ -93,44 +95,213 @@ Chromephp::log($args);
 
 // this function updates the json file when there is any movement inside the javascript
 // we need it to recalculate the weights and output them onto the screen...
+// arguments1 is the json file that is sent from javascript...
 function add($arguments1){  
-  
+   // Chromephp::log("inside the add function");
   $decoded = json_decode($arguments1);
 
-  json_fixer($decoded);  
+  Chromephp::log("add is running");
+  // loop through this...
+  for ($g = 0; $g < count($decoded->children); $g++){  
+        $current_group = $decoded->children[$g];  
+       //  Chromephp::log("inside the first loop"); 
+      //  Chromephp::log($current_group); 
+         // check if the size is three... 
+       
+
+         $MENTOR_INDEX = -1;  // holds the index that we are going to get...
+         $SENIOR_INDEX = -1;
+         $JUNIOR_INDEX = -1;
+         
+        $applicant_senior;  
+        $applicant_mentor;
+        $applicant_junior;
+           if (count($current_group->children) != 3){
+          
+              // WE NEED TO DELETE ALL ATTRIBUTES IN THIS CONDITION HERE... 
+           for($r=0; $r < count($current_group->children);$r++){
+              $applicant = $current_group->children[$r];
+              $applicant_name = $applicant->name;
+              $applicant_familyname = $applicant->familyname;
+              $applicant_weighting = $applicant ->weighting;
+                // go through the loop again... 
+               // Chromephp::log("inside the second condition loop");
+                //Chromephp::log($applicant);
+                // lets delete an attribute in the array...
+                //Chromephp::log($applicant_weighting);
+                $applicant->weighting = null;   // change the weighting...
+                $applicant->{"weighting"} = null;
+                //Chromephp::log("this is changing it to null");
+                //Chromephp::log($applicant->weighting);
+           }  
+          continue;
+        }
+         // lets go through every single one now..
+        for($r=0; $r < count($current_group->children);$r++){
+          
+           // Chromephp::log("inside teh second loop");
+            $applicant = $current_group->children[$r];
+            $applicant_name = $applicant->name;
+            $applicant_familyname = $applicant->familyname;
+            // we need to push something to this array. 
+            // now we need to call his function... 
+            $applicant_position = $applicant->position;
+            $mentor = "Mentor";
+        //   Chromephp::log("before the first loop...");
+            if ($applicant_position == $mentor){
+         //     Chromephp::log("we found a mentor");
+              $applicant_mentor = $applicant; // set the mentor object...
+              $MENTOR_INDEX = traverser($applicant_name, $applicant_familyname, "mentor");
+            }
+            $junior = "Junior";
+            if ($applicant_position == $junior){
+              $applicant_junior = $applicant; // set the junior
+              $JUNIOR_INDEX = traverser($applicant_name, $applicant_familyname, "junior");
+            }
+            $senior = "Senior";
+            if ($applicant_position == $senior){
+              $applicant_senior = $applicant; // set the senior object...
+              $SENIOR_INDEX = traverser($applicant_name, $applicant_familyname, "senior");
+            }
+        }
+
+        if($MENTOR_INDEX == -1 || $JUNIOR_INDEX == -1 || $SENIOR_INDEX == - 1)
+        {
+
+          // WE NEED TO DELETE ALL ATTRIBUTES IN THIS CONDITION HERE... 
+           for($r=0; $r < count($current_group->children);$r++){
+              $applicant = $current_group->children[$r];
+              $applicant_name = $applicant->name;
+              $applicant_familyname = $applicant->familyname;
+              $applicant_weighting = $applicant ->weighting;
+                // go through the loop again... 
+             //   Chromephp::log("inside the second condition loop");
+              //  Chromephp::log($applicant);
+                // lets delete an attribute in the array...
+              //  Chromephp::log($applicant_weighting);
+
+                //$applicant->weighting = null;   // change the weighting...
+                $applicant->{"weighting"} = null;
+                //Chromephp::log("this is changing it to null");
+                //Chromephp::log($applicant_weighting);
+           }  
+
+          continue; 
+
+
+          }  
+
+         $trio = array('mentor' => $MENTOR_INDEX,
+                  'senior' => $SENIOR_INDEX, 
+                  'junior' => $JUNIOR_INDEX
+              );
+
+         //$daqry = "SELECT weightings FROM TESTING.maestro_matched_trios WHERE"
+
+         //we also have to query the weights.. hardcode for now
+         $weights = '{"gender_pref":"4","cs_interests":"5","hobbies_interests":"1"}';
+         // TODO!! need to dynamically grab from the trio... 
+
+        $percentage1 = getAttributeScoreTrio($trio, $weights);
+   //     Chromephp::log("this is the percentage found:  ". $percentage1);   
+        $applicant_senior->{'weighting'} = $percentage1;
+        $applicant_mentor->{'weighting'} = $percentage1;
+        $applicant_junior->{'weighting'} = $percentage1;
+        /*Chromephp::log($applicant_senior);
+        Chromephp::log($applicant_mentor);
+        Chromephp::log($applicant_junior);*/
+
+  } 
+
+  //Chromephp::log("the loop finished");
+  // we alter the json file before sending it in
+ // Chromephp::log("outside the important part here");
+  //Chromephp::log($decoded);
+  $encode = json_encode($decoded);
   $file = 'TESTING.json';  
-  file_put_contents($file, $arguments1);
+  file_put_contents($file, $encode);
 
-Chromephp::log("after altering the json file"); 
-Chromephp::log("we are going to call weight changer "); 
+  $overrall_percentage = 0;
+  $elements = 0;
+//TODO!! 
+// right here we are going to calculate the overrall score and return... 
+  for ($g = 0; $g < count($decoded->children); $g++){  
+    $current_group = $decoded->children[$g];  
+      for($r=0; $r < count($current_group->children);$r++){
+              $applicant = $current_group->children[$r];
+              $applicant_name = $applicant->name;
+              $applicant_familyname = $applicant->familyname;
+              $applicant_weighting = $applicant ->weighting;
+              //Chromephp::log("the calculator function!!"); 
+              //Chromephp::log("tthe weighting");
+              //Chromephp::log($applicant);
+              //Chromephp::log($applicant->{"weighting"});
+              //Chromephp::log($applicant_weighting);
+              if (!is_null($applicant_weighting)){
+                  // if its not null then keep summing it...
+                  $overrall_percentage = $overrall_percentage + $applicant_weighting;
+                  $elements++;
+              }
+      }
+  }
+  //Chromephp::log("this is the overrall percentage");
+  //Chromephp::log($overrall_percentage);
 
-$weights = computeWeights();
+  $overrall_percentage  = $overrall_percentage /$elements;
 
+  //Chromephp::log($overrall_percentage);
+
+  return $overrall_percentage;
 
 }
 
 
 
-// might not need this function because we can just place it right into the json file... 
-function computeWeights(){
-
-
-}
 // function saves the json file into the database.
 // we need a checker in the start that says whether or not we can save because some groups are not trios...
 function save($arguments1){
-  
+  Chromephp::log("the save function is running");
   
   $decoded = json_decode($arguments1);  // takes in the json file
-      
-//$answer=right_form_checker($decoded); // if this is null then continue, elsereturn
+  // right here we are going to calculate the overrall score and return... 
 
-/*if(!is_null($answer)){
- if returned msg.
+  $overrall_percentage = 0;
+  $elements = 0;
+
+  for ($g = 0; $g < count($decoded->children); $g++){  
+    $current_group = $decoded->children[$g];  
+      for($r=0; $r < count($current_group->children);$r++){
+              $applicant = $current_group->children[$r];
+              $applicant_name = $applicant->name;
+              $applicant_familyname = $applicant->familyname;
+              $applicant_weighting = $applicant ->weighting;
+              //Chromephp::log("the calculator function!!"); 
+              //Chromephp::log("tthe weighting");
+              //Chromephp::log($applicant);
+              //Chromephp::log($applicant->{"weighting"});
+              //Chromephp::log($applicant_weighting);
+              if (!is_null($applicant_weighting)){
+                  // if its not null then keep summing it...
+                  $overrall_percentage = $overrall_percentage + $applicant_weighting;
+                  $elements++;
+              }
+      }
+  }
+  //Chromephp::log("this is the overrall percentage");
+  //Chromephp::log($overrall_percentage);
+
+  $overrall_percentage  = $overrall_percentage /$elements;
+
+
+
+// this needs to be fixed...
+//$answer = right_form_checker($decoded); 
+
+if(!is_null($answer)){
   return $answer;
-}*/
+}
 
-  Chromephp::log($decoded);
+ 
   
   //Chromephp::log(count($decoded->children));
  //Chromephp::log("just before the for loop");
@@ -145,28 +316,20 @@ for ($g = 0; $g < count($decoded->children); $g++){  // go through the json file
   $current_group = $decoded->children[$g];  // this is the current group that we are searching
   //Chromephp::log($current_group); 
   //ChromePhp::log($current_group->children);
-  for($r=0; $r < count($current_group->children);$r++){
+  for($r = 0; $r < count($current_group->children);$r++){
     
     $applicant = $current_group->children[$r];
     $applicant_name = $applicant->name;
     $applicant_familyname = $applicant->familyname;
     $applicant_position = $applicant->position;
-   /* Chromephp::log($r);
-    Chromephp::log($applicant);
-    Chromephp::log($applicant_position);
-    Chromephp::log($applicant->familyname);
-    Chromephp::log($applicant->name);
-    Chromephp::log("just before the if statement");
-    Chromephp::log(is_string($applicant_position));*/
+  
     // sql query and get the id.
     $mentor = 'Mentor';
     if($applicant_position == $mentor){
       Chromephp::log("found a mentor");
-   //   $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE first_name = ".$applicant_name." AND "
-   //   ."last_name = ". $applicant_familyname;
+   
         $mentor_id = traverser($applicant_name, $applicant_familyname, "mentor");  // finding a mentor finding his unique id...
         Chromephp::log($mentor_id);
-        // what do we do with this 10 now...
     }
     $junior = "Junior";
     if($applicant_position == $junior){
@@ -189,25 +352,32 @@ $myArray = array(
       'senior' => $senior_id,
       'junior' => $junior_id,
       );
-array_push($thearray, $myArray); // push the array...
+array_push($thearray, $myArray); // push the array...*/
 }
   
-  // lets print the array and see... 
+   
 Chromephp::log($thearray);
-$encode = json_encode($thearray);
+$encode = json_encode($thearray);  // this
 Chromephp::log($encode);
 
+// read from the json file to save in...
+
+$weighting_content = file_get_contents("weightings.json");  
+Chromephp::log($weighting_contents);
 
    $query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
 db_query($query, array(
         ':ts' => date('Y-m-d H:i:s'),
         ':my' => "20142015",
-        ':w'  => "",
-        ':p'  => 0.43,
+        ':w'  => $weighting_content,     // this needs to be dynamic    
+        ':p'  => $overrall_percentage,    // this needs to save the actual percentage..  summation of everything...
         ':t'  => $encode,
         ));
   
     Chromephp::log("after inserting into the db");
+  
+  
+
   }
 
 
@@ -220,7 +390,7 @@ function traverser($firstname, $lastname, $choose){
   }else{
     
     $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-    Chromephp::log($query);
+    //Chromephp::log($query);
   }
     $result1 = db_query($query)->fetchAll();
       
@@ -241,7 +411,7 @@ Chromephp::log($json_input);
   
 for ($g = 0; $g < count($json_input->children); $g++){  // go through the json file and search up the correct index.
 
-  $current_group = $json_input->children[$g];
+ $current_group = $json_input->children[$g];
   Chromephp::log("inside the loop checker");
   Chromephp::log($current_group);
 
@@ -254,36 +424,35 @@ for ($g = 0; $g < count($json_input->children); $g++){  // go through the json f
   $mentor = 0;
   $junior = 0;
   $senior = 0;
+  // this for loop has an error inside...
   for($i = 0; $i < count($current_group->children); $i++){
     
     // going through each child within each group make sure that we have each thing...
     $current_group1 = $current_group->children[$i];
-    Chromephp::log($current_group1);
+   
     $position = $current_group1->position; 
     $mentorstring = "Mentor";
     if($position == $mentorstring){
       $mentor = 1;  
     }
+   
    $juniorstring = "Junior";
     if($position == $juniorstring){
       $junior = 1;
     }
+   
     $seniorstring = "Senior";
     if($position == $seniorstring){
-      $senior = 1;  // just set to 1 and know that we have found 1
+      $senior = 1;  // this line is failing right now...
     }
-
-    // end of the loop here...
   }
   // check if we found one of each here.
   if ($mentor == 0  || $junior == 0 || $senior == 0){
-
     return "there is a group that does not comprise of a Mentor, senior student and junior student";
-
   }
 
   }
-  }
-
+  return null;
+  }  
 
 ?>
