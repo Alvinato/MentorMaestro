@@ -11,10 +11,20 @@ function responseeditor_menu()
     'description' => 'Edits survey responses.',
     'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
     'page arguments' => array('response_editor_form'), //put the name of the form here
-    'access callback' => TRUE
+     'access arguments' => array('access responseeditor'),
   );
   
   return $items;
+}
+
+function responseeditor_permission() {
+    return array(
+        'access responseeditor' => array(
+            'title' => t('Access Survey Response Editor'),
+            'description' => t('Allow users to access the Survey Response Editor.'),
+            'restrict acces' => TRUE,
+            ),
+        );
 }
 
 function response_editor_ajax_callback($form, $form_state)
