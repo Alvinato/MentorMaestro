@@ -91,7 +91,7 @@ function d3_examples_group()
 
   $add_timestamp1 = $_GET["timestamp1"];
   $add_mentoring_year1 = $_GET["mentoring_year1"];
-  $add_weightings = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
+  $add_night = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
   $id1 = $_GET["id1"];
 
   // if one of them is not null
@@ -124,6 +124,7 @@ function d3_examples_group()
         $mentor_list = array(); // holds all mentors that we are adding.
         $final_array = array(
           'name' => '',
+          'type' => 'kickoff'.$add_night,
           'children' => array()
         );
         for ($a = 0; $a < count($array[children]); $a++)
@@ -131,7 +132,7 @@ function d3_examples_group()
           $group = $array[children][$a];
           for ($e = 0; $e < count($group); $e++)
             {
-          /*      
+
             // the index's for the database
             $mentor_index = $group->mentor;   // this is going to be a list of mentor index's
             $senior_index = $group->senior; // this is also a list of senior index's ...
@@ -155,11 +156,6 @@ function d3_examples_group()
               array_push($mentor_json, $list);  
             }
 
-            for ($i = 0; $i < count($mentor_index); $i++){
-              //Chromephp::log("asdfasdf");
-              //Chromephp::log($mentor_json[$i]);
-            }
-            
               // do the samething for studnets for this particular group...
 
             for ($i = 0; $i < count($senior_index); $i++){
@@ -173,35 +169,33 @@ function d3_examples_group()
               array_push($senior_json, $list1);
             }
 
-            for ($i = 0; $i < count($senior_index); $i++){
-             // Chromephp::log("qwer");
-              //Chromephp::log($senior_json[$i]);
-            }
-            
             for ($i = 0; $i < count($junior_index); $i++){
-              Chromephp::log("inside the for loop");
+             
               // make the query..
            //   Chromephp::log($mentor_index[$i]);
               $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index[$i];
               // need to make this array and add it to the overrall array...
               $list2 = db_query($junior_query)->fetchAll();  
-              Chromephp::log($list2);
+             
               array_push($junior_json, $list2);
             }
 
             for ($i = 0; $i < count($junior_index); $i++){
-            //  Chromephp::log("zxcv");
-             // Chromephp::log($junior_json[$i]);
+              Chromephp::log("zxcv");
+              Chromephp::log($junior_json[$i]);
+              
+              Chromephp::log($junior_json[$i][0]->first_name);
             }
-            
+              
+             $all_mentor_stuff = array(); 
             for ($i = 0; $i < count($mentor_json); $i++){
                 // go through every object...
-            $mentor_first_name = $mentor_json[$i]->first_name;
-            $mentor_last_name = $mentor_json[$i]->last_name;
-            $mentor_email = $mentor_json[$i]->email;
-            $mentor_gender = $mentor_json[$i]->gender;
-            $mentor_phone = $mentor_json[$i]->phone;
-            $mentor_birth = $mentor_json[$i]->birth_year;
+            $mentor_first_name = $mentor_json[$i][0]->first_name;
+            $mentor_last_name = $mentor_json[$i][0]->last_name;
+            $mentor_email = $mentor_json[$i][0]->email;
+            $mentor_gender = $mentor_json[$i][0]->gender;
+            $mentor_phone = $mentor_json[$i][0]->phone;
+            $mentor_birth = $mentor_json[$i][0]->birth_year;
 
               // this is one entry...
               $group_array_mentor = array(
@@ -218,94 +212,30 @@ function d3_examples_group()
               'size' => 500
             );  
 
+              // we need to add this to another array...
 
+              array_push($all_mentor_stuff, $group_array_mentor);
             }
 
-            // we have filled all the arrays...
+             for ($i = 0; $i < count($all_mentor_stuff); $i++){ 
+                //Chromephp::log("important loop here"); 
+                  // this is all the mentor stuff.. 
+                //Chromephp::log($all_mentor_stuff);
+             }
 
+               $all_senior_stuff = array(); 
+            for ($i = 0; $i < count($senior_json); $i++){
+                // go through every object...
+            $senior_first_name = $senior_json[$i][0]->first_name;
+            $senior_last_name = $senior_json[$i][0]->last_name;
+            $senior_email = $senior_json[$i][0]->email;
+            $senior_gender = $senior_json[$i][0]->gender;
+            $senior_phone = $senior_json[$i][0]->phone;
+            $senior_birth = $senior_json[$i][0]->birth_year;
 
-
-            // grab the info from every single one...
-            //$list = db_query($mentor_query)->fetchAll();
-
-
-
-
-            // Chromephp::log($list);
-            // Chromephp::log($list[0]->first_name);
-            // grab all the attributes of a particular mentor and add to array.
-
-           /* $mentor_first_name = $list[0]->first_name;
-            $mentor_last_name = $list[0]->last_name;
-            $mentor_email = $list[0]->email;
-            $mentor_gender = $list[0]->gender;
-            $mentor_phone = $list[0]->phone;
-            $mentor_birth = $list[0]->birth_year;
-
-            // junior student query...
-
-            $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
-            $list2 = db_query($junior_query)->fetchAll();
-
-            // Chromephp::log($list2[0]->first_name);
-
-            $junior_first_name = $list2[0]->first_name;
-            $junior_last_name = $list2[0]->last_name;
-            $junior_email = $list2[0]->email;
-            $junior_gender = $list2[0]->gender;
-            $junior_phone = $list2[0]->phone;
-            $junior_birth = $list2[0]->birth_year;
-
-            // senior student query...
-
-            $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
-            $list3 = db_query($senior_query)->fetchAll();
-
-            // Chromephp::log($list2[0]->first_name);
-
-            $senior_first_name = $list3[0]->first_name;
-            $senior_last_name = $list3[0]->last_name;
-            $senior_email = $list3[0]->email;
-            $senior_gender = $list3[0]->gender;
-            $senior_phone = $list3[0]->phone;
-            $senior_birth = $list3[0]->birth_year;
-
-            // mentor instance...
-
-            $group_array_mentor = array(
-              'position' => 'Mentor',
-              'name' => $mentor_first_name,
-              'familyname' => $mentor_last_name,
-              'Email' => $mentor_email,
-              'phone' => $mentor_phone,
-              'phonealt' => 'NA',
-              'gender' => $mentor_gender,
-              'birth year' => $mentor_birth,
-              'preferences' => 'NA',
-              'colour' => 'blue',
-              'size' => 500
-            );
-
-            // junior student instance...
-
-            $group_array_junior = array(
-              'position' => 'Junior', // for now it should be Mentee... change later..
-              'name' => $junior_first_name,
-              'familyname' => $junior_last_name,
-              'Email' => $junior_email,
-              'phone' => $junior_phone,
-              'phonealt' => 'NA',
-              'gender' => $junior_gender,
-              'birth year' => $junior_birth,
-              'preferences' => 'NA',
-              'colour' => 'blue',
-              'size' => 500
-            );
-
-            // senior student instance
-
-            $group_array_senior = array(
-              'position' => 'Senior', // going to have to chagne this late ...
+              // this is one entry...
+              $group_array_senior = array(
+              'position' => 'Senior',
               'name' => $senior_first_name,
               'familyname' => $senior_last_name,
               'Email' => $senior_email,
@@ -316,32 +246,69 @@ function d3_examples_group()
               'preferences' => 'NA',
               'colour' => 'blue',
               'size' => 500
-            );
+            );  
 
-            // add this to children...
+              array_push($all_senior_stuff, $group_array_senior);
+            }
 
+               
+                $all_junior_stuff = array(); 
+            for ($i = 0; $i < count($junior_json); $i++){
+                // go through every object...
+            $junior_first_name = $junior_json[$i][0]->first_name;
+            $junior_last_name = $junior_json[$i][0]->last_name;
+            $junior_email = $junior_json[$i][0]->email;
+            $junior_gender = $junior_json[$i][0]->gender;
+            $junior_phone = $junior_json[$i][0]->phone;
+            $junior_birth = $junior_json[$i][0]->birth_year;
+            Chromephp::log("thius is the first name");
+            Chromephp::log($junior_first_name);
+              // this is one entry...
+              $group_array_junior = array(
+              'position' => 'Junior',
+              'name' => $junior_first_name,
+              'familyname' => $junior_last_name,
+              'Email' => $junior_email,
+              'phone' => $junior_phone,
+              'phonealt' => 'NA',
+              'gender' => $junior_gender,
+              'birth year' => $junior_birth,
+              'preferences' => 'NA',
+              'colour' => 'blue',
+              'size' => 500
+            );  
+
+              array_push($all_junior_stuff, $group_array_junior);
+            }
+
+            // we three arrays now... we need to append them
+            $daResult = array_merge($all_junior_stuff,$all_senior_stuff);
+            
+            $daResult1 = array_merge($daResult, $all_mentor_stuff);
+
+            $the_children_group = array();
+            //array_push($the_children_group, $daResult);
+
+              // lets create the group now...
             $group_array_start = array(
               'name' => 'Group' . $a,
-              'children' => array(
-                $group_array_mentor,
-                $group_array_senior,
-                $group_array_junior
-              )
+              'children' => $daResult1
             );
-            array_push($final_array[children], $group_array_start);*/
+
+            array_push($final_array[children], $group_array_start);
             }
           }
 
-        // Chromephp::log("changing the json file before rendering the page...");
+         Chromephp::log("changing the json file before rendering the page...");
 
-      /*  $encodedJson = json_encode($final_array);
+        $encodedJson = json_encode($final_array);
         $file = 'TESTING.json';
         file_put_contents($file, $encodedJson);
 
         // should allow u to cancel here
 
         echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
-        echo '<script type="text/javascript">', 'jsfunction();', '</script>';*/
+        echo '<script type="text/javascript">', 'jsfunction();', '</script>';
 
         // now we need to close the window..
 
@@ -458,6 +425,7 @@ function d3_examples_mentor()
         $mentor_list = array(); // holds all mentors that we are adding.
         $final_array = array(
           'name' => '',
+          'type' => 'trio',
           'children' => array()
         );
         for ($a = 0; $a < count($array[children]); $a++)
@@ -1410,10 +1378,11 @@ function d3_examples_linegraph()
     // $encode_weightings = json_encode($most_recent_weightings);
 
     $file = "weightings.json";
-    file_put_contents($file, $most_recent_weightings); // this is going to save the weightings to json.
+    file_put_contents($file, $most_recent_weightings); 
     $manage = json_decode($most_recent_trio);
     $array = array(
       'name' => '',
+      'type' => 'trio',
       'children' => $manage
     );
 
@@ -1423,6 +1392,7 @@ function d3_examples_linegraph()
     $mentor_list = array(); // holds all mentors that we are adding.
     $final_array = array(
       'name' => '',
+      'type' => 'trio',
       'children' => array()
     );
     for ($a = 0; $a < count($array[children]); $a++)
