@@ -5,13 +5,23 @@ module_load_include('inc', 'matcherizer', 'matcherizer');
 function matcherizer_menu() {
     $items = array();
     $items['matcherizer'] = array(
-        'title'           => 'Matcherizer',
-        'description'     => 'Set weightings to generate matches.',
-        'page callback'   => 'drupal_get_form',
-        'page arguments'  => array('matcherizer_form'),
-        'access callback' => TRUE,
+        'title'            => 'Matcherizer',
+        'description'      => 'Set weightings to generate matches.',
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('matcherizer_form'),
+        'access arguments' => array('access matcherizer'),
         );
     return $items;
+}
+
+function matcherizer_permission() {
+    return array(
+        'access matcherizer' => array(
+            'title' => t('Access Matcherizer'),
+            'description' => t('Allow users to access the Matcherizer.'),
+            'restrict acces' => TRUE,
+            ),
+        );
 }
 
 function matcherizer_form($form, &$form_state) {
