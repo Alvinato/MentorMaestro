@@ -211,7 +211,7 @@ function ajax_callback($form, $form_state)
 	return $form['result'];
 }
 
-function generateGroups($id)
+function generateGroups($currentYear, $id)
 {
 	list($allNights, $buckets) = getTrioBuckets($id);
 	//printTrioBuckets($buckets);
@@ -274,7 +274,7 @@ function kickoff_form($form, &$form_state)
 	
 	if (array_key_exists('values', $form_state))
 	{
-		$content = outputAllGroups(generateGroups($form_state['values']['matching']));
+		$content = outputAllGroups(generateGroups($currentYear, $form_state['values']['matching']));
 	}
 	else
 	{
