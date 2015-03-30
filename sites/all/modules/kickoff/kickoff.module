@@ -225,7 +225,7 @@ function generateGroups($id)
 		$groups = kickoff($night,$people);
 		//$fixedGroups = fixGroups($groups);
 		$allGroups[$night] = $groups;
-		//writeToDatabase($currentYear, $night, $groups);
+		writeToDatabase($currentYear, $night, $groups);
 	}
 	
 	return $allGroups;
