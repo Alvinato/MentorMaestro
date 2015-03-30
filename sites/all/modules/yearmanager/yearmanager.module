@@ -5,13 +5,23 @@ module_load_include('inc', 'yearmanager', 'db');
 function yearmanager_menu() {
     $items = array();
     $items['yearmanager'] = array(
-        'title'           => 'Year Manager',
-        'description'     => 'Select the current year and archive years.',
-        'page callback'   => 'drupal_get_form',
-        'page arguments'  => array('yearmanager_form'),
-        'access callback' => TRUE,
+        'title'            => 'Year Manager',
+        'description'      => 'Select the current year and archive years.',
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('yearmanager_form'),
+        'access arguments' => array('access year manager'),
         );
     return $items;
+}
+
+function yearmanager_permission() {
+    return array(
+        'access year manager' => array(
+            'title' => t('Access Year Manager'),
+            'description' => t('Allow users to access the Year Manager.'),
+            'restrict acces' => TRUE,
+            ),
+        );
 }
 
 function yearmanager_form($form, &$form_state) {

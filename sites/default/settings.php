@@ -217,10 +217,10 @@ $databases = array (
   array (
     'default' => 
     array (
-      'database' => 'drupal7',
-      'username' => 'root',
-      'password' => 'Password1',
-      'host' => 'localhost',
+      'database' => 'maestro_db',
+      'username' => 'maestro_user',
+      'password' => '89wje*s$0()F*D8jf',
+      'host' => 'brianchau.me',
       'port' => '',
       'driver' => 'mysql',
       'prefix' => '',

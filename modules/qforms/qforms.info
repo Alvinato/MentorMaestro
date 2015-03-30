@@ -22,3 +22,4 @@ core = "7.x"
 project = "qforms"
 datestamp = "1380624438"
 
+dependencies[] = yearmanager

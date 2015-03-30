@@ -40,22 +40,22 @@ function kickoffHelper($array_dates) {
 }
 
 /*
-Helper function to translate careers plans/goals and experience into relevant data for database
+Helper function to translate checkbox respondses into a comma-separated string
 */	
-function careerHelper($array_careers) {
-	$returnCareers = '';
-	$len = count($array_careers);
+function checkboxHelper($array_checkbox_response) {
+	$returnString = '';
+	$len = count($array_checkbox_response);
 	$i = 0;
-	foreach ($array_careers as $key => $value){
+	foreach ($array_checkbox_response as $key => $value){
 
 			if ($value) {
-					$returnCareers .= $value;
-					$returnCareers .= ', ';
+					$returnString .= $value;
+					$returnString .= ', ';
 			}
 	}
 
-	if ($returnCareers == '') return '';
-	return substr($returnCareers, 0, strlen($returnCareers) - 2);
+	if ($returnString == '') return '';
+	return substr($returnString, 0, strlen($returnString) - 2);
 }
 
 
