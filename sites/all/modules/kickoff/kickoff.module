@@ -7,6 +7,16 @@ module_load_include('inc', 'kickoff', 'debug');
 
 $GLOBALS['MAX_GROUP_SIZE'] = 9;
 
+function kickoff_permission() {
+    return array(
+        'access kickoff' => array(
+            'title' => t('Access Kickoff Generator'),
+            'description' => t('Allow users to access the Kickoff Generator.'),
+            'restrict acces' => TRUE,
+            ),
+        );
+}
+
 function getPersonFromDbRow($record)
 {
 	return array("name" => $record->first_name,
@@ -105,13 +115,13 @@ function kickoff_menu()
   $items = array();
   
 
-$items['kickoff'] = array( //this creates a URL that will call this form at "examples/form-example"
-    'title' => 'Kickoff Night Group Generator', //page title
-    'description' => 'Generates kickoff night groups.',
-    'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
-    'page arguments' => array('kickoff_form'), //put the name of the form here
-    'access callback' => TRUE
-  );
+    $items['kickoff'] = array( //this creates a URL that will call this form at "examples/form-example"
+        'title' => 'Kickoff Night Group Generator', //page title
+        'description' => 'Generates kickoff night groups.',
+        'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+        'page arguments' => array('kickoff_form'), //put the name of the form here
+        'access arguments' => array('access kickoff'),
+    );
   
   return $items;
 }
