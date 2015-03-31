@@ -24,6 +24,8 @@
 
     Drupal.d3.linegraph = function (select, settings) {
 
+
+
         var key = settings.legend;
         var theweights = settings.weightings;  // this is going to be the weightings...
         console.log("this is going to be the weightings");
@@ -34,12 +36,12 @@
             diameter = 700,
             width = 700,
             height = 700;
-
+                console.log("qwerqwer");
         var pack = d3.layout.pack()
             .padding(2)
             .size([diameter - margin, diameter - margin])
             .value(function(d) { return d.size; });
-
+        
 
         var svg = d3.select('#' + settings.id).append("svg")
             .attr("width", width)
@@ -72,6 +74,7 @@
         var data; // current statte of the circles...
         var steps = [];  // an empty array for now...
         var stepCount = -2; // this will hold the index that we should move back on...
+
         function undo(){
           //  console.log(stepCount);
             if(stepCount <= -1){
@@ -89,11 +92,9 @@
             var input = JSON.parse(jsonStringinput);
             circleSetup(input, true, null);  // there is nothing that was last moved...
             //console.log("running the undo function right now...");
-
-
         }
         var data3; // this is going to hold the initial...
-
+        console.log("asdfasd");
         d3.json("TESTING.json", function (error, root) {
              data3 = cloneJSON(root);
              // we assign data3 with the original...
@@ -105,7 +106,7 @@
           // every time this run we need to save it to the previouss step...
 
             data = root;
-            //console.log(root);
+            console.log(root);
             // saving what is in the instance into the json file...
 
             var o = {};
@@ -139,7 +140,7 @@
 
             var object =  jQuery.ajax({
                 type: "POST",
-                url: 'http://localhost/TESTING/query.php',   // maybe have to make another url here...
+                url: '/query.php',   // maybe have to make another url here... TODO BRIAN
                 dataType: 'json',
                 data: {functionname: 'add', arguments: result},  // try to pass the array in...
 
@@ -263,7 +264,7 @@
                //console.log(result);
                 var object =  jQuery.ajax({
                     type: "POST",
-                    url: 'http://localhost/TESTING/query.php',   // i could just reference the same page but call another function...
+                    url: '/query.php',   // i could just reference the same page but call another function... TODO BRIAN
                     dataType: 'json',
                     data: {functionname: 'save', arguments: result},  // try to pass the array in...
 

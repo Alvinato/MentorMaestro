@@ -3,6 +3,7 @@ description = Several functions that outline the different uses of the D3 API
 core = 7.x
 package = Visualization
 dependencies[] = d3
+dependencies[] = yearmanager
 
 ; Information added by Drupal.org packaging script on 2015-02-21
 version = "7.x-1.x-dev"

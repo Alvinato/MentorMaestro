@@ -1,0 +1,4 @@
+[submodule "d3"]
+	path = sites/all/libraries/d3
+	url = https://github.com/mbostock/d3.git
+

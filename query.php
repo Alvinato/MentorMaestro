@@ -7,6 +7,7 @@ require_once DRUPAL_ROOT . '/includes/module.inc';
 require_once DRUPAL_ROOT . '/includes/unicode.inc';
 require_once DRUPAL_ROOT . '/includes/file.inc';
 module_load_include('inc', 'matcherizer', 'attributematch');
+module_load_include('inc', 'yearmanager', 'db');
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
 include 'ChromePhp.php';
@@ -338,13 +339,22 @@ $encode = json_encode($myArray1);
 Chromephp::log($encode);
 
 
-  $query = "INSERT INTO TESTING.maestro_matched_kickoff_groups (timestamp, mentoring_year, kickoff_night, groups) VALUES (:ts, :my, :k, :t)";
+ /* $query = "INSERT INTO TESTING.maestro_matched_kickoff_groups (timestamp, mentoring_year, kickoff_night, groups) VALUES (:ts, :my, :k, :t)";
 db_query($query, array(
         ':ts' => date('Y-m-d H:i:s'),
         ':my' => "20142015",
         ':k'  => substr($decoded->type, 7, 8),               // find the correct night...
         ':t'  => $encode,
-        ));
+        ));*/
+
+  db_insert('maestro_matched_kickoff_groups')
+    ->fields(array(
+        'timestamp'      => date('Y-m-d H:i:s'),
+        'mentoring_year' => getYear(),
+        'kickoff_night'  => substr($decoded->type, 7, 8),               // find the correct night...
+        'groups'         => $encode,
+      ))
+    ->execute();
   
     Chromephp::log("after inserting into the db");
 }
@@ -443,14 +453,24 @@ Chromephp::log($encode);
 $weighting_content = file_get_contents("weightings.json");  
 Chromephp::log($weighting_contents);
 
-   $query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
+/*   $query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
 db_query($query, array(
         ':ts' => date('Y-m-d H:i:s'),
-        ':my' => "20142015",
+        ':my' => getYear(),
         ':w'  => $weighting_content,     // this needs to be dynamic    
         ':p'  => $overrall_percentage,    // this needs to save the actual percentage..  summation of everything...
         ':t'  => $encode,
-        ));
+        ));*/
+  
+  db_insert('maestro_matched_trios')
+    ->fields(array(
+        'timestamp'      => date('Y-m-d H:i:s'),
+        'mentoring_year' => getYear(),
+        'weightings'     => $weighting_content,      // this needs to be dynamic    
+        'percentage'     => $overrall_percentage,      // this needs to save the actual percentage..  summation of everything...
+        'trios'          => $encode,
+      ))
+    ->execute();
   
     Chromephp::log("after inserting into the db");
   
@@ -461,16 +481,24 @@ db_query($query, array(
 
 // gathers the indices for the json array...
 function traverser($firstname, $lastname, $choose){  
+
+  $year = getYear();
+  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year):
     
-    //Chromephp::log("traverser is being called ");
+    /*//Chromephp::log("traverser is being called ");
     if ($choose == "mentor"){
-    $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
-  }else{
-    
-    $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-    //Chromephp::log($query);
-  }
-    $result1 = db_query($query)->fetchAll();
+      $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+    }else{
+      $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+      //Chromephp::log($query);
+    }
+
+    $result1 = db_query($query)->fetchAll();*/
+
+    $result1 = db_select(($choose == "mentor") ? $mentor_table_name : $student_table_name, 'ptn')
+      ->fields('ptn')
+      ->execute()
+      ->fetchAll();
       
         for ($a = 0; $a < count($result1); $a++){
             if ($result1[$a]->last_name == $lastname &&
