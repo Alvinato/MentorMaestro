@@ -7,7 +7,7 @@ function responseeditor_menu()
 {
   $items = array();
 	$items['responseeditor'] = array( //this creates a URL that will call this form at "examples/form-example"
-    'title' => 'Survey Response Editor', //page title
+    'title' => 'Participant Info Editor', //page title
     'description' => 'Edits survey responses.',
     'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
     'page arguments' => array('response_editor_form'), //put the name of the form here
@@ -79,7 +79,11 @@ function searchParticipantsByName($name)
 
 function choose_person_ajax_callback($form, &$form_state)
 {
-	error_log('hi3');
+	if (!empty($form_state['input']['first_name']))
+	{
+		updateEditBoxes($form, $form_state);
+	}
+
 	return $form['form_group'];
 }
 
@@ -102,6 +106,8 @@ function edit_button_callback($form, &$form_state)
 {
 	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
 	$typeChar = $form_state['values']['person_type'];
+	$form_state['values']['blah'] = 'hi';
+	
 	error_log('type_char: ' . $typeChar);
 	//drupal_set_message('<pre>' . print_r($form_state['values'], TRUE) . '</pre>');
 
@@ -125,7 +131,8 @@ function edit_button_callback($form, &$form_state)
 	  ->execute();
 	  
 	show($form['form_group']['edit_result']);
-	return $form['edit_result'];
+	//return $form['form_group']['edit_result'];
+	return '<div style="margin-top: 1em; background-color: #d7e0e7; padding: 0.5em;">Participant has been edited.</div>';
 }
 
 function createTextField($title, $defaultValue)
@@ -133,7 +140,7 @@ function createTextField($title, $defaultValue)
 	return array(
 		  '#type' => 'textfield',
 		  '#title' => t($title),
-		  '#default_value' => $defaultValue
+		  '#default_value' => t($defaultValue)
 		);
 }
 
@@ -144,6 +151,8 @@ function getFriendlyName($column)
 	if ($column === 'current_employer') { return 'Current Employer'; }
 	
 	return $column;*/
+	if ($column === 'cs_interests') { return "CS Interests"; }
+	if ($column === 'hobbies_interests') { return "Hobbies and Interests"; }
 	return ucwords(str_replace('_', ' ', $column));
 }
 
@@ -163,7 +172,8 @@ function response_editor_form($form, &$form_state)
 		'#ajax' => array(
 			'callback' => 'response_editor_ajax_callback',
 			'wrapper' => 'result_div',
-			'effect' => 'fade'
+			'effect' => 'fade',
+			'event' => 'click'
 		)
 	);
 	
@@ -178,7 +188,9 @@ function response_editor_form($form, &$form_state)
 		$content = array();
 	}
 	
-	$editing = array_key_exists('values', $form_state) && $form_state['values']['result'] != '';
+	$editing = array_key_exists('values', $form_state);
+		//&& ($form_state['values']['result'] != ''
+		//||(array_key_exists('blah', $form_state['values'])));
 
 	$form['result'] = array(
 	  '#type' => 'tableselect',
@@ -189,82 +201,126 @@ function response_editor_form($form, &$form_state)
 	  '#multiple' => false,
 	  '#ajax' => array(
 			'callback' => 'choose_person_ajax_callback',
-			'wrapper' => 'group_div'
+			'wrapper' => 'group_div',
+			'effect' => 'fade',
+			'progress' => array('type' => 'throbber')
 		)
 	  );
 	  
-	 $form['form_group'] = array(
-		  '#type' => 'fieldset',
-		  '#title' => t('Edit Fields'),
-		  '#collapsible' => FALSE,
-		  '#collapsed' => FALSE,
-		  '#prefix' => '<div id="group_div" style="float: left;">',
-		  '#suffix' => '</div>'
-		);
+	 $form['fieldsWrapper'] = array(
+		'#markup' => '<div id="group_div"></div>'
+	 );
 
-	 if ($editing)
+	if ($editing)
 	{
-		$personId = $form_state['values']['result'];
-		
-		$typeChar = substr($personId, 0, 1);
-		$isMentor = $typeChar === 'M';
-		$numId = substr($personId, 1);
-		
-		$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
-		
-		$personData = getPersonData($isMentor, $numId);
-		
-		$form['form_group']['person_type'] = array(
-			'#type' => 'hidden',
-			'#value' => $typeChar
-		);
-		$form['form_group']['id'] = array(
-			'#type' => 'hidden',
-			'#value' => $numId
-		);
-		$form['form_group']['columns'] = array(
-			'#type' => 'hidden',
-			'#value' => array_keys(get_object_vars($personData))
-		);
-		
-		error_log('PD: ' . print_r($personData, true));
-		error_log('PDK: ' . print_r(array_keys(get_object_vars($personData)), true));
-		
-		foreach ($personData as $column=>$value)
-		{
-			if ($column === 'id' || $column === 'timestamp') { continue; }
-			$form['form_group'][$column] =
-				createTextField(getFriendlyName($column), $value);
-		}
-		
-		$form['form_group']['edit'] =
-		array
-		(
-			'#type' => 'submit',
-			'#value' => t('Edit'),
-			'#ajax' => array(
-				'callback' => 'edit_button_callback',
-				'wrapper' => 'edit_div'
-			)
-		);
-		
-		$form['form_group']['remove'] =
-		array
-		(
-			'#type' => 'submit',
-			'#value' => t('Remove Participant')
-		);
-		
-		$form['form_group']['edit_result'] = array(
-		  '#markup' => 'Edited.',
-		  '#prefix' => '<div id="edit_div">',
-		  '#suffix' => '</div>'
-		);
-		
-		hide($form['form_group']['edit_result']);
-	 }
+		createEditBoxes($form, $form_state);
+	}
 	
 	return $form;
 }
 
+function getPersonDataById($personId)
+{	
+	$typeChar = substr($personId, 0, 1);
+	$isMentor = $typeChar === 'M';
+	$numId = substr($personId, 1);
+		
+	$personData = getPersonData($isMentor, $numId);
+	return array($personData, $isMentor, $numId);
+}
 
+function updateEditBoxes(&$form, &$form_state)
+{
+	error_log("Update Edit Box: " . $form_state['values']['result']);
+	list($personData, $isMentor, $numId) = getPersonDataById($form_state['values']['result']);
+	$form_state['values']['person_type'] = ($isMentor) ? 'M' : 'S';
+	$form_state['values']['id'] = $numId;
+	$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
+	
+	foreach ($personData as $column=>$value)
+	{
+		if ($column === 'id' || $column === 'timestamp') { continue; }
+		unset($form_state['input'][$column]);
+		unset($form['form_group'][$column]['#value']);
+		unset($form['form_group'][$column]['#default_value']);
+		error_log("Update Edit Box value: " . $value);
+		$form['form_group'][$column]['#value'] = $value;
+		$form['form_group'][$column]['#default_value'] = $value;
+	}
+}
+
+function createEditBoxes(&$form, $form_state)
+{
+	list($personData, $isMentor, $numId) = getPersonDataById($form_state['values']['result']);
+	
+	$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
+		
+	$form['form_group'] = array(
+		  '#type' => 'fieldset',
+		  '#title' => t('Edit Fields'),
+		  '#collapsible' => FALSE,
+		  '#collapsed' => FALSE,
+		  '#prefix' => '<div id="group_div">',
+		  '#suffix' => '</div>'
+		);
+		
+	$form['form_group']['person_type'] = array(
+		'#type' => 'hidden',
+		'#value' => $isMentor ? 'M' : 'S'
+	);
+	$form['form_group']['id'] = array(
+		'#type' => 'hidden',
+		'#value' => $numId
+	);
+	$form['form_group']['columns'] = array(
+		'#type' => 'hidden',
+		'#value' => array_keys(get_object_vars($personData))
+	);
+	
+	error_log('PD: ' . print_r($personData, true));
+	error_log('PDK: ' . print_r(array_keys(get_object_vars($personData)), true));
+	
+	foreach ($personData as $column=>$value)
+	{
+		if ($column === 'id' || $column === 'timestamp') { continue; }
+		error_log('value: ' . $value);
+		$form['form_group'][$column] =
+			createTextField(getFriendlyName($column), $value);
+	}
+	
+	$form['form_group']['edit'] =
+	array
+	(
+		'#type' => 'button',
+		'#value' => t('Edit'),
+		'#ajax' => array(
+			'callback' => 'edit_button_callback',
+			'wrapper' => 'edit_div'
+		)
+	);
+	
+	$form['form_group']['remove'] =
+	array
+	(
+		'#type' => 'submit',
+		'#value' => t('Remove Participant')
+	);
+	
+	error_log("Edit" . $form_state['values']['edit']);
+	//error_log("Blah" . print_r($form_state['values']['blah'], TRUE));
+	error_log("Blah" . array_key_exists('blah', $form_state['values']));
+	
+	if (array_key_exists('blah', $form_state['values']))
+	{
+		error_log("blah2");
+	}
+	
+	$form['form_group']['edit_result'] = array(
+	  '#markup' => '',
+	  '#prefix' => '<div id="edit_div" style="display: ' . (array_key_exists('blah', $form_state['values']) ? "block" : "none") .';">',
+	  '#suffix' => '</div>'
+	);
+	
+	//hide($form['form_group']['edit_result']);
+	
+}

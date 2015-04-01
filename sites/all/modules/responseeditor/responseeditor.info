@@ -1,4 +1,4 @@
-name = Survey Response Editor
+name = Participant Info Editor
 description = Edits survey responses.
 core = 7.x
 package = Mentor Maestro
