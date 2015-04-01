@@ -1,0 +1,226 @@
+<?php
+
+module_load_include('inc', 'yearmanager', 'db');
+
+function emailer_menu() {
+    $items = array();
+    $items['emailer'] = array(
+        'title'            => 'Participant Email Generator',
+        'description'      => 'Generate an Email list of all Participants',
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('emailer_form'),
+        'access arguments' => array('access emailer'),
+        );
+    return $items;
+}
+
+function emailer_permission() {
+    return array(
+        'access emailer' => array(
+            'title' => t('Access Participant Email Generator'),
+            'description' => t('Allow users to access the Participant Email Generator.'),
+            'restrict acces' => TRUE,
+            ),
+        );
+}
+
+function emailer_form($form, &$form_state) {
+
+    $year = getYear();
+
+    $results = db_select('maestro_matched_kickoff_groups', 'mmkg')
+        ->fields('mmkg')
+        ->condition('mentoring_year', $year, '=')
+        ->execute()
+        ->fetchAll();
+
+    $dates = array();
+    $timestamps = array();
+
+    foreach ($results as $night) {
+        $date      = $night->{'kickoff_night'};
+        $timestamp = $night->{'timestamp'};
+
+        if (strlen($date) > 1) {
+            $dates[$date] = 1;
+        }
+
+        if (strlen($timestamp) > 1) {
+            $timestamps[$timestamp] = 1;
+        }
+    }
+
+    $dates_2 = array();
+    foreach ($dates as $date => $v) {
+        array_push($dates_2, $date);
+    }
+
+    $timestamps_2 = array();
+    foreach ($timestamps as $timestamp => $v) {
+        array_push($timestamps_2, $timestamp);
+    }
+
+    $form['date'] = array(
+        '#title'    => t('Select the kickoff night'),
+        '#type'     => 'select',
+        '#required' => TRUE,
+        '#options'  => $dates_2,
+        );
+
+    $form['timestamp'] = array(
+        '#title'    => t('Select which generation'),
+        '#type'     => 'select',
+        '#required' => TRUE,
+        '#options'  => $timestamps_2,
+        );
+
+    $form['submit_m'] = array(
+        '#value' => 'Get Mentor Emails',
+        '#type'  => 'button',
+        '#ajax'  => array(
+            'callback' => 'emailer_get_emails_m',
+            'wrapper'  => 'results_m_div',
+            ),
+        );
+
+    $form['results_m'] = array(
+        '#title'    => t('Mentor Emails'),
+        '#type'     => 'textarea',
+        '#required' => FALSE,
+        '#prefix'   => '<div id="results_m_div">',
+        '#suffix'   => '</div>',
+        );
+
+    $form['submit_s'] = array(
+        '#value' => 'Get Student Emails',
+        '#type'  => 'button',
+        '#ajax'  => array(
+            'callback' => 'emailer_get_emails_s',
+            'method'   => 'html',
+            'wrapper'  => 'results_s_div',
+            ),
+        );
+
+    $form['results_s'] = array(
+        '#title'    => t('Student Emails'),
+        '#type'     => 'textarea',
+        '#required' => FALSE,
+        '#prefix'   => '<div id="results_s_div">',
+        '#suffix'   => '</div>',
+        );
+
+    return $form;
+}
+
+function emailer_get_emails_m($form, &$form_state) {
+    $date      = $form['date']['#options'][$form_state['values']['date']];
+    $timestamp = $form['timestamp']['#options'][$form_state['values']['timestamp']];
+
+    $currentYear = getYear();
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($currentYear);
+
+    $results = db_select('maestro_matched_kickoff_groups', 'mmkg')
+        ->fields('mmkg')
+        ->condition('mentoring_year', $currentYear, '=')
+        ->condition('kickoff_night', $date, '=')
+        ->condition('timestamp', $timestamp, '=')
+        ->execute()
+        ->fetchObject();
+
+    $groups = json_decode($results->{'groups'}, TRUE);
+
+    $mentors = array();
+
+    foreach ($groups as $group) {
+        $curr_mentors = $group['mentor'];
+
+        foreach ($curr_mentors as $m) {
+            array_push($mentors, (int)$m);
+        }
+    }
+
+    $mentor_emails = array();
+
+    foreach ($mentors as $m) {
+        $email = db_select($mentor_table_name, 'mtn')
+            ->fields('mtn', array(
+                'email',
+                ))
+            ->condition('id', $m, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'email'};
+        array_push($mentor_emails, $email);
+    }
+
+    $mentor_str  = arrToString($mentor_emails);
+
+    $result = $form['results_m'];
+    $result['#value'] = $mentor_str;
+    return $result;
+}
+
+function emailer_get_emails_s($form, &$form_state) {
+    $date      = $form['date']['#options'][$form_state['values']['date']];
+    $timestamp = $form['timestamp']['#options'][$form_state['values']['timestamp']];
+
+    $currentYear = getYear();
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($currentYear);
+
+    $results = db_select('maestro_matched_kickoff_groups', 'mmkg')
+        ->fields('mmkg')
+        ->condition('mentoring_year', $currentYear, '=')
+        ->condition('kickoff_night', $date, '=')
+        ->condition('timestamp', $timestamp, '=')
+        ->execute()
+        ->fetchObject();
+
+    $groups = json_decode($results->{'groups'}, TRUE);
+
+    $students = array();
+
+    foreach ($groups as $group) {
+        $curr_seniors = $group['senior'];
+        $curr_juniors = $group['junior'];
+
+        foreach ($curr_seniors as $s) {
+            array_push($students, (int)$s);
+        }
+        foreach ($curr_juniors as $j) {
+            array_push($students, (int)$j);
+        }
+    }
+
+    $student_emails = array();
+
+    foreach ($students as $s) {
+        $email = db_select($student_table_name, 'stn')
+            ->fields('stn', array(
+                'email',
+                ))
+            ->condition('id', $s, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'email'};
+        array_push($student_emails, $email);
+    }
+
+    $student_str = arrToString($student_emails);
+
+    $result = $form['results_s'];
+    $result['#value'] = $student_str;
+    return $result;
+}
+
+/*
+ * Turns an array to a comma separated string
+ */
+function arrToString($arr) {
+    $str = '';
+    for ($i = 0; $i < count($arr); ++$i) {
+        $str .= $arr[$i];
+        if ($i + 1 == count($arr)) break;
+        $str .= ",\n";
+    }
+    return $str;
+}

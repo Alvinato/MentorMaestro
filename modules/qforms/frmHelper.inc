@@ -18,13 +18,34 @@ function genderHelper($gender) {
 /*
 * Helper to translate array of dates into one string to be stored in database
 * convience for parsing
-*/
+*
 function kickoffHelper($array_dates) {
 	$returnString = '{';
 	$len = count($array_dates);
 	$i = 0;
 	foreach ($array_dates as $key => $value){
 			if ($value != 0){
+					$returnString .= "\"$key\": 1";
+			} else{
+					$returnString .= "\"$key\": 0";
+			}
+			if ($i != $len - 1){
+					$returnString .= ', ';
+			} else {
+					$returnString .= '}';
+			}
+			$i++;
+	}
+	return $returnString;
+}
+*/
+
+function kickoffHelper($array_dates) {
+	$returnString = '{';
+	$len = count($array_dates);
+	$i = 0;
+	foreach ($array_dates as $key => $value){
+			if ($value){
 					$returnString .= "\"$key\": 1";
 			} else{
 					$returnString .= "\"$key\": 0";

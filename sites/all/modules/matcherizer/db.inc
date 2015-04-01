@@ -18,6 +18,13 @@ function saveGroups($groups, $year, $percentage, $weighting) {
 }
 
 /*
+ *
+ */
+function getExtraFields() {
+
+}
+
+/*
  * Get mentor array from mentor obj
  */
 function getMentor($mentor_obj, $weighting) {
@@ -129,5 +136,74 @@ function getFieldsToMatch() {
         'career'            => 'Career Plans',
         // TODO parse "extra" stuff in here
         );
+
+    $year = getYear();
+
+    // First get name of participant tables
+    list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
+
+    // Get extra stuff from mentors
+    $db_extras_m = db_select($mentor_table_name, 'mtn')
+        ->fields('mtn')
+        ->condition('id', 1, '=')
+        ->execute()
+        ->fetchObject()
+        ->{'extra'};
+
+    $mx = json_decode($db_extras_m, TRUE);
+
+    // Get extra stuff from students
+    $db_extras_s = db_select($student_table_name, 'stn')
+        ->fields('stn')
+        ->condition('id', 1, '=')
+        ->execute()
+        ->fetchObject()
+        ->{'extra'};
+
+    $sx = json_decode($db_extras_s, TRUE);
+
+    if (!$mx || !$sx) return $fields_to_match;
+
+    $extra_questions_s = unserialize(
+        db_select('qforms_definition', 'qd')
+            ->fields('qd')
+            ->condition('nid', 4, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'form_definition'}
+        );
+
+    $extra_questions_m = unserialize(
+        db_select('qforms_definition', 'qd')
+            ->fields('qd')
+            ->condition('nid', 5, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'form_definition'}
+        );
+
+    $xqm = array();
+
+    foreach ($mx as $q => $r) {
+        if (array_key_exists($extra_questions_m, $mx)) {
+            $xqm[$mx] = $extra_questions_m[$mx]['title'];
+        }
+    }
+
+    $xqs = array();
+
+    foreach ($sx as $q => $r) {
+        if (array_key_exists($extra_questions_s, $sx)) {
+            $xqs[$sx] = $extra_questions_s[$sx]['title'];
+        }
+    }
+
+    // TODO: VERY BUGGY, PROBABLY DOES NOT WORK
+    foreach ($xqs as $q => $r) {
+        if (in_array($r, $xqm)) {
+            $fields_to_match[$q] = $r;
+        }
+    }
+
     return $fields_to_match;
 }
