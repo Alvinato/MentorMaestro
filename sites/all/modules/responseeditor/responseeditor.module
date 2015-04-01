@@ -11,20 +11,10 @@ function responseeditor_menu()
     'description' => 'Edits survey responses.',
     'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
     'page arguments' => array('response_editor_form'), //put the name of the form here
-     'access arguments' => array('access responseeditor'),
+    'access callback' => TRUE
   );
   
   return $items;
-}
-
-function responseeditor_permission() {
-    return array(
-        'access responseeditor' => array(
-            'title' => t('Access Survey Response Editor'),
-            'description' => t('Allow users to access the Survey Response Editor.'),
-            'restrict acces' => TRUE,
-            ),
-        );
 }
 
 function response_editor_ajax_callback($form, $form_state)
@@ -145,11 +135,16 @@ function edit_button_callback($form, &$form_state)
 	return '<div style="margin-top: 1em; background-color: #d7e0e7; padding: 0.5em;">Participant has been edited.</div>';
 }
 
-function createTextField($title, $defaultValue)
+function createTextField($column, $defaultValue)
 {
+	$friendlyName = getFriendlyName($column);
+	
+	$isLong = $column === 'comments' || $column === 'hobbies_interests' || $column === 'cs_interests' || $column === 'availability_comments';
+	
+	$type = $isLong ? 'textarea' : 'textfield';
 	return array(
-		  '#type' => 'textfield',
-		  '#title' => t($title),
+		  '#type' => $type,
+		  '#title' => t($friendlyName),
 		  '#default_value' => t($defaultValue)
 		);
 }
@@ -262,8 +257,6 @@ function updateEditBoxes(&$form, &$form_state)
 function createEditBoxes(&$form, $form_state)
 {
 	list($personData, $isMentor, $numId) = getPersonDataById($form_state['values']['result']);
-	
-	$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
 		
 	$form['form_group'] = array(
 		  '#type' => 'fieldset',
@@ -273,6 +266,8 @@ function createEditBoxes(&$form, $form_state)
 		  '#prefix' => '<div id="group_div">',
 		  '#suffix' => '</div>'
 		);
+		
+	$form['form_group']['#title'] = $isMentor ? 'Edit Fields (Mentor)' : 'Edit Fields';
 		
 	$form['form_group']['person_type'] = array(
 		'#type' => 'hidden',
@@ -295,7 +290,7 @@ function createEditBoxes(&$form, $form_state)
 		if ($column === 'id' || $column === 'timestamp') { continue; }
 		error_log('value: ' . $value);
 		$form['form_group'][$column] =
-			createTextField(getFriendlyName($column), $value);
+			createTextField($column, $value);
 	}
 	
 	$form['form_group']['edit'] =
