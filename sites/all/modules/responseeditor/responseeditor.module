@@ -310,6 +310,12 @@ function createEditBoxes(&$form, $form_state)
 			createTextField($column, $value);
 	}
 	
+	$form['form_group']['spacer'] = 
+	array
+	(
+		'#markup' => '<div style="margin: 1em 0;">&nbsp;</div>'
+	);
+	
 	$form['form_group']['edit'] =
 	array
 	(
@@ -318,7 +324,9 @@ function createEditBoxes(&$form, $form_state)
 		'#ajax' => array(
 			'callback' => 'edit_button_callback',
 			'wrapper' => 'edit_div'
-		)
+		),
+		'#prefix' => '<span style="margin-right: 1em;">',
+		'#suffix' => '</span>'
 	);
 	
 	$form['form_group']['remove'] =
