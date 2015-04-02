@@ -342,10 +342,13 @@ function writeToDatabase($year, $night, $groups)
 	}
 	
 	$jsonStringGroups = json_encode($jsonGroups);
+
+	$nightFiltered = str_replace(', ', '-', $night);
+	$nightFiltered = str_replace(' ', '-', $nightFiltered);
 	
 	db_insert('maestro_matched_kickoff_groups')
 	->fields(array('timestamp' => date('Y-m-d H:i:s'),
-	'mentoring_year' => $year, 'kickoff_night' => $night
+	'mentoring_year' => $year, 'kickoff_night' => $nightFiltered
 	, 'groups' => $jsonStringGroups))
 	->execute();
 }
