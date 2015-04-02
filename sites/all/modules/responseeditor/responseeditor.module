@@ -18,7 +18,14 @@ function responseeditor_menu()
 }
 
 function response_editor_ajax_callback($form, $form_state)
-{
+{	
+	error_log('ajax: ' . print_r($content, true));
+	
+	/*if (count($form['result']['#header']) == 0)
+	{
+		$form['result']['#header'] = array('first_name' => 'First Name', 'last_name' => 'Last Name', 'email' => 'Email');
+	}*/
+	  
 	return $form['result'];
 }
 
@@ -43,13 +50,21 @@ function getPersonData($isMentor, $id)
 function searchParticipantsByName($name)
 {
 	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
-	$or = db_or();
-	$or->condition('first_name', '%' . $name . '%', 'like');
-	$or->condition('last_name', '%' . $name . '%', 'like');
+	
+	$and = db_and();
+	$names = explode(' ', $name);
+	
+	foreach ($names as $namePart)
+	{
+		$or = db_or();
+		$or->condition('first_name', '%' . $namePart . '%', 'like');
+		$or->condition('last_name', '%' . $namePart . '%', 'like');
+		$and->condition($or);
+	}
 	
 	$result = db_select($mentorTableName, 'mmt')
         ->fields('mmt',array('id','first_name', 'last_name', 'email'))
-        ->condition($or)
+        ->condition($and)
         ->execute()
         ->fetchAll();
 		
@@ -100,6 +115,8 @@ function response_editor_form_submit($form, &$form_state)
   $num_deleted = db_delete($tableName)
   ->condition('id', $nid)
   ->execute();
+  
+  drupal_set_message('Participant removed.');
 }
 
 function edit_button_callback($form, &$form_state)
@@ -184,6 +201,8 @@ function response_editor_form($form, &$form_state)
 	
 	$form['spacer'] = array('#markup' => '<div style="clear:both;">&nbsp;</div>');
 	
+	$editing = array_key_exists('values', $form_state);
+		
 	if (array_key_exists('values', $form_state))
 	{
 		$content = searchParticipantsByName($form_state['values']['searchName']);
@@ -192,14 +211,10 @@ function response_editor_form($form, &$form_state)
 	{
 		$content = array();
 	}
-	
-	$editing = array_key_exists('values', $form_state);
-		//&& ($form_state['values']['result'] != ''
-		//||(array_key_exists('blah', $form_state['values'])));
 
 	$form['result'] = array(
 	  '#type' => 'tableselect',
-	  '#header' => array('first_name' => 'First Name', 'last_name' => 'Last Name', 'email' => 'Email'),
+	  '#header' => array(),
 	  '#options' => $content,
 	  '#prefix' => '<div id="result_div" style="float:left;margin-right: 2em;">',
 	  '#suffix' => '</div>',
@@ -211,6 +226,8 @@ function response_editor_form($form, &$form_state)
 			'progress' => array('type' => 'throbber')
 		)
 	  );
+	  
+	$form['result']['#header'] = array('first_name' => 'First Name', 'last_name' => 'Last Name', 'email' => 'Email');
 	  
 	 $form['fieldsWrapper'] = array(
 		'#markup' => '<div id="group_div"></div>'
@@ -293,6 +310,12 @@ function createEditBoxes(&$form, $form_state)
 			createTextField($column, $value);
 	}
 	
+	$form['form_group']['spacer'] = 
+	array
+	(
+		'#markup' => '<div style="margin: 1em 0;">&nbsp;</div>'
+	);
+	
 	$form['form_group']['edit'] =
 	array
 	(
@@ -301,7 +324,9 @@ function createEditBoxes(&$form, $form_state)
 		'#ajax' => array(
 			'callback' => 'edit_button_callback',
 			'wrapper' => 'edit_div'
-		)
+		),
+		'#prefix' => '<span style="margin-right: 1em;">',
+		'#suffix' => '</span>'
 	);
 	
 	$form['form_group']['remove'] =
