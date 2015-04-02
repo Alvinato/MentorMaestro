@@ -70,9 +70,15 @@ function getAttributeScoreTrio($trio, $weights) {
 
     if (!$okay_kickoff) return 0.0;
 
-    $score = 0.0;
+    // calculate max score
     $max_score = 0.0;
+    foreach ($weights as $pref_name => $pref_weight) {
+        $max_score += $pref_weight;
+    }
+    $max_score *= 5.0;
+
     // calculate actual score
+    $score = 0.0;
     for ($i = 0; $i < 5; ++$i) {
         $curr_from = $from[$i];
         $curr_to   = $to[$i];
@@ -83,7 +89,6 @@ function getAttributeScoreTrio($trio, $weights) {
             if (goodMatch($curr_from, $curr_to, $pref_name, $high[$i])) {
                 $score += $pref_weight;
             }
-            $max_score += $pref_weight;
         }
     }
 
