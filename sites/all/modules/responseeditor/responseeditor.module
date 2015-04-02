@@ -50,20 +50,21 @@ function getPersonData($isMentor, $id)
 function searchParticipantsByName($name)
 {
 	list($mentorTableName, $studentTableName) = getParticipantTableNames(getYear());
-	$or = db_or();
-
 	
+	$and = db_and();
 	$names = explode(' ', $name);
 	
 	foreach ($names as $namePart)
 	{
+		$or = db_or();
 		$or->condition('first_name', '%' . $namePart . '%', 'like');
 		$or->condition('last_name', '%' . $namePart . '%', 'like');
+		$and->condition($or);
 	}
 	
 	$result = db_select($mentorTableName, 'mmt')
         ->fields('mmt',array('id','first_name', 'last_name', 'email'))
-        ->condition($or)
+        ->condition($and)
         ->execute()
         ->fetchAll();
 		
