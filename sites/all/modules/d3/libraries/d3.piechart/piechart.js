@@ -151,7 +151,7 @@
           .append('g')
         // now move to the actual x and y of the bar within that group
         .attr('transform', function(d) { return 'translate(' + circle.centroid(data[i]) + ')'; });
-
+        console.log(Number(wedges[i][1]));
       d3.tooltip(tooltip, Number(wedges[i][1]));
     }
 

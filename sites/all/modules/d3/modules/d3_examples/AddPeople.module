@@ -1,0 +1,20 @@
+<?php
+
+
+function AddPeople_menu() {
+	// this is what is happening
+    $items['abc/def'] = array(  // defining url structure of 
+    	'title' => 'add people page',
+    	'description' => 'we are creatubg a pop up php page that will allow the user to add people to the visualizer...',
+      'page callback' => 'mymodule_abc_view',  // and page callback that calls there 
+      //'page arguments' ==> array(1, 'foo'),   // here we are going to be passing in page arguments
+    );
+    return $items;
+  }
+
+  function mymodule_abc_view() {
+  	echo "this is the add page";
+	
+	return "<strong>This is a test</strong>";
+    
+  }

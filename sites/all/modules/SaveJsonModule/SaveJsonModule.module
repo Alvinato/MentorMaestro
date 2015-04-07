@@ -1,0 +1,171 @@
+<?php
+// this page needs to close the current window and then alter the json file to add someone.
+
+/*chromephp:: log(isset($_POST['report']);
+if (isset($_POST['report'])) {
+  Chromephp::log("this got called");
+        echo("hello");
+        select("hello");
+    }
+
+echo "this is being run right now";
+
+
+
+function highScore(){
+
+	Chromephp::log("query.php is being run right now");
+}*/
+/** bootstrap Drupal **/
+/*chdir("Applications/xampp/htdocs/TESTING/includes/bootstrap.inc");   // need to figure out path that will work with this...
+require_once './includes/bootstrap.inc';
+drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);*/
+
+/*$path = $_SERVER['DOCUMENT_ROOT'];
+chdir($path."/drupal");
+define('DRUPAL_ROOT', getcwd()); //the most important line
+require_once './includes/bootstrap.inc';
+drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);*/
+
+
+/*define('DRUPAL_ROOT', getcwd());                // need to include the drupal core functions here.  if not we can just create a new module which would be a hassle.
+require_once './includes/bootstrap.inc';
+drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);*/
+include 'ChromePhp.php';
+
+//Chromephp::log("this file is getting run right now!!");
+
+ header('Content-Type: application/json');
+
+    $aResult = array();
+
+    if( !isset($_POST['functionname']) ) { 
+  //    Chromephp::log(" no function arguments name");
+      $aResult['error'] = 'No function name!'; }
+
+    if( !isset($_POST['arguments']) ) { 
+     // Chromephp::log("no function arguments");
+      $aResult['error'] = 'No function arguments!'; }
+
+    if( !isset($aResult['error']) ) {
+        Chromephp::log(" there was no error");
+        
+       // Chromephp::log(($_POST['arguments']));  
+        switch($_POST['functionname']) {
+            case 'add':
+               if( is_array($_POST['arguments'])) {
+                //  Chromephp::log("there was an error in arguments");
+                   $aResult['error'] = 'Error in arguments!';
+               }
+               else {
+                   Chromephp::log("the function is getting called");
+                  // Chromephp::log(floatval($_POST['arguments'][0]));
+                  // $aResult['result'] = add(floatval($_POST['arguments'][0]), floatval($_POST['arguments'][1]));  // this is where it gets called.
+                      $aResult['result'] = add($_POST['arguments']); // just send the entire array through...               
+               }
+               break;
+
+            case 'save':
+                if(is_array($_POST['arguments'])) {
+                
+                   $aResult['error'] = 'Error in arguments!';
+               }else {
+                      $aResult['result'] = save($_POST['arguments']);   // call save instead of add
+               }
+               break;
+
+            default:
+               $aResult['error'] = 'Not found function '.$_POST['functionname'].'!';
+               break;
+        }
+
+    }
+
+    echo json_encode($aResult);
+
+ // this function needs to alter the json file...
+function add($arguments1){  
+  ChromePhp::log("add is running right now");
+  $decoded = json_decode($arguments1);
+  $file = 'TESTING.json';  
+  file_put_contents($file, $arguments1);
+}
+
+// function saves the json file into the database.
+function save($arguments1){
+  Chromephp::log("the save button is running right now");
+  Chromephp::log("another print statement to see if things are working");    
+ // $decoded = json_decode($arguments1);  // decoded version here...
+  
+  //Chromephp::log($decoded);
+  
+  $qry1 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+    Chromephp::log("just before the query");
+    $result = db_query($qry1)->fetchAll();
+    Chromephp::log("after the query!!!");
+  Chromephp::log(count($decoded->children));
+/*for ($g = 0; $g < count($decoded->children); $g++){
+  // go through all the groups.
+  Chromephp::log($g);
+  $current_group = $decoded->children[$g];  // this is the current group that we are searching
+  Chromephp::log($current_group); 
+  ChromePhp::log($current_group->children);
+  for($r=0; $r<count($current_group->children);$r++){
+    
+    $applicant = $current_group->children[$r];
+    $applicant_name = $applicant->name;
+    $applicant_familyname = $applicant->familyname;
+    $applicant_position = $applicant->position;
+    Chromephp::log($r);
+    Chromephp::log($applicant);
+    Chromephp::log($applicant->position);
+    Chromephp::log($applicant->familyname);
+    Chromephp::log($applicant->name);
+
+    // sql query and get the id.
+if ($applicant_position == 'Mentor'){
+    // this is going to be the Mentor query
+  Chromephp::log("we have found a mentor and trying to find the id");
+    //$qry1 = "SELECT id FROM TESTING.maestro_signup_mentor_20142015 WHERE first_name = ".$applicant_name. "AND last_name = ".$applicant_familyname;  
+    $qry1 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+    Chromephp::log("just before the query");
+    $result = db_query($qry1)->fetchAll(); // might actually need to make this module in order for this function to work...
+    Chromephp::log("right after the query.. we know the fetch didnt fail if this prints");
+    Chromephp::log($qry1); 
+    ChromePhp::log($result); 
+    Chromephp::log("after the query");
+     // print out the qry result...
+    ChromePhp::log($qry);
+    }else{
+      //$qry2 = "SELECT id FROM TESTING.maestro_signup_student_20142015 WHERE first_name = ".$applicant_name. "AND last_name = ".$applicant_familyname;
+      $qry2 = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+      ChromePhp::log($qry2);  
+      $result = db_query($qry2)->fetchAll(); 
+      ChromePhp::log($result);   // this should print out the id... 
+    }
+
+  }
+  
+  Chromephp::log("printing out instances in decode");
+  Chromephp::log($decoded[$g]);
+
+
+
+}
+
+
+   /*$nid = db_insert('maestro_matched_trios')->fields(array(
+    'timestamp' -> date('Y-m-d H:i:s'),         //generates the current date 
+    'mentoring_year' -> "20142015",             //  TODO!! hardcode for now
+    'weightings'  => json_encode($weighting),   //  shouldnt put weightings in for now.
+    'percentage'  => $percentage,               // the similaritiies function.
+    'trios'  => json_encode($groups),           // this is going to be the json file...
+))->execute();*/
+
+
+}
+    
+
+
+
+?>
