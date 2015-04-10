@@ -143,12 +143,15 @@ function getFieldsToMatch() {
     list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
     // Get extra stuff from mentors
-    $db_extras_m = db_select($mentor_table_name, 'mtn')
+    $db_extras_m_temp = db_select($mentor_table_name, 'mtn')
         ->fields('mtn')
         ->condition('id', 1, '=')
         ->execute()
-        ->fetchObject()
-        ->{'extra'};
+        ->fetchAll();
+
+    if (count($db_extras_m_temp) < 1) return $fields_to_match;
+
+    $db_extras_m = $db_extras_m_temp[0]->{'extra'};
 
     $mx = json_decode($db_extras_m, TRUE);
 

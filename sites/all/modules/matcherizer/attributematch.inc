@@ -7,7 +7,7 @@ module_load_include('inc', 'matcherizer', 'stablematch');
 /*
  * Generate attribute scores within a trio
  */
-function getAttributeScoreTrio($trio, $weights) {
+function getAttributeScoreTrio($trio, $weights, $year) {
 
     $mentor_id = $trio['mentor'];
     $senior_id = $trio['senior'];
@@ -16,7 +16,6 @@ function getAttributeScoreTrio($trio, $weights) {
     $weights = json_decode($weights);
 
     // Get participants
-    $year = getYear();
     list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
     $mentor = getMentor(
@@ -98,7 +97,7 @@ function getAttributeScoreTrio($trio, $weights) {
 /*
  * Returns the kickoff availability of the trio
  */
-function getKickoffAvailabilityTrio($trio, $weights) {
+function getKickoffAvailabilityTrio($trio, $weights, $year) {
 
     $mentor_id = $trio['mentor'];
     $senior_id = $trio['senior'];
@@ -107,7 +106,6 @@ function getKickoffAvailabilityTrio($trio, $weights) {
     $weights = json_decode($weights);
 
     // Get participants
-    $year = getYear();
     list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
     $mentor = getMentor(

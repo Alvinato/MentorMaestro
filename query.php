@@ -94,6 +94,7 @@ function add($arguments1)
     // Chromephp::log($decoded);  // lets save the weighting for this particular trio...
     // Chromephp::log("add is running");
     // loop through this...
+    $current_year = file_get_contents('visualizeryear.json');
     for ($g = 0; $g < count($decoded->children); $g++) {
         $current_group = $decoded->children[$g];
         //  Chromephp::log("inside the first loop");
@@ -183,7 +184,7 @@ function add($arguments1)
         //Chromephp::log($theactualweightings); // this is going to be the weightings fetched from the json file.
         //Chromephp::log("yoohoo!");
         //Chromephp::log($trio);
-        $percentage1 = getAttributeScoreTrio($trio, $theactualweightings);
+        $percentage1 = getAttributeScoreTrio($trio, $theactualweightings, $current_year);
         //Chromephp::log($percentage1);
         //     Chromephp::log("this is the percentage found:  ". $percentage1);
         $applicant_senior->{'weighting'} = $percentage1;
@@ -298,7 +299,7 @@ function save($arguments1)
         db_insert('maestro_matched_kickoff_groups')
             ->fields(array(
                 'timestamp'      => date('Y-m-d H:i:s'),
-                'mentoring_year' => getYear(),
+                'mentoring_year' => file_get_contents('visualizeryear.json'),
                 'kickoff_night'  => substr($decoded->type, 7, 15),
                 'groups'         => $encode,
                 ))
@@ -336,6 +337,8 @@ function save($arguments1)
         $mentor_id;
         $junior_id;
         $senior_id;
+
+        $current_year = file_get_contents('visualizeryear.json');
 
         $thearray = array(); // this is going to be pushed to
         for ($g = 0; $g < count($decoded->children); $g++) { // go through the json file and search up the correct index.
@@ -380,7 +383,8 @@ function save($arguments1)
                 'senior' => $senior_id,
                 'junior' => $junior_id,
                 ),
-                $weighting_content
+                $weighting_content,
+                $current_year
                 );
             // we need to create the group for this particular array now
             $myArray = array(
@@ -406,7 +410,7 @@ function save($arguments1)
         db_insert('maestro_matched_trios')
             ->fields(array(
                 'timestamp'      => date('Y-m-d H:i:s'),
-                'mentoring_year' => getYear(),
+                'mentoring_year' => $current_year,
                 'weightings'     => $weighting_content,
                 'percentage'     => $overrall_percentage,
                 'trios'          => $encode,
@@ -418,7 +422,7 @@ function save($arguments1)
 // gathers the indices for the json array...
 function traverser($firstname, $lastname, $choose)
 {
-    $current_year = getYear();
+    $current_year = file_get_contents('visualizeryear.json');
     list($mentor_table, $student_table) = getParticipantTableNames($current_year);
     // Chromephp::log("traverser is being called ");
     $db_table_name = $student_table;
