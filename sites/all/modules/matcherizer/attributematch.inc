@@ -29,7 +29,7 @@ function getAttributeScoreTrio($trio, $weights) {
         );
 
     $senior = getStudent(
-        db2_select($student_table_name, 'stn')
+        db_select($student_table_name, 'stn')
             ->fields('stn')
             ->condition('id', $senior_id, '=')
             ->execute()

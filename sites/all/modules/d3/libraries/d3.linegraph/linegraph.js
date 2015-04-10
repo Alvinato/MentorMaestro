@@ -3,10 +3,10 @@
  * D3 Line Graph library js file.
  */
 
-//  TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
+// TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
 var siteRoot = "/";
-// var siteRoot = "/maestro_main/";
-// var siteRoot = "/TESTING/";
+//var siteRoot = "/maestro_main/";
+//var siteRoot = "/TESTING/";
 
 (function($) {
     // TODO!! fix the div tag for the append scroller... need to connect this to the svg element so that it looks better
@@ -145,6 +145,7 @@ var siteRoot = "/";
 
                 success: function (obj, textstatus) {
                     if( !('error' in obj)) {
+                        console.log('worked =)');
                         var result = obj.result;
                         var similaritiesNumber = keys.append("g");
                         similaritiesNumber.append("text")
@@ -166,6 +167,7 @@ var siteRoot = "/";
 
                     }
                 }
+
             });
 
 
@@ -1250,7 +1252,7 @@ var siteRoot = "/";
 
         function appendScroller(box, path) {
             // console.log("the scroller has been called");
-            var path2 = path.concat(".json");
+            var path2 = (siteRoot + "json/").concat(path.concat(".json"));
             //console.log(path2);
 
             d3.json(path2, function (data) {

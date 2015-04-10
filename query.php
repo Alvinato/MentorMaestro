@@ -180,8 +180,11 @@ function add($arguments1)
         // just grab from the weightings.json file.
         $file = "weightings.json";
         $theactualweightings = file_get_contents($file); // gets the json file.
-        Chromephp::log($theactualweightings); // this is going to be the weightings fetched from the json file.
+        //Chromephp::log($theactualweightings); // this is going to be the weightings fetched from the json file.
+        //Chromephp::log("yoohoo!");
+        //Chromephp::log($trio);
         $percentage1 = getAttributeScoreTrio($trio, $theactualweightings);
+        //Chromephp::log($percentage1);
         //     Chromephp::log("this is the percentage found:  ". $percentage1);
         $applicant_senior->{'weighting'} = $percentage1;
         $applicant_mentor->{'weighting'} = $percentage1;

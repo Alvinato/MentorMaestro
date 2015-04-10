@@ -7,10 +7,12 @@
 module_load_include('inc', 'yearmanager', 'db');
 include 'ChromePhp.php';
 
-//  TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
-$website_root = "/";
-// $website_root = "/maestro_main/";
-// $website_root = "/TESTING/";
+function get_website_root() {
+    // TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
+    return "/";
+    //return "/maestro_main/";
+    //return "/TESTING/";
+}
 
 /**
  * Implements hook_menu().
@@ -90,7 +92,7 @@ function d3_examples_menu()
         'access arguments' => array(
             'access visualizer'
         ) ,
-        'page callback' => 'd3_examples_Group',
+        'page callback' => 'd3_examples_group',
         'access callback' => MENU_LOCAL_TASK,
     );
     return $items;
@@ -120,13 +122,8 @@ function deleteKickoff($id1)
 }
 function d3_examples_group()
 {
-    global $website_root;
     // delete anything with weightings and percentage...
     // Chromephp::log("inside the group right now ");
-    $add_timestamp1 = $_GET["timestamp1"];
-    $add_mentoring_year1 = $_GET["mentoring_year1"];
-    $add_night = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
-    $id1 = $_GET["id1"];
     // we need to know which form was submitted...
     if (isset($_GET['delete'])) {
         Chromephp::log("the delete button has been pressed..!! ");
@@ -137,7 +134,11 @@ function d3_examples_group()
         return;
     }
     // if one of them is not null
-    if (!is_null($add_timestamp1)) {
+    if (isset($_GET["timestamp1"])) {
+        $add_timestamp1 = $_GET["timestamp1"];
+        $add_mentoring_year1 = $_GET["mentoring_year1"];
+        $add_night = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
+        $id1 = $_GET["id1"];
         // Chromephp::log(" button was pressed");
         //$query1 = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
         //$result1 = db_query($query1)->fetchAll();
@@ -343,11 +344,12 @@ function d3_examples_group()
         echo "<td>" . $kickoff_night . "</td>";
         // lets send something inside here...
         echo "<td>";
-        echo "<form action='".$website_root."examples/group' method='get'>";
-        echo "<input type='hidden' name='timestamp1' value=$timestamp1 />";
-        echo "<input type='hidden' name='mentoring_year1' value=$mentoring_year1 />";
-        echo "<input type='hidden' name='kickoff_night' value=$kickoff_night />";
-        echo "<input type='hidden' name='id1' value=$id />";
+        echo "<form action='".get_website_root()."' method='get'>";
+        echo "<input type='hidden' name='q' value='examples/group' />";
+        echo "<input type='hidden' name='timestamp1' value='$timestamp1' />";
+        echo "<input type='hidden' name='mentoring_year1' value='$mentoring_year1' />";
+        echo "<input type='hidden' name='kickoff_night' value='$kickoff_night' />";
+        echo "<input type='hidden' name='id1' value='$id' />";
         echo "<input type='submit' value='Choose' onSubmit='window.close()'></button> ";
         echo "<input type='submit' name = 'delete' value='Delete' onSubmit='window.close()'></button> "; // this is the newly added delete button...
         echo "</form> ";
@@ -390,12 +392,6 @@ function deleteTrio($id1)
 }
 function d3_examples_mentor()
 {
-    global $website_root;
-    $add_timestamp = $_GET["timestamp"];
-    $add_mentoring_year = $_GET["mentoring_year"];
-    $add_weightings = $_GET["weightings"];
-    $add_percentage = $_GET["percentage"];
-    $id = $_GET["id"];
     // check whether it has been deleted...
     // we need to know which form was submitted...
     if (isset($_GET['delete'])) {
@@ -406,7 +402,12 @@ function d3_examples_mentor()
         echo '<script type="text/javascript">', 'jsfunction();', '</script>';
         return;
     }
-    if (!is_null($add_timestamp)) {
+    if (isset($_GET["timestamp"])) {
+        $add_timestamp = $_GET["timestamp"];
+        $add_mentoring_year = $_GET["mentoring_year"];
+        $add_weightings = $_GET["weightings"];
+        $add_percentage = $_GET["percentage"];
+        $id = $_GET["id"];
         // then the button was pressed and we need to change the json file to that of the year chosen...
         // TODO!! change the json file first... we need to place the weighting into the json file...
         // Chromephp::log(" button was pressed");
@@ -432,15 +433,15 @@ function d3_examples_mentor()
                     'children' => $manage
                 );
                 // Chromephp::log($array);
-                // Chromephp::log($array[children]);
+                // Chromephp::log($array['children']);
                 $mentor_list = array(); // holds all mentors that we are adding.
                 $final_array = array(
                     'name' => '',
                     'type' => 'trio',
                     'children' => array()
                 );
-                for ($a = 0; $a < count($array[children]); $a++) {
-                    $group = $array[children][$a];
+                for ($a = 0; $a < count($array['children']); $a++) {
+                    $group = $array['children'][$a];
                     for ($e = 0; $e < count($group); $e++) {
                         // the index's for the database
                         $mentor_index = $group->mentor;
@@ -448,9 +449,9 @@ function d3_examples_mentor()
                         $junior_index = $group->junior;
                         // pushes all the index's that are going to be displayed.
                         // still need to take care of when something gets added and deleted.
-                        array_push($mentee_index_list, $senior_index);
-                        array_push($mentee_index_list, $junior_index);
-                        array_push($mentor_index_list, $mentor_index);
+                        //array_push($mentee_index_list, $senior_index);
+                        //array_push($mentee_index_list, $junior_index);
+                        //array_push($mentor_index_list, $mentor_index);
                         // now that we have the mentor index we need tograb all his information and paste it into the json file...
 
                         $current_year = getYear();
@@ -555,7 +556,7 @@ function d3_examples_mentor()
                                 $group_array_junior
                             )
                         );
-                        array_push($final_array[children], $group_array_start);
+                        array_push($final_array['children'], $group_array_start);
                     }
                 }
                 // Chromephp::log("changing the json file before rendering the page...");
@@ -597,12 +598,13 @@ function d3_examples_mentor()
         echo "<td>" . $percentage . "</td>";
         // lets send something inside here...
         echo "<td>";
-        echo "<form action='".$website_root."examples/mentor' method='get'>";
-        echo "<input type='hidden' name='timestamp' value=$timestamp />";
-        echo "<input type='hidden' name='mentoring_year' value=$mentoring_year />";
-        echo "<input type='hidden' name='weightings' value=$weightings />";
-        echo "<input type='hidden' name='percentage' value=$percentage />";
-        echo "<input type='hidden' name='id' value=$id />";
+        echo "<form action='".get_website_root()."' method='get'>";
+        echo "<input type='hidden' name='q' value='examples/mentor' />";
+        echo "<input type='hidden' name='timestamp' value='$timestamp' />";
+        echo "<input type='hidden' name='mentoring_year' value='$mentoring_year' />";
+        echo "<input type='hidden' name='weightings' value='$weightings' />";
+        echo "<input type='hidden' name='percentage' value='$percentage' />";
+        echo "<input type='hidden' name='id' value='$id' />";
         echo "<input type='submit' value='Choose' onSubmit='window.close()'></button> ";
         echo "<input type='submit' name = 'delete' value='Delete' onSubmit='window.close()'></button> ";
         echo "</form> ";
@@ -614,7 +616,6 @@ function d3_examples_mentor()
 // this makes the mentor list...
 function make_mentor_list()
 {
-    global $website_root;
     // Chromephp::log("making mentor list is running");
     //$query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
     //$result = db_query($query)->fetchAll();
@@ -654,7 +655,7 @@ function make_mentor_list()
         echo "<td>" . $gender . "</td>";
         echo "<td>" . $company . "</td>";
         echo "<td>";
-        echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+        echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
         echo "<input type='hidden' name='maddid' value=$id />";
         echo "<input type='hidden' name='maddlname' value=$lastName />";
         echo "<input type='hidden' name='maddfname' value=$firstName />";
@@ -674,7 +675,6 @@ function make_mentor_list()
 }
 function make_mentee_list()
 {
-    global $website_root;
     // Chromephp::log("making mentee list is running");
     // just showing students for now... need to later make a function for mentor databse...
     //$query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
@@ -713,7 +713,7 @@ function make_mentee_list()
         echo "<td>" . $gender . "</td>";
         echo "<td>" . $year . "</td>";
         echo "<td>";
-        echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+        echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
         echo "<input type='hidden' name='addid' value=$id />";
         echo "<input type='hidden' name='addlname' value=$lastName />";
         echo "<input type='hidden' name='addfname' value=$firstName />";
@@ -860,7 +860,6 @@ function add_button_pressed_mentor()
 // change the name of this function...
 function d3_examples_bubbles()
 {
-    global $website_root;
     // Chromephp::log("bubbles is running");
     $search_first_name = $_GET["fname"]; // this should be the first name
     $search_last_name = $_GET["lname"]; // this should be the second name.
@@ -869,17 +868,17 @@ function d3_examples_bubbles()
     add_button_pressed_mentor();
     $show_mentee_list = $_GET["mentee"]; // check these values and see which one the user wants to see...
     $show_mentor_list = $_GET["mentor"]; //
-    echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
     echo "First name: <input type='text' name='fname'><br />";
     echo "Last name: <input type='text' name='lname'><br />";
     echo "<input type='submit' value='Search'>"; // this is going to be the search button...
     echo "</form>";
-    echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
     echo "<input type='hidden' name='mentee' value='true' />";
     echo "<input type='hidden' name='mentor' value='false' />";
     echo "<input name='Mentee List' type='submit' value='View all Mentees'>Mentee List</button> "; // the mentee button..
     echo "</form>";
-    echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
     echo "<input type='hidden' name='mentee' value='false' />";
     echo "<input type='hidden' name='mentor' value='true' />";
     echo "<input name='Mentor List' type='submit' value='View all Mentors'>Mentor List</button> "; // the mentor button
@@ -906,7 +905,6 @@ function d3_examples_bubbles()
 // this gets called when the search bar is pressed...
 function searchBar($firstname, $lastname)
 {
-    global $website_root;
     $current_year = getYear();
     list($mentor_table, $student_table) = getParticipantTableNames($current_year);
     // Chromephp::log("running searrch bvar");
@@ -962,7 +960,7 @@ function searchBar($firstname, $lastname)
             echo "<td>" . $gender . "</td>";
             echo "<td>" . $company . "</td>";
             echo "<td>";
-            echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+            echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
             echo "<input type='hidden' name='maddid' value=$id />";
             echo "<input type='hidden' name='maddlname' value=$mentors_last_name />";
             echo "<input type='hidden' name='maddfname' value=$mentors_first_name />";
@@ -1014,7 +1012,7 @@ function searchBar($firstname, $lastname)
             echo "<td>" . $gender . "</td>";
             echo "<td>" . $year . "</td>";
             echo "<td>";
-            echo "<form action='".$website_root."examples/bubbles#overlay-context=' method='get'>";
+            echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
             echo "<input type='hidden' name='addid' value=$id />";
             echo "<input type='hidden' name='addlname' value=$mentees_last_name />";
             echo "<input type='hidden' name='addfname' value=$mentees_first_name />";
@@ -1367,9 +1365,9 @@ function d3_examples_linegraph()
                 $junior_index = $group->junior;
                 // pushes all the index's that are going to be displayed.
                 // still need to take care of when something gets added and deleted.
-                array_push($mentee_index_list, $senior_index);
-                array_push($mentee_index_list, $junior_index);
-                array_push($mentor_index_list, $mentor_index);
+                //array_push($mentee_index_list, $senior_index);
+                //array_push($mentee_index_list, $junior_index);
+                //array_push($mentor_index_list, $mentor_index);
                 // now that we have the mentor index we need tograb all his information and paste it into the json file...
 
                 $current_year = getYear();
