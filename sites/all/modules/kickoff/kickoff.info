@@ -3,3 +3,5 @@ description = Generates kickoff night groups.
 core = 7.x
 package = Mentor Maestro
 dependencies[] = yearmanager
+
+files[] = tests/kickoff.test

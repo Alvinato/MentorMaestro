@@ -60,7 +60,7 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentGro
 		$person = 0;
 		$currentDiff = ~PHP_INT_MAX;
 		$numMentors = $currentGroup->getNumberOfMentors();
-		error_log($numMentors);
+		
 		$choseAtLeastOne = false;
 		for ($x = 0; $x < count($people); ++$x)
 		{
@@ -95,6 +95,7 @@ function choosePerson($night, $people, $currentPrefs, $groupHobbies, $currentGro
 			}
 			error_log('WARNING: Could not choose a person optimally. Relaxing constraints. ' . $people[$person]['name'] . ' will not be happy. <br />');
 		}
+		error_log($person);
 		return $person;
 	//}
 }

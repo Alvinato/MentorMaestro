@@ -27,11 +27,6 @@ function getPersonFromDbRow($record)
 
 function getPersonInfoFromDb($id, $tableName)
 {
-	
-	//$tablePart = '';
-	//if ($mentor) { $tablePart = 'mentor'; } else { $tablePart = 'student'; }
-	
-	//$result = db_query("SELECT * FROM " . $tableName ." WHERE id = :id", array(':id' => $id));
 	$result = db_select($tableName,'mmt')->fields('mmt')->condition('id', $id)->execute()->fetchAll();
 	
 	foreach ($result as $record)
@@ -62,7 +57,6 @@ function getMatchings($year)
 		$matchings[$record->id] = $record->timestamp . " (Percentage: " . $record->percentage. ")";
 	}
 	
-	//error_log('getmatchings: '.print_r($matchings, true));
 	return $matchings;
 }
 
@@ -76,9 +70,8 @@ function getTrioBuckets($id)
         ->execute()
         ->fetchAll();
 		
-	#echo $currentYear;
 	list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-// Result is returned as a iterable object that returns a stdClass object on each iteration
+	// Result is returned as a iterable object that returns a stdClass object on each iteration
 	$jsonTrios = null;
 	$jsonResult = null;
 	

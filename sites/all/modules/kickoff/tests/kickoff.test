@@ -1,0 +1,61 @@
+<?php
+module_load_include('inc', 'kickoff', 'kickoff');
+/**
+ * @file
+ * Tests for the hello world module.
+ */
+class KickoffTests extends DrupalWebTestCase {
+	
+	public function setUp()
+	{
+		parent::setUp(array('kickoff'));
+	}
+	
+	/**
+	 * Metadata about our test case.
+	 */
+	public static function getInfo()
+	{
+	  return array(
+		'name' => 'Kickoff',
+		'description' => 'Tests for the Kickoff module.',
+		'group' => 'Kickoff Group',
+	  );
+	}
+	
+	public function testEmpty()
+	{
+		$noGroups = kickoff(1, array());
+		$this->assertEqual(count($noGroups), 0);
+	}
+	
+	public function testKickoffInvalidGroup()
+	{
+		/*$people = array(
+			array("name" => "Bill", "trio" => 4, "title"=>"mentor", "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
+			,array("name" => "Eric", "trio" => 1, "title"=>"mentor", "nights" => [2=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
+			,array("name" => "Ted", "trio" => 3, "title"=>"mentor", "nights" => [3=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
+			,array("name" => "Alvin", "trio" => 2, "title"=>"mentor", "nights" => [4=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
+			);*/
+		$people = array(
+			array("name" => "Bill", "trio" => 4, "title"=>"mentor", "nights" => [1=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
+			,array("name" => "Eric", "trio" => 1, "title"=>"junior", "nights" => [1=>true], "prefs" => ["year" => 3, "hobbies" => ["sports","music"]])
+			,array("name" => "Ted", "trio" => 3, "title"=>"senior", "nights" => [1=>true], "prefs" => ["year" => 2, "hobbies" => ["fishing","cooking"]])
+			,array("name" => "Alvin", "trio" => 2, "title"=>"mentor", "nights" => [1=>true], "prefs" => ["year" => 6, "hobbies" => ["sports","art"]])
+			);
+			
+		$GLOBALS['MAX_GROUP_SIZE'] = 3;
+		$groups = kickoff(2, $people);
+		
+		$expectedOutput = "Array ( [0] => Group Object ( [people:Group:private] => Array ( [0] => Array ( [0] => Array ( [name] => Alvin [trio] => 2 [title] => mentor [nights] => Array ( [1] => 1 ) [prefs] => Array ( [year] => 6 [hobbies] => Array ( [0] => sports [1] => art ) ) ) [1] => Array ( [name] => Bill [trio] => 4 [title] => mentor [nights] => Array ( [1] => 1 ) [prefs] => Array ( [year] => 1 [hobbies] => Array ( [0] => sports [1] => art ) ) ) ) [1] => Array ( ) [2] => Array ( [0] => Array ( [name] => Eric [trio] => 1 [title] => junior [nights] => Array ( [1] => 1 ) [prefs] => Array ( [year] => 3 [hobbies] => Array ( [0] => sports [1] => music ) ) ) ) ) [trioIds:Group:private] => Array ( [2] => 1 [4] => 1 [1] => 1 ) ) )";
+		#$this->assertEqual(print_r($groups, true), $expectedOutput);
+		//debug(print_r($groups, true));
+		//$this->assertTrue($expectedOutput === print_r($groups, true));
+		//echo(outputGroups($groups));
+		$this->assertTrue($groups[0]->getMentors()[0]['name'] === 'Alvin');
+		$this->assertTrue($groups[0]->getMentors()[1]['name'] === 'Bill');
+		$this->assertTrue($groups[0]->getJuniors()[0]['name'] === 'Eric');
+	}
+
+
+}
