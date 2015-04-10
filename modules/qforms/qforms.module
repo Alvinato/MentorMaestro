@@ -146,6 +146,7 @@ function qforms_node_info() {
  * Implements hook_form().
  */
 function qforms_form($node, &$form_state) {
+  // need to get database definition
   _qforms_init_css_js();
 
   $form = node_content_form($node, $form_state);
@@ -342,6 +343,7 @@ function qforms_form($node, &$form_state) {
 * Implements hook_validate().
 */
 function qforms_validate($node, $form, &$form_state) {
+
   // When form submition is invalid form will not be rebuilded so we need to
   // include css and js files just to be sure they will be present.
   _qforms_init_css_js();
@@ -792,7 +794,7 @@ function qforms_submit_form_submit($form, &$form_state) {
         'comments'              => 'qforms_element_19_textarea',
         );
       $database_name = $student_table_name;
-    } else {
+    } else { // $nid == 5
       $special_parse_field = array(
         'gender'                => 'qforms_element_13_select',
         'kickoff'               => 'qforms_element_15_checkboxes',
@@ -854,6 +856,17 @@ function qforms_submit_form_submit($form, &$form_state) {
 
     $extra_fields = array();
 
+    $form_defn = unserialize(
+      db_select('qforms_definition', 'qfd')
+        ->fields('qfd', array('form_definition'))
+        ->condition('nid', $nid, '=')
+        ->execute()
+        ->fetchObject()
+        ->{'form_definition'}
+      );
+
+    dpm($form_defn);
+
     foreach ($unserialized_data as $key => $value) {
       if (in_array($key, $special_parse_field)) {
         continue;
@@ -862,13 +875,17 @@ function qforms_submit_form_submit($form, &$form_state) {
         continue;
       }
       // value is not in either of two arrays, insert as necessary
-        if (strpos($key, 'checkbox') != false) {
-          // is a checkbox
-          $extra_fields[$key] = checkboxHelper($value);
-        } else {
-          // regular element
-          $extra_fields[$key] = $value;
-        }
+      $index_value = preg_replace('/\s+/', '', strtolower(trim($form_defn[$key]['title'])));
+
+      dpm($index_value);
+
+      if (strpos($key, 'checkbox') != false) {
+        // is a checkbox
+        $extra_fields[$index_value] = checkboxHelper($value);
+      } else {
+        // regular element
+        $extra_fields[$index_value] = $value;
+      }
     }
 
     if (count($extra_fields) > 0) {

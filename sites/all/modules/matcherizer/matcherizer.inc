@@ -118,7 +118,7 @@ function match($year, $weighting) {
     }
 
     // Find percentage match
-    $percentage = $total_score / $count / $max_score;
+    $percentage = $count == 0 ? 0 : $total_score / $count / $max_score;
 
     // Store into database
     saveGroups($groups, $year, $percentage, $weighting);

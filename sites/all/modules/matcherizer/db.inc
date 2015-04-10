@@ -58,10 +58,14 @@ function getStudent($student_obj, $weighting) {
         $student['previous_tm'] = $student_obj->{'previous_tm'};
         $student['num_courses'] = $student_obj->{'num_courses'};
 
+        $extra = json_decode($student_obj->{'extra'}, TRUE);
+
         // put weighted items
         foreach ($weighting as $k => $v) {
             if (isset($student_obj->{$k}))
                 $student[$k] = $student_obj->{$k};
+            else if (isset($extra[$k]))
+                $student[$k] = $extra[$k];
         }
 
         return $student;
@@ -127,15 +131,53 @@ function getParticipants($year, $weighting) {
  * Get all fields for the matcherizer to match
  */
 function getFieldsToMatch() {
-    $fields_to_match = array(
+    $built_in_fields = array(
         'gender_pref'       => 'Gender Preference',
         'cs_interests'      => 'CS Interests',
         'hobbies_interests' => 'Hobbies and Interests',
         'birth_year'        => 'Birth Year',
         'program'           => 'Degree Program',
         'career'            => 'Career Plans',
-        // TODO parse "extra" stuff in here
         );
+    $elements_in_qforms = array(
+        'gender_pref'       => array('student' => 'qforms_element_10_select',     'mentor' => 'qforms_element_17_select'),
+        'cs_interests'      => array('student' => 'qforms_element_17_textarea',   'mentor' => 'qforms_element_19_textarea'),
+        'hobbies_interests' => array('student' => 'qforms_element_18_textarea',   'mentor' => 'qforms_element_20_textarea'),
+        'birth_year'        => array('student' => 'qforms_element_8_number',      'mentor' => 'qforms_element_14_number'),
+        'program'           => array('student' => 'qforms_element_11_select'   ),
+        'career'            => array('student' => 'qforms_element_16_checkboxes', 'mentor' => 'qforms_element_18_checkboxes'),
+        );
+
+    // get qform definitions
+    $questions_s = unserialize(
+        db_select('qforms_definition', 'qd')
+            ->fields('qd')
+            ->condition('nid', 4, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'form_definition'}
+        );
+
+    $questions_m = unserialize(
+        db_select('qforms_definition', 'qd')
+            ->fields('qd')
+            ->condition('nid', 5, '=')
+            ->execute()
+            ->fetchObject()
+            ->{'form_definition'}
+        );
+
+    $fields_to_match = array();
+
+    foreach ($elements_in_qforms as $field => $qf_elements) {
+        if (array_key_exists('student', $qf_elements)) {
+            if (!$questions_s[$qf_elements['student']]['visible']) continue;
+        }
+        if (array_key_exists('mentor', $qf_elements)) {
+            if (!$questions_m[$qf_elements['mentor']]['visible']) continue;
+        }
+        $fields_to_match[$field] = $built_in_fields[$field];
+    }
 
     $year = getYear();
 
@@ -167,44 +209,9 @@ function getFieldsToMatch() {
 
     if (!$mx || !$sx) return $fields_to_match;
 
-    $extra_questions_s = unserialize(
-        db_select('qforms_definition', 'qd')
-            ->fields('qd')
-            ->condition('nid', 4, '=')
-            ->execute()
-            ->fetchObject()
-            ->{'form_definition'}
-        );
-
-    $extra_questions_m = unserialize(
-        db_select('qforms_definition', 'qd')
-            ->fields('qd')
-            ->condition('nid', 5, '=')
-            ->execute()
-            ->fetchObject()
-            ->{'form_definition'}
-        );
-
-    $xqm = array();
-
     foreach ($mx as $q => $r) {
-        if (array_key_exists($extra_questions_m, $mx)) {
-            $xqm[$mx] = $extra_questions_m[$mx]['title'];
-        }
-    }
-
-    $xqs = array();
-
-    foreach ($sx as $q => $r) {
-        if (array_key_exists($extra_questions_s, $sx)) {
-            $xqs[$sx] = $extra_questions_s[$sx]['title'];
-        }
-    }
-
-    // TODO: VERY BUGGY, PROBABLY DOES NOT WORK
-    foreach ($xqs as $q => $r) {
-        if (in_array($r, $xqm)) {
-            $fields_to_match[$q] = $r;
+        if (array_key_exists($q, $sx)) {
+            $fields_to_match[$q] = $q;
         }
     }
 
