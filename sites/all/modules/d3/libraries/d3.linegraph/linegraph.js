@@ -701,6 +701,11 @@
                                 for(var m = 0; m < 3; m++){
                     //                console.log("printing the children");
                      //               console.log(data[i][t].children[m].position);
+                                    // check if there is a weighting that is zero... if there is then return error...
+                                    if(data[i][t].children[m].weighting == 0){
+                                        console.log("we have found a weighting of zero!!");
+                                        return 1;
+                                    }
                                     if(data[i][t].children[m].position == "Mentor"){
                                        mentor = 1;
                                     }
