@@ -3,6 +3,11 @@
  * D3 Line Graph library js file.
  */
 
+//  TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
+var siteRoot = "/";
+// var siteRoot = "/maestro_main/";
+// var siteRoot = "/TESTING/";
+
 (function($) {
     // TODO!! fix the div tag for the append scroller... need to connect this to the svg element so that it looks better
     // TODO!! create the legend  ----->> this will have to deal with later maybe someone can help me...
@@ -134,7 +139,7 @@
 
             var object =  jQuery.ajax({
                 type: "POST",
-                url: 'http://localhost/TESTING/query.php',   // maybe have to make another url here...
+                url: siteRoot + "query.php",   // maybe have to make another url here...
                 dataType: 'json',
                 data: {functionname: 'add', arguments: result},  // try to pass the array in...
 
@@ -274,7 +279,7 @@
                //console.log(result);
                 var object =  jQuery.ajax({
                     type: "POST",
-                    url: 'http://localhost/TESTING/query.php',   // i could just reference the same page but call another function...
+                    url: siteRoot + "query.php",   // i could just reference the same page but call another function...
                     dataType: 'json',
                     data: {functionname: 'save', arguments: result},  // try to pass the array in...
 
