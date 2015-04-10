@@ -13,6 +13,20 @@ function getYear() {
 }
 
 /*
+ * Get year for registration
+ */
+function getRegistrationYear() {
+    $curr = db_select('maestro_years', 'my')
+        ->fields('my')
+        ->condition('archived', 0, '=')
+        ->execute()
+        ->fetchAll();
+
+    if (count($curr) != 1) return NULL;
+    return $curr[0]->{'year'};
+}
+
+/*
  * Set the given year active/inactive
  */
 function setYearActive($year, $active) {

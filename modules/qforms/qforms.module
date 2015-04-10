@@ -744,6 +744,13 @@ function qforms_submit_form_submit($form, &$form_state) {
     return;
   }
 
+  $current_year = getRegistrationYear();
+
+  if (!$current_year) {
+    drupal_set_message(t('The Tri Mentoring Program is currently not accepting applicants.'), 'error');
+    return;
+  }
+
   // Save submitted data.
   $sid = qforms_db_save_submission($nid, $data);
   watchdog('qforms', 'Submitted qform for node !nid. Submission sid is !sid', array('!nid' => $nid, '!sid' => $sid));
@@ -752,7 +759,6 @@ function qforms_submit_form_submit($form, &$form_state) {
   // -------------------------------------------------CUSTOM DATABASE SUBMIT!!!!
   
 
-  $current_year = getYear();
   list($mentor_table_name, $student_table_name) = getParticipantTableNames($current_year);  
 
   if($nid == 4 || $nid == 5){
