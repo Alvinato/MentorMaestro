@@ -7,7 +7,6 @@ require_once DRUPAL_ROOT . '/includes/module.inc';
 require_once DRUPAL_ROOT . '/includes/unicode.inc';
 require_once DRUPAL_ROOT . '/includes/file.inc';
 module_load_include('inc', 'matcherizer', 'attributematch');
-module_load_include('inc', 'yearmanager', 'db');
 drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
 
 include 'ChromePhp.php';
@@ -100,8 +99,8 @@ Chromephp::log($args);
 function add($arguments1){  
    // Chromephp::log("inside the add function");
   $decoded = json_decode($arguments1);
-
-  Chromephp::log("add is running");
+  //Chromephp::log($decoded);  // lets save the weighting for this particular trio...
+ // Chromephp::log("add is running");
   // loop through this...
   for ($g = 0; $g < count($decoded->children); $g++){  
         $current_group = $decoded->children[$g];  
@@ -188,8 +187,6 @@ function add($arguments1){
            }  
 
           continue; 
-
-
           }  
 
          $trio = array('mentor' => $MENTOR_INDEX,
@@ -197,13 +194,16 @@ function add($arguments1){
                   'junior' => $JUNIOR_INDEX
               );
 
-         //$daqry = "SELECT weightings FROM TESTING.maestro_matched_trios WHERE"
+         // the weights are no longer hardcoded...
+         //$weights = '{"gender_pref":"2","cs_interests":"3","hobbies_interests":"5","birth_year":"7","program":"11","career":"13"}';
+         
+         // just grab from the weightings.json file.
+         $file = "weightings.json";
+         $theactualweightings = file_get_contents($file);  // gets the json file.
 
-         //we also have to query the weights.. hardcode for now
-         $weights = '{"gender_pref":"4","cs_interests":"5","hobbies_interests":"1"}';
-         // TODO!! need to dynamically grab from the trio... 
+         Chromephp::log($theactualweightings);  // this is going to be the weightings fetched from the json file.
 
-        $percentage1 = getAttributeScoreTrio($trio, $weights);
+        $percentage1 = getAttributeScoreTrio($trio, $theactualweightings);
    //     Chromephp::log("this is the percentage found:  ". $percentage1);   
         $applicant_senior->{'weighting'} = $percentage1;
         $applicant_mentor->{'weighting'} = $percentage1;
@@ -261,22 +261,14 @@ function add($arguments1){
 // function saves the json file into the database.
 // we need a checker in the start that says whether or not we can save because some groups are not trios...
 function save($arguments1){
-  Chromephp::log("the save function is running");
-
-
-  //!.) we need to identify whether this group is kickoff save or trio...  make a note at the start...
-
-
-
-
   
   $decoded = json_decode($arguments1);  // takes in the json file
   // right here we are going to calculate the overrall score and return... 
 
   // this code here will save to the kickoff db...
-  Chromephp::log(substr($decoded->type, 0, 0));
-  Chromephp::log(substr($decoded->type, 0, 7));
-  Chromephp::log(substr($decoded->type, 7, 8));  
+ // Chromephp::log(substr($decoded->type, 0, 0));
+ // Chromephp::log(substr($decoded->type, 0, 7));
+ // Chromephp::log(substr($decoded->type, 7, 8));  
 
 if (substr($decoded->type, 0, 7) == "kickoff"){
   // holds the list of numbers... 
@@ -288,7 +280,7 @@ for ($g = 0; $g < count($decoded->children); $g++){  // go through the json file
   $senior_id = array();
   $junior_id = array();
   for($r = 0; $r < count($current_group->children);$r++){
-      Chromephp::log($current_group->children[$r]);
+    //  Chromephp::log($current_group->children[$r]);
     $applicant = $current_group->children[$r];
     $applicant_name = $applicant->name;
     $applicant_familyname = $applicant->familyname;
@@ -296,23 +288,23 @@ for ($g = 0; $g < count($decoded->children); $g++){  // go through the json file
 
     $mentor = 'Mentor';
     if($applicant_position == $mentor){
-        Chromephp::log("found a mentor");
+     //   Chromephp::log("found a mentor");
         array_push($mentor_id, traverser($applicant_name, $applicant_familyname, "mentor"));
-        Chromephp::log($mentor_id);
+     //   Chromephp::log($mentor_id);
     }
     $junior = "Junior";
     if($applicant_position == $junior){
-      Chromephp::log("found a junior");
+     // Chromephp::log("found a junior");
         array_push($junior_id, traverser($applicant_name, $applicant_familyname, "student"));
-        Chromephp::log($junior_id);
+      //  Chromephp::log($junior_id);
     }
 
     $senior = "Senior";
     if($applicant_position == $senior){
-        Chromephp::log("found a senior");
+       // Chromephp::log("found a senior");
         
         array_push($senior_id, traverser($applicant_name, $applicant_familyname, "student"));
-        Chromephp::log($senior_id);
+       // Chromephp::log($senior_id);
     }
   }
   // this is one group...
@@ -326,37 +318,28 @@ array_push($myArray1, $myArray);
 
 }
 
-Chromephp::log($myArray1);
+//Chromephp::log($myArray1);
 // loop through and check... 
-Chromephp::log("hello");
-Chromephp::log($senior_id);
+//Chromephp::log("hello");
+//Chromephp::log($senior_id);
 
 
 //array_push($thearray, $myArray); // push the array...
 
 $encode = json_encode($myArray1);  
 
-Chromephp::log($encode);
+//Chromephp::log($encode);
 
 
- /* $query = "INSERT INTO TESTING.maestro_matched_kickoff_groups (timestamp, mentoring_year, kickoff_night, groups) VALUES (:ts, :my, :k, :t)";
+  $query = "INSERT INTO TESTING.maestro_matched_kickoff_groups (timestamp, mentoring_year, kickoff_night, groups) VALUES (:ts, :my, :k, :t)";
 db_query($query, array(
         ':ts' => date('Y-m-d H:i:s'),
-        ':my' => "20142015",
-        ':k'  => substr($decoded->type, 7, 8),               // find the correct night...
+        ':my' => "2014-2015",
+        ':k'  => substr($decoded->type, 7, 15),               
         ':t'  => $encode,
-        ));*/
-
-  db_insert('maestro_matched_kickoff_groups')
-    ->fields(array(
-        'timestamp'      => date('Y-m-d H:i:s'),
-        'mentoring_year' => getYear(),
-        'kickoff_night'  => substr($decoded->type, 7, 8),               // find the correct night...
-        'groups'         => $encode,
-      ))
-    ->execute();
+        ));
   
-    Chromephp::log("after inserting into the db");
+   // Chromephp::log("after inserting into the db");
 }
 
 
@@ -383,9 +366,10 @@ if ($decoded->type == "trio"){
   $overrall_percentage  = $overrall_percentage /$elements;
 
 // this needs to be fixed...
-//$answer = right_form_checker($decoded); 
+$answer = right_form_checker($decoded); 
 
 if(!is_null($answer)){
+ // Chromephp::log("there was an error message returned");
   return $answer;
 }
 
@@ -414,23 +398,23 @@ for ($g = 0; $g < count($decoded->children); $g++){  // go through the json file
     // sql query and get the id.
     $mentor = 'Mentor';
     if($applicant_position == $mentor){
-      Chromephp::log("found a mentor");
+      //Chromephp::log("found a mentor");
    
         $mentor_id = traverser($applicant_name, $applicant_familyname, "mentor");  // finding a mentor finding his unique id...
-        Chromephp::log($mentor_id);
+        //Chromephp::log($mentor_id);
     }
     $junior = "Junior";
     if($applicant_position == $junior){
-      Chromephp::log("found a junior");
+      //Chromephp::log("found a junior");
         $junior_id = traverser($applicant_name, $applicant_familyname, "student");  
-        Chromephp::log($junior_id);
+        //Chromephp::log($junior_id);
     }
 
     $senior = "Senior";
     if($applicant_position == $senior){
-      Chromephp::log("found a senior");
+      //Chromephp::log("found a senior");
         $senior_id = traverser($applicant_name, $applicant_familyname, "student");  
-        Chromephp::log($senior_id);
+        //Chromephp::log($senior_id);
     }
 
   }
@@ -444,35 +428,25 @@ array_push($thearray, $myArray); // push the array...*/
 }
   
    
-Chromephp::log($thearray);
+//Chromephp::log($thearray);
 $encode = json_encode($thearray);  // this
-Chromephp::log($encode);
+//Chromephp::log($encode);
 
 // read from the json file to save in...
 
 $weighting_content = file_get_contents("weightings.json");  
-Chromephp::log($weighting_contents);
+//Chromephp::log($weighting_contents);
 
-/*   $query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
+   $query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
 db_query($query, array(
         ':ts' => date('Y-m-d H:i:s'),
-        ':my' => getYear(),
+        ':my' => "2014-2015",
         ':w'  => $weighting_content,     // this needs to be dynamic    
         ':p'  => $overrall_percentage,    // this needs to save the actual percentage..  summation of everything...
         ':t'  => $encode,
-        ));*/
+        ));
   
-  db_insert('maestro_matched_trios')
-    ->fields(array(
-        'timestamp'      => date('Y-m-d H:i:s'),
-        'mentoring_year' => getYear(),
-        'weightings'     => $weighting_content,      // this needs to be dynamic    
-        'percentage'     => $overrall_percentage,      // this needs to save the actual percentage..  summation of everything...
-        'trios'          => $encode,
-      ))
-    ->execute();
-  
-    Chromephp::log("after inserting into the db");
+  //  Chromephp::log("after inserting into the db");
   
   
 }
@@ -481,24 +455,16 @@ db_query($query, array(
 
 // gathers the indices for the json array...
 function traverser($firstname, $lastname, $choose){  
-
-  $year = getYear();
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year):
     
-    /*//Chromephp::log("traverser is being called ");
+    //Chromephp::log("traverser is being called ");
     if ($choose == "mentor"){
-      $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
-    }else{
-      $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-      //Chromephp::log($query);
-    }
-
-    $result1 = db_query($query)->fetchAll();*/
-
-    $result1 = db_select(($choose == "mentor") ? $mentor_table_name : $student_table_name, 'ptn')
-      ->fields('ptn')
-      ->execute()
-      ->fetchAll();
+    $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+  }else{
+    
+    $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+    //Chromephp::log($query);
+  }
+    $result1 = db_query($query)->fetchAll();
       
         for ($a = 0; $a < count($result1); $a++){
             if ($result1[$a]->last_name == $lastname &&
@@ -512,14 +478,14 @@ function traverser($firstname, $lastname, $choose){
 // if it does not return null then return the message that was sent...
 function right_form_checker($json_input){
 
-Chromephp::log("this is the right form checker");
-Chromephp::log($json_input);  
+//Chromephp::log("this is the right form checker");
+//Chromephp::log($json_input);  
   
 for ($g = 0; $g < count($json_input->children); $g++){  // go through the json file and search up the correct index.
 
  $current_group = $json_input->children[$g];
-  Chromephp::log("inside the loop checker");
-  Chromephp::log($current_group);
+  //Chromephp::log("inside the loop checker");
+ // Chromephp::log($current_group);
 
   // check the size of each group... 
   if(count($current_group->children) != 3)// if the size is not equal to three...
@@ -554,7 +520,7 @@ for ($g = 0; $g < count($json_input->children); $g++){  // go through the json f
   }
   // check if we found one of each here.
   if ($mentor == 0  || $junior == 0 || $senior == 0){
-    return "there is a group that does not comprise of a Mentor, senior student and junior student";
+    return "There is a group that does not comprise of a Mentor, Senior student and Junior student";
   }
 
   }

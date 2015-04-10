@@ -172,6 +172,8 @@
 
 
             /* LEGEND */
+
+
             var legend = svg.append("g")
                 .attr("class", "legend")
             var keys = legend.selectAll("g")
@@ -439,9 +441,43 @@
                 })
                 .attr("dy", "1em");
 
+            // append the weighting stuff onto the screen...
+            if ((data.type).substr(0,7) != "kickoff") {
+                d3.json("weightings.json", function (data) {
+                    console.log(data);
+                    var o = {};
+                    o.o = o;
+                    var cache = [];
+                    var result = JSON.stringify(data, function (key, value) {
 
+                        if (typeof value === 'object' && value !== null) {
+                            if (cache.indexOf(value) !== -1) {
+                                return;
+                            }
+                            cache.push(value);
+                        }
+                        return value;
+                    });
+                    cache = null; // Enable garbage collection
+                    console.log(result);
 
-
+                    result = result.replace(/['"]+/g, '  ');
+                    result = result.replace(/['}]+/g, '');
+                    result = result.replace(/['{]+/g, '');
+                    result = result.replace(/['_]+/g, ' ');
+                    //result = result.split("hobbies");
+                    result = result.replace("hobbies ", 'hobbies & ');
+                    result = result.replace("pref ", 'preferences ');
+                    console.log(result);
+                    var showweights = keys.append("g");
+                    showweights.append("text")
+                        .text(function () {
+                            return result;
+                        })
+                        .attr("x", 30)
+                        .attr("y", 690);
+                });
+            }
             /*start of circle stuff */
 
             var focus = root,
@@ -515,7 +551,7 @@
                           //              console.log(d);
                                     var weighting = returnweightingfromjson(dataa, d);
                             //            console.log(weighting);
-                                    weighting = weighting * 100;
+                                    var weighting = Math.round(weighting * 100000) / 1000;
                                     return "Group Similarity: " + weighting + "%";
                                 })
                                 .attr("x",524)
