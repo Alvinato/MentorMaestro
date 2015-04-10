@@ -183,7 +183,7 @@ function stableMatchGroup($jg_rank, $gj_rank, $groups, $j_kickoff) {
             'junior'     => $matched_g[$i][0],
             'senior'     => $groups[$i]['senior'],
             'mentor'     => $groups[$i]['mentor'],
-            'similarity' => $matched_g[$i][1],
+            'similarity' => $matched_g[$i][1] + $groups[$i]['similarity'],
             'kickoff'    => $matched_g[$i][2],
             ));
     }

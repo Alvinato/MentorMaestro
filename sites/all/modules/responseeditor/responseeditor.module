@@ -2,6 +2,15 @@
 
 module_load_include('inc', 'yearmanager', 'db');
 
+function responseeditor_permission() {
+    return array(
+        'access response editor' => array(
+            'title' => t('Access Participant Info Editor'),
+            'description' => t('Allow users to access the Participant Info Editor.'),
+            'restrict acces' => TRUE,
+            ),
+        );
+}
 
 function responseeditor_menu()
 {
@@ -11,7 +20,7 @@ function responseeditor_menu()
     'description' => 'Edits survey responses.',
     'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
     'page arguments' => array('response_editor_form'), //put the name of the form here
-    'access callback' => TRUE
+    'access arguments' => array('access response editor'),
   );
   
   return $items;

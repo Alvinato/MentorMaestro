@@ -123,7 +123,7 @@ function match($year, $weighting) {
     // Store into database
     saveGroups($groups, $year, $percentage, $weighting);
 
-    dpm('Your matching has been successfully generated and can be viewed with the Visualizer.');
+    drupal_set_message('Your matching has been successfully generated and can be viewed with the Visualizer. The matching score is '.(100.0*$percentage).'%.');
 }
 
 /*

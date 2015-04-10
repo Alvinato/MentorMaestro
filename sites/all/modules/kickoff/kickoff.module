@@ -201,7 +201,7 @@ function outputAllGroups($allGroups)
 	$html = '';
 	foreach ($allGroups as $night=>$groups)
 	{
-		$temp = '<div style="float: left; padding-right: 2em;"><h2>' . $night . '</h2>';
+		$temp = '<div style="float: left; padding-right: 2em;"><h2>Groups for Night ' . $night . '</h2>';
 		$temp .= outputGroups($groups);
 		$temp .= '</div>';
 		$html .= $temp;

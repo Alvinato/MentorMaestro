@@ -1,0 +1,6 @@
+name = "Add People Module"
+description = "Page for people to add"
+dependencies[] = flag (3.x)
+core = 7.x 
+php = "5.2.4"
+version = "7.x-1.0"
