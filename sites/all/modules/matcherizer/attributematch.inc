@@ -98,7 +98,7 @@ function getAttributeScoreTrio($trio, $weights) {
 /*
  * Returns the kickoff availability of the trio
  */
-function getKickoffAvailabilityTrio($trio) {
+function getKickoffAvailabilityTrio($trio, $weights) {
 
     $mentor_id = $trio['mentor'];
     $senior_id = $trio['senior'];

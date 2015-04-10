@@ -328,6 +328,9 @@ function save($arguments1)
             // Chromephp::log("there was an error message returned");
             return $answer;
         }
+        // read from the json file to save in...
+        $weighting_content = file_get_contents("weightings.json");
+        // Chromephp::log($weighting_contents);
         // Chromephp::log(count($decoded->children));
         // Chromephp::log("just before the for loop");
         $mentor_id;
@@ -376,7 +379,9 @@ function save($arguments1)
                 'mentor' => $mentor_id,
                 'senior' => $senior_id,
                 'junior' => $junior_id,
-                ));
+                ),
+                $weighting_content
+                );
             // we need to create the group for this particular array now
             $myArray = array(
                 'mentor'     => $mentor_id,
@@ -390,9 +395,6 @@ function save($arguments1)
         // Chromephp::log($thearray);
         $encode = json_encode($thearray); // this
         // Chromephp::log($encode);
-        // read from the json file to save in...
-        $weighting_content = file_get_contents("weightings.json");
-        // Chromephp::log($weighting_contents);
         /*$query = "INSERT INTO TESTING.maestro_matched_trios (timestamp, mentoring_year, weightings, percentage, trios) VALUES (:ts, :my, :w, :p, :t)";
         db_query($query, array(
             ':ts' => date('Y-m-d H:i:s') ,
