@@ -272,6 +272,7 @@ function save($arguments1)
                     // Chromephp::log($senior_id);
                 }
             }
+
             // this is one group...
             $myArray = array(
                 'mentor' => $mentor_id,
@@ -332,11 +333,15 @@ function save($arguments1)
         $mentor_id;
         $junior_id;
         $senior_id;
+
         $thearray = array(); // this is going to be pushed to
         for ($g = 0; $g < count($decoded->children); $g++) { // go through the json file and search up the correct index.
             // Chromephp::log("the loop is running right now");
             // go through all the groups.
             // Chromephp::log($g);
+
+            $similarity = 0;
+
             $current_group = $decoded->children[$g]; // this is the current group that we are searching
             // Chromephp::log($current_group);
             // ChromePhp::log($current_group->children);
@@ -351,6 +356,7 @@ function save($arguments1)
                     // Chromephp::log("found a mentor");
                     $mentor_id = traverser($applicant_name, $applicant_familyname, "mentor"); // finding a mentor finding his unique id...
                     // Chromephp::log($mentor_id);
+                    $similarity = strval($applicant->weighting);
                 }
                 $junior = "Junior";
                 if ($applicant_position == $junior) {
@@ -365,11 +371,19 @@ function save($arguments1)
                     // Chromephp::log($senior_id);
                 }
             }
-            // we need to create the group for this particular array now
-            $myArray = array(
+            // TODO
+            $kickoff = getKickoffAvailabilityTrio(array(
                 'mentor' => $mentor_id,
                 'senior' => $senior_id,
                 'junior' => $junior_id,
+                ));
+            // we need to create the group for this particular array now
+            $myArray = array(
+                'mentor'     => $mentor_id,
+                'senior'     => $senior_id,
+                'junior'     => $junior_id,
+                'similarity' => $similarity,
+                'kickoff'    => $kickoff,
             );
             array_push($thearray, $myArray); // push the array...*/
         }
@@ -417,13 +431,16 @@ function traverser($firstname, $lastname, $choose)
     //$result1 = db_query($query)->fetchAll();
     $result1 = db_select($db_table_name, 'dtn')
         ->fields('dtn')
+        ->condition('first_name', $firstname, '=')
+        ->condition('last_name',  $lastname,  '=')
         ->execute()
         ->fetchAll();
-    for ($a = 0; $a < count($result1); $a++) {
+    /*for ($a = 0; $a < count($result1); $a++) {
         if ($result1[$a]->last_name == $lastname && $result1[$a]->first_name == $firstname) {
             return $result1[$a]->id;
         }
-    }
+    }*/
+    return $result1[0]->id;
 }
 // this function is going to check whether the json file has the right form and can be saved into the trio database...
 // if it does not return null then return the message that was sent...
