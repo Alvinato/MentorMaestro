@@ -3,11 +3,6 @@
  * D3 Line Graph library js file.
  */
 
-// TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
-var siteRoot = "/";
-//var siteRoot = "/maestro_main/";
-//var siteRoot = "/TESTING/";
-
 (function($) {
     // TODO!! fix the div tag for the append scroller... need to connect this to the svg element so that it looks better
     // TODO!! create the legend  ----->> this will have to deal with later maybe someone can help me...
@@ -139,7 +134,7 @@ var siteRoot = "/";
 
             var object =  jQuery.ajax({
                 type: "POST",
-                url: siteRoot + "query.php",   // maybe have to make another url here...
+                url: Drupal.settings.basePath + "query.php",   // maybe have to make another url here...
                 dataType: 'json',
                 data: {functionname: 'add', arguments: result},  // try to pass the array in...
 
@@ -281,7 +276,7 @@ var siteRoot = "/";
                //console.log(result);
                 var object =  jQuery.ajax({
                     type: "POST",
-                    url: siteRoot + "query.php",   // i could just reference the same page but call another function...
+                    url: Drupal.settings.basePath + "query.php",   // i could just reference the same page but call another function...
                     dataType: 'json',
                     data: {functionname: 'save', arguments: result},  // try to pass the array in...
 
@@ -1252,7 +1247,7 @@ var siteRoot = "/";
 
         function appendScroller(box, path) {
             // console.log("the scroller has been called");
-            var path2 = (siteRoot + "json/").concat(path.concat(".json"));
+            var path2 = (Drupal.settings.basePath + "json/").concat(path.concat(".json"));
             //console.log(path2);
 
             d3.json(path2, function (data) {

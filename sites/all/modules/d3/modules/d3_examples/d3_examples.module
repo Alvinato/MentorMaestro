@@ -7,13 +7,6 @@
 module_load_include('inc', 'yearmanager', 'db');
 include 'ChromePhp.php';
 
-function get_website_root() {
-    // TODO: MODIFY THIS IF SITE ROOT IS NOT "/"
-    return "/";
-    //return "/maestro_main/";
-    //return "/TESTING/";
-}
-
 /**
  * Implements hook_menu().
  */
@@ -344,7 +337,7 @@ function d3_examples_group()
         echo "<td>" . $kickoff_night . "</td>";
         // lets send something inside here...
         echo "<td>";
-        echo "<form action='".get_website_root()."' method='get'>";
+        echo "<form action='".base_path()."' method='get'>";
         echo "<input type='hidden' name='q' value='examples/group' />";
         echo "<input type='hidden' name='timestamp1' value='$timestamp1' />";
         echo "<input type='hidden' name='mentoring_year1' value='$mentoring_year1' />";
@@ -598,7 +591,7 @@ function d3_examples_mentor()
         echo "<td>" . $percentage . "</td>";
         // lets send something inside here...
         echo "<td>";
-        echo "<form action='".get_website_root()."' method='get'>";
+        echo "<form action='".base_path()."' method='get'>";
         echo "<input type='hidden' name='q' value='examples/mentor' />";
         echo "<input type='hidden' name='timestamp' value='$timestamp' />";
         echo "<input type='hidden' name='mentoring_year' value='$mentoring_year' />";
@@ -655,7 +648,7 @@ function make_mentor_list()
         echo "<td>" . $gender . "</td>";
         echo "<td>" . $company . "</td>";
         echo "<td>";
-        echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+        echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
         echo "<input type='hidden' name='maddid' value=$id />";
         echo "<input type='hidden' name='maddlname' value=$lastName />";
         echo "<input type='hidden' name='maddfname' value=$firstName />";
@@ -713,7 +706,7 @@ function make_mentee_list()
         echo "<td>" . $gender . "</td>";
         echo "<td>" . $year . "</td>";
         echo "<td>";
-        echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+        echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
         echo "<input type='hidden' name='addid' value=$id />";
         echo "<input type='hidden' name='addlname' value=$lastName />";
         echo "<input type='hidden' name='addfname' value=$firstName />";
@@ -868,17 +861,17 @@ function d3_examples_bubbles()
     add_button_pressed_mentor();
     $show_mentee_list = $_GET["mentee"]; // check these values and see which one the user wants to see...
     $show_mentor_list = $_GET["mentor"]; //
-    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
     echo "First name: <input type='text' name='fname'><br />";
     echo "Last name: <input type='text' name='lname'><br />";
     echo "<input type='submit' value='Search'>"; // this is going to be the search button...
     echo "</form>";
-    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
     echo "<input type='hidden' name='mentee' value='true' />";
     echo "<input type='hidden' name='mentor' value='false' />";
     echo "<input name='Mentee List' type='submit' value='View all Mentees'>Mentee List</button> "; // the mentee button..
     echo "</form>";
-    echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
     echo "<input type='hidden' name='mentee' value='false' />";
     echo "<input type='hidden' name='mentor' value='true' />";
     echo "<input name='Mentor List' type='submit' value='View all Mentors'>Mentor List</button> "; // the mentor button
@@ -960,7 +953,7 @@ function searchBar($firstname, $lastname)
             echo "<td>" . $gender . "</td>";
             echo "<td>" . $company . "</td>";
             echo "<td>";
-            echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+            echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
             echo "<input type='hidden' name='maddid' value=$id />";
             echo "<input type='hidden' name='maddlname' value=$mentors_last_name />";
             echo "<input type='hidden' name='maddfname' value=$mentors_first_name />";
@@ -1012,7 +1005,7 @@ function searchBar($firstname, $lastname)
             echo "<td>" . $gender . "</td>";
             echo "<td>" . $year . "</td>";
             echo "<td>";
-            echo "<form action='".get_website_root()."examples/bubbles#overlay-context=' method='get'>";
+            echo "<form action='".base_path()."examples/bubbles#overlay-context=' method='get'>";
             echo "<input type='hidden' name='addid' value=$id />";
             echo "<input type='hidden' name='addlname' value=$mentees_last_name />";
             echo "<input type='hidden' name='addfname' value=$mentees_first_name />";
