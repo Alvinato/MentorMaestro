@@ -1,0 +1,88 @@
+
+
+
+
+
+<?php
+module_load_include('inc', 'qforms', 'frmHelper');
+/**
+ * @file
+ * Tests for Helper functions in qforms module.
+ */
+class QformHelperTests extends DrupalWebTestCase {
+       
+        public function setUp()
+        {
+                parent::setUp(array('qforms'));
+        }
+       
+        /**
+         * Metadata about our test case.
+         */
+        public static function getInfo()
+        {
+          return array(
+                'name' => 'Qforms Helpers',
+                'description' => 'Tests for the helper functions for qforms module.',
+                'group' => 'Qforms Group',
+          );
+        }
+        
+        /*
+        * Test for Gender Helper
+        */
+        public function testGenderHelper()
+        {
+                $this->assertEqual(genderHelper('Female'),'F');
+                $this->assertEqual(genderHelper('Male'),'M');
+                $this->assertEqual(genderHelper('Neutral'),'N');
+        }
+
+
+        /*
+        * Test for Kickoff Forms Helper method
+        */
+        public function testKickoffFormsHelper()
+        {
+        		$kickoffArray = array(
+        				"Sep 24, 2014" => "Sep 24, 2014",
+        				"Sep 25, 2014" => "Sep 25, 2014",
+        				"Oct 2, 2014" => 0,
+        		);
+        		$this->assertEqual(kickoffHelper($kickoffArray), '{"Sep 24, 2014": 1, "Sep 25, 2014": 1, "Oct 2, 2014": 0}');
+        }
+
+
+       	/*
+        * Test for Alumni Helper Method
+        */
+        public function testAlumniHelper()
+        {
+        		$this->assertEqual(alumniHelper('Yes') , 1);
+        		$this->assertEqual(alumniHelper('No') , 0);
+       
+        }
+
+       	/*
+        * Test for checkbox helper method
+        */
+        public function testCheckBoxHelperFunction()
+        {
+        		$testArray = array(
+        				"a" => "a",
+        				"b" => "b",
+        				"c" => "c",
+        				"d" => 0,
+        				"e" => "e",
+        		);
+
+        		$this->assertEqual(alumniHelper($testArray) , "a, b, c, e");
+        }
+
+
+        
+
+
+
+        
+}
