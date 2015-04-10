@@ -24,19 +24,17 @@
 
     Drupal.d3.linegraph = function (select, settings) {
 
-
-
         var key = settings.legend;
         var theweights = settings.weightings;  // this is going to be the weightings...
         console.log("this is going to be the weightings");
-        console.log(theweights);   // send in the weights when we are saving...
+        console.log(theweights);    // we need to send in weightings everytime...
 
 
         var margin = 20,
             diameter = 700,
             width = 700,
             height = 700;
-                console.log("qwerqwer");
+
         var pack = d3.layout.pack()
             .padding(2)
             .size([diameter - margin, diameter - margin])
@@ -47,17 +45,17 @@
             .attr("width", width)
             .attr("height", height)
             .attr("id","thesvg")
-            .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom));
-
+            .call(d3.behavior.zoom().scaleExtent([0, 8]).on("zoom", zoom));
+            // call this on svg 2 instead...
+        var zoom_start = 0;
         function zoom() {
-            console.log("zoom is getting called right now!!!");
-            //svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
             svg2.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
         }
 
         var svg2 = svg.append("svg:g")  // should make this own variable
             .attr("id","theg")
             .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+           // .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom));
 
         // start of dragging
         var drag = d3.behavior.drag()
@@ -74,7 +72,6 @@
         var data; // current statte of the circles...
         var steps = [];  // an empty array for now...
         var stepCount = -2; // this will hold the index that we should move back on...
-
         function undo(){
           //  console.log(stepCount);
             if(stepCount <= -1){
@@ -92,9 +89,11 @@
             var input = JSON.parse(jsonStringinput);
             circleSetup(input, true, null);  // there is nothing that was last moved...
             //console.log("running the undo function right now...");
+
+
         }
         var data3; // this is going to hold the initial...
-        console.log("asdfasd");
+
         d3.json("TESTING.json", function (error, root) {
              data3 = cloneJSON(root);
              // we assign data3 with the original...
@@ -103,19 +102,15 @@
 
 
         function circleSetup(root, undoo, lastChanged){
-          // every time this run we need to save it to the previouss step...
 
             data = root;
-            console.log(root);
-            // saving what is in the instance into the json file...
 
             var o = {};
             o.o = o;
             var cache = [];
 
             var result = JSON.stringify(data, function(key, value) {
-                //console.log("this is the key" +key);
-                //console.log("this is the value" + value); // print out...
+
                 if(key == "x" || key == "y"||key == "r"||key == "depth" || key == "parent" || key == "value" || key == null
                     ){
                     return;
@@ -130,9 +125,8 @@
                 }
                 return value;
             });
-            cache = null; // Enable garbage collection
-            // only want to push if undo is not true else we skip...
-            //console.log(result);
+            cache = null;
+
             if(!undoo) {
                 steps.push(result);  // pushes the list of strings onto the list...
                 stepCount++;
@@ -140,30 +134,27 @@
 
             var object =  jQuery.ajax({
                 type: "POST",
-                url: '/query.php',   // maybe have to make another url here... TODO BRIAN
+                url: 'http://localhost/TESTING/query.php',   // maybe have to make another url here...
                 dataType: 'json',
                 data: {functionname: 'add', arguments: result},  // try to pass the array in...
 
                 success: function (obj, textstatus) {
                     if( !('error' in obj)) {
-                    //    console.log("this is running right now");
                         var result = obj.result;
-
-                       // console.log("the result from the javascript side " + obj.result);
-
-                        // now we need to change the text file...
-
-                        var similaritiesNumber = keys.append("g"); // this is going to set up just text that will show the overrall similarities
-
+                        var similaritiesNumber = keys.append("g");
                         similaritiesNumber.append("text")
                             .text(function(){
-
                                 // return the overrall score!!...
-                                return "Similarity Rating: " + result;
-
+                                console.log(result); // this is not giving the correct score right now...
+                                var rounded = Math.round(result * 100000) / 1000;
+                               // console.log(result);
+                                //console.log(rounded);
+                                // place a percentage sign
+                                if (data.type == "trio")
+                                return "Overrall Similarity: " + rounded + "%";
                             })
-                            .attr("x",520)
-                            .attr("y",10);
+                            .attr("x",524)
+                            .attr("y",12);
 
                     }
                     else {
@@ -171,6 +162,9 @@
                     }
                 }
             });
+
+
+
             ary.splice(0,ary.length);
             ary2.splice(0,ary.length);
             // because of this we need to place the legend stuff inside here...
@@ -182,7 +176,21 @@
                 .attr("class", "legend")
             var keys = legend.selectAll("g")
                 .data(key)
-                .enter().append("g")
+                .enter().append("g");
+
+
+            if(data.type != "trio") {
+                var GroupInfo = keys.append("g");
+                GroupInfo.append("text")
+                    .text(function () {
+                        // tell them what night it is and what
+                        var dastring = data.type.substr(7,15);
+                        return "Kickoff Date: " + dastring;
+
+                    })
+                    .attr("x", 524)
+                    .attr("y", 12);
+            }
 
             keys.append("rect")
                 .attr("fill", function(d,i) {
@@ -264,17 +272,13 @@
                //console.log(result);
                 var object =  jQuery.ajax({
                     type: "POST",
-                    url: '/query.php',   // i could just reference the same page but call another function... TODO BRIAN
+                    url: 'http://localhost/TESTING/query.php',   // i could just reference the same page but call another function...
                     dataType: 'json',
                     data: {functionname: 'save', arguments: result},  // try to pass the array in...
 
                     success: function (obj, textstatus) {
                         if( !('error' in obj) ) {
-                            //yourVariable = obj.result;
                             // TODO!! going to return an error message.
-                            //  going to be a string saying how the trios arent matched properly.
-                            // and then we are going to return an alert message...
-
                              if (obj.result != null){
                                  alert(obj.result);  }else{
 
@@ -351,10 +355,16 @@
                 .attr("width", 70)
                 .attr("height", 16)
                 .attr("x", 600)
-                .attr("y", 30);
+                .attr("y", 43);
 
             button5.append("rect")
-                .attr("fill", "white")
+                .attr("fill", function(d){
+                    if(data.type == "trio"){
+                        return "orange";
+                    }else{
+                        return "white";
+                    }
+                })// function here  // this is matching...
                 .attr("stroke", "black")
                 .attr("width", 70)
                 .attr("height", 16)
@@ -362,7 +372,14 @@
                 .attr("y", 70);
 
             button6.append("rect")
-                .attr("fill", "white")
+                .attr("fill", function(d){
+                    if(data.type == "trio"){
+                        return "white";
+                    }else{
+                        return "pink";
+                    }
+
+                })
                 .attr("stroke", "black")
                 .attr("width", 70)
                 .attr("height", 16)
@@ -396,10 +413,10 @@
 
             button4.append("text")
                 .text("Compare").attr("x",608)
-                .attr("y",42);
+                .attr("y",55);
 
             button5.append("text")
-                .text("Matchings").attr("x",604)
+                .text("Trios").attr("x",604)
                 .attr("y",83);
 
             keys.append("text")// can maybe try and use text...
@@ -421,6 +438,9 @@
                     return 0;
                 })
                 .attr("dy", "1em");
+
+
+
 
             /*start of circle stuff */
 
@@ -479,18 +499,35 @@
                   //  showToolTip(d, this);
                     hideToolTip(d, this);
                     if(d.name.substr(0,5) == "Group" || d.depth == 0){  // if its a group or the outercircle
-                        showToolTip(d, this, 1);  // show different tool tips.
+
+                        //showToolTip(d, this, 0);
                         return;
-                    }else { // if it is an applicant circle
-                        showToolTip(d, this, 0); // show different tool tips
+                    }else {
+
+                        if ((data.type).substr(0,7) != "kickoff") {
+                       // console.log("calling the tooltip function righ now");
+                            d3.selectAll("#groupNumber").remove();
+                            var groupNumber  = keys.append("g").attr("id", "groupNumber");
+                            groupNumber.append("text")
+                                .text(function(dataa){
+                                    // figure out the similarity here...
+                         //               console.log(dataa);
+                          //              console.log(d);
+                                    var weighting = returnweightingfromjson(dataa, d);
+                            //            console.log(weighting);
+                                    weighting = weighting * 100;
+                                    return "Group Similarity: " + weighting + "%";
+                                })
+                                .attr("x",524)
+                                .attr("y",30);
+                            //showToolTip(d,this, 0);
+                        }
                         var nodeSelection = d3.select(this).style({opacity: '0.3'});
                     }
-
                 })
                 .on('mouseout', function(d){
                     var nodeSelection1 =  d3.select(this).style({opacity:'10.6'});
                     //hideToolTip(d, this); // not hiding properly right now
-
                 });
 
            // have to place the text in the corner if it is a group
@@ -559,21 +596,25 @@
                 });
             }
 
-            function colorize(d) {
+            // dont do the error detection with the kickoff night...
 
-                if(d.name.substr(0,5) == "Group"){
-                  //  console.log("we have found a group");
-                        //console.log(d);
-                       var error =  check_error_in_group(d);
-                    if (error == 1){
-                    //    console.log("returning purple");
-                        return "purple";
-                    }else{
-                      //  console.log("returning orange");
-                        return "orange";
+            function colorize(d) {
+                if ((data.type).substr(0,7) != "kickoff") {
+                    if (d.name.substr(0, 5) == "Group") {
+                        var error = check_error_in_group(d);
+                        if (error == 1) {
+                            //    console.log("returning purple");
+                            return "purple";
+                        } else {
+                            //  console.log("returning orange");
+                            return "orange";
+                        }
+                    }
+                }else{
+                    if (d.name.substr(0, 5) == "Group") {
+                        return "pink";
                     }
                 }
-
                 if (d.position == "Mentor") {
                     //  console.log("found mentee");
                     return "green";
@@ -585,7 +626,15 @@
                 if (d.position == "Senior"){
                     return "red";
                 }
-                return "orange";
+
+                if(d.name == ""){
+                    if(data.type == "trio") {
+                        return "orange";  // changed from orange to grey...
+                    }else{
+                        return "pink";
+                    }
+                }
+
             }
 
 
@@ -639,10 +688,7 @@
             if(lastChanged != null)
             {
 
-
                 var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
-                console.log(myCircle);
-
                 myCircle.transition().delay(50).duration(1000)
                     .attr("transform", "translate(320, 0)")
                   //.style("opacity", "0")// this should change the opacity of the g element...
@@ -652,7 +698,7 @@
             }
 
             function myCallback(){
-                console.log("omg the transition has ended");
+
                 var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
                 myCircle.transition().delay(10).duration(1000)
                     .attr("transform", "translate(0, 0)")  // this
@@ -662,7 +708,7 @@
 
             }
             function myCallback1(){
-                console.log("omg the transition has ended");
+
                 var myCircle= d3.selectAll("#" + lastChanged.name + lastChanged.familyname);   // cant use the email as the identifier...
                 myCircle.style("fill", "white");
 
@@ -732,7 +778,7 @@
             var r = d.r;
             var daName;
             var draggedName = d.Email;
-
+            var br; // the biggest r's value...
             for (var i = 0; i<ary2.length;i++){
                 var obj = ary2[i];
                 //console.log(obj);
@@ -740,6 +786,7 @@
                 var cx;
                 var cy;
                 var cr;
+
                 for (var t = 0; t < obj.length; t++){
 
                     var obj2 = obj[t];
@@ -761,7 +808,31 @@
                     x = cx + d.x;
                     y = cy + d.y;
                 }
+
+                if(gName == undefined){
+                    br = cr;
+                }
             }
+
+            // we have to detect if its not on top of the root circle...
+
+            var daDistance = lineDistance(x,y, 0, 0);  // find the distance to the middle...
+            var daRadius = br + r;                  // now we need to compare...
+
+            if (daRadius < daDistance){
+                if (data.type == "trio"){
+                d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "orange");
+                d3.selectAll("#first").style("fill-opacity", "10.6").style("fill", "orange");
+                }else{
+                    d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "pink");
+                    d3.selectAll("#first").style("fill-opacity", "10.6").style("fill", "pink");
+
+
+                }
+                overlap = 1;  // set this so the bottom loop doesnt run...
+
+            }
+
             for (var i = 0; i<ary.length;i++){
                 var obj = ary[i];
                 //console.log(obj);
@@ -784,24 +855,38 @@
                         gr = obj2
                     }
                 }
+
                 var distance = lineDistance(x,y,gx,gy);
                 var radius = gr + r;
                 // have to make sure that it is not the same group...
                 if (radius >= distance){
-                    d3.select("#first").style("fill-opacity", "10.6").style("fill", "orange");
+                    if(data.type == "trio"){
                     d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "orange");
+                    // get the big circle to become normal
+                    d3.selectAll("#first").style("fill-opacity", "10.6").style("fill", "orange");
                     daName = gName; // dont select the single group with name...
-                    d3.select("#" + gName).style("fill-opacity", "0.3").style("fill", "blue");
-                    //d3.select(".Group").style("fill-opacity", "0.1").style("fill", "blue");
+                    var selection = d3.selectAll("#" + gName).style("fill-opacity", "0.5").style("fill", "blue");
                     overlap = 1;
                     break;
+                    }else{
+                        d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "pink");
+                        // get the big circle to become normal
+                        d3.selectAll("#first").style("fill-opacity", "10.6").style("fill", "pink");
+                        daName = gName; // dont select the single group with name...
+                        var selection = d3.selectAll("#" + gName).style("fill-opacity", "0.5").style("fill", "blue");
+                        overlap = 1;
+                        break;
+                    }
                 }
             }
             if (overlap != 1){
+               // console.log("not on top of a group right now...");
                 overlap = 0;
-                d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "orange");
-                // lets make the big circle color up...
-                d3.select("#first").style("fill-opacity", "0.5").style("fill", "blue");
+                if(data.type == "trio"){
+                d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "orange");}else{
+                    d3.selectAll(".Group").style("fill-opacity", "10.6").style("fill", "pink");
+                }
+                d3.selectAll("#first").style("fill-opacity", "0.5").style("fill", "blue");
             }
         }
 
@@ -912,10 +997,7 @@
                     overlap = 1;
                     break;
                 }else{
-                    //console.log("NO overlap");
-
                 }
-
             }
 
             if (overlap != 1){
@@ -1231,13 +1313,13 @@
             document.getElementById('visualization').appendChild(iDiv);
             //d3.select("#thesvg").appendChild(iDiv);
           //  document.getElementById("thesvg").appendChild(iDiv);
-            document.getElementById(name).style.width = 375 + "px";
+            document.getElementById(name).style.width = 330  + "px";
             document.getElementById(name).style.height = 700 + "px";
             // set attributes of the div tag
             var a = document.getElementById(name);
             a.style.position = "absolute";
-            a.style.left =  "710px"; //xcoord;
-            a.style.top = "100px"; //ycoord;
+            a.style.left =  "1130px"; //xcoord;
+            a.style.top = "365px"; //ycoord;
             a.style.overflowY = "auto";
             a.style.border = 1 + "px solid #AAAAAA";
             a.style.backgroundColor = "#e8e8e8";
@@ -1321,26 +1403,21 @@
                     }
                    x = x + r ; // making it the top right hand side
                     y = y - r + 0;
+                    //x = 50;
+                    //y = 50;
                     return 'translate(' +  x + ',' + y + ')'; }); // use x and y for now...
 
-
-                //TODO!!
-                // then make it so that it reads json so we get an updated version. if anything changes.
-
-         //   console.log(d);
-           // just check the json file for a new weighting...
-            // this is going to find the new weighting...
             d3.json("TESTING.json", function(dataa){
-               // now lets go through adn find d.name
-                //console.log(dataa);
+      //          console.log(dataa);
+       //         console.log(d);
                 var weighting = returnweightingfromjson(dataa, d);
-
-               // console.log(weighting);
-                // we need to extract it from the json file...
+                // nothing to do with this file tool tip isnt working for all...
                 var string =  weighting;
-
-                d3.tooltip(tooltip, string);
-
+         //       console.log(string);
+         //       console.log("this is the tooltip...");
+         //       console.log(tooltip);
+                // just dont use tooltip and just append text instead...
+                d3.tooltip(tooltip, string); // give it the correct arguments...
             });
 
 
@@ -1377,10 +1454,10 @@ function select()
 document.getElementById("demo").innerHTML="The select function is called.";
 }
 
-
+// we set the weighting in every single group before hand...
 function returnweightingfromjson(dataa, check){
-           //console.log(dataa)
 
+    //console.log("returningweightingfromjson");
     for (var i in data) {
         for (var t in data[i]) {
          //   console.log(data[i][t]);

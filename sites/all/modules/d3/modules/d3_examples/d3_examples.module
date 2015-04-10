@@ -11,20 +11,18 @@
 
 include 'ChromePhp.php';
 
-module_load_include('inc', 'yearmanager', 'db');
-
 function d3_examples_menu()
   {
   $items['examples'] = array(
-    'title' => 'D3 examples',
+    'title' => 'Visualization',
     'description' => 'Different visualization examples using d3.',
     'page callback' => 'd3_examples_linegraph',
-    'access callback' => TRUE,
+    'access arguments' => array('access visualizer'),
   );
   $items['examples/line'] = array(
     'title' => 'Trio Matcher',
     'description' => 'Uses d3 module to create a sample line graph',
-    'access callback' => TRUE,
+    'access arguments' => array('access visualizer'),
     'page callback' => 'd3_examples_linegraph',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
@@ -33,13 +31,13 @@ function d3_examples_menu()
     $items['examples/forcedirected'] = array(
       'title' => 'Force directed graph',
       'description' => 'Uses d3 module to create a sample force directed graph',
-      'access callback' => TRUE,
+      'access arguments' => array('access visualizer'),
       'page callback' => 'd3_examples_forcedirected',
       'type' => MENU_LOCAL_TASK,
     );
     }
 
-  $items['examples/column'] = array(
+  /*$items['examples/column'] = array(
     'title' => 'Column chart',
     'description' => 'Uses d3 module to create a sample column chart',
     'access callback' => TRUE,
@@ -59,68 +57,95 @@ function d3_examples_menu()
     'access callback' => TRUE,
     'page callback' => 'd3_examples_pie',
     'type' => MENU_LOCAL_TASK,
-  );
+  );*/
   $items['examples/bubbles'] = array(
-    'title' => 'Bubbles',
+    'title' => 'Add People',
     'description' => 'bubbles visualization',
-    'access callback' => TRUE,
+    'access arguments' => array('access visualizer'),
     'page callback' => 'd3_examples_bubbles',
     'access callback' => MENU_LOCAL_TASK,
   );
   $items['examples/mentor'] = array( // trying to make another page... but think we are just going to change existing.
-    'title' => 'Mentor',
+    'title' => 'Trios',
     'description' => 'mentor adding',
-    'access callback' => TRUE,
+    'access arguments' => array('access visualizer'),
     'page callback' => 'd3_examples_mentor',
     'access callback' => MENU_LOCAL_TASK,
   );
   $items['examples/group'] = array( // trying to make another page... but think we are just going to change existing.
-    'title' => 'Group',
+    'title' => 'Kickoff Groups',
     'description' => 'group adding',
-    'access callback' => TRUE,
+    'access arguments' => array('access visualizer'),
     'page callback' => 'd3_examples_Group',
     'access callback' => MENU_LOCAL_TASK,
   );
   return $items;
   }
 
+function d3_examples_permission() {
+    return array(
+        'access visualizer' => array(
+            'title' => t('Access Visualizer'),
+            'description' => t('Allow users to access the Visualizer.'),
+            'restrict acces' => TRUE,
+            ),
+        );
+}
+
 $boolean = 0;
+// this function is going to delete the entries...
+function deleteKickoff ($id1) { 
+  //remove the kickoff group from the db...
+  $delete_query = "DELETE FROM TESTING.maestro_matched_kickoff_groups WHERE id = ". $id1;  // this should delete the query here... 
+  $result = db_query($delete_query)->fetchAll;
+  Chromephp::log($delete_query);  
+  Chromephp::log($result);  
+
+}
+
+
 
 function d3_examples_group()
   {
-
   // delete anything with weightings and percentage...
-
+   // Chromephp::log("inside the group right now ");
   $add_timestamp1 = $_GET["timestamp1"];
   $add_mentoring_year1 = $_GET["mentoring_year1"];
   $add_night = $_GET["kickoff_night"]; // have kickoff nights instead of weightings...
   $id1 = $_GET["id1"];
 
+  // we need to know which form was submitted... 
+  if(isset($_GET['delete'])){
+    Chromephp::log("the delete button has been pressed..!! ");
+    deleteKickoff($id1); // this is going to delete the kickoff group given the id...
+    printJSFunction();
+    echo '<script type="text/javascript">alert("We have Deleted this matching");</script>';
+    echo '<script type="text/javascript">', 'jsfunction();', '</script>';
+    return;
+  }
+
+
   // if one of them is not null
 
   if (!is_null($add_timestamp1))
     {
-    Chromephp::log(" button was pressed");
+   // Chromephp::log(" button was pressed");
 
-    /*$query1 = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
-    $result1 = db_query($query1)->fetchAll();*/
-    $result1 = db_select('maestro_matched_kickoff_groups', 'mmkg')
-      ->fields('mmkg')
-      ->execute()
-      ->fetchAll();
+    $query1 = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
+    $result1 = db_query($query1)->fetchAll();
     Chromephp::log($result1);
     for ($g = 0; $g < count($result1); $g++)
       {
-       Chromephp::log("inside the second loop"); 
-      Chromephp::log($result1[$g]->id);
-      Chromephp::log($result1[$g]);
-      Chromephp::log("just before the if statement");
+     //  Chromephp::log("inside the second loop"); 
+     // Chromephp::log($result1[$g]->id);
+     // Chromephp::log($result1[$g]);
+     // Chromephp::log("just before the if statement");
       if ($result1[$g]->id == $id1)
         {
-
-        // then we recreate the json file using this one...
+       //   Chromephp::log($add_night);  // this is going to be the different night...
+        
         // lets grab the trio string
-          Chromephp::log("inside the if right now");
+        //  Chromephp::log("inside the if right now");
         $most_recent_trio = $result1[$g]->groups;
         $manage = json_decode($most_recent_trio);
         $array = array(
@@ -139,81 +164,44 @@ function d3_examples_group()
           for ($e = 0; $e < count($group); $e++)
             {
 
-            // the index's for the database
             $mentor_index = $group->mentor;   // this is going to be a list of mentor index's
             $senior_index = $group->senior; // this is also a list of senior index's ...
             $junior_index = $group->junior;
-            Chromephp::log("just before printing the index");  
-            Chromephp::log($mentor_index);
-            // now that we have the mentor index we need tograb all his information and paste it into the json file...
-            // mentor query we are going to need a loop...
-              Chromephp::log(count($mentor_index));
+            //Chromephp::log("just before printing the index");  
+            //Chromephp::log($mentor_index);
+            //  Chromephp::log(count($mentor_index));
               $mentor_json = array();  // holds all information from each applicant
               $junior_json = array();  // this holds all mentor list for the current group...
               $senior_json = array();  // this holds all mentor list for the current group...
-              // get current year
-              $year = getYear();
-              // get table names
-              list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
             for ($i = 0; $i < count($mentor_index); $i++){
-              Chromephp::log("inside the for loop");
-              // make the query..
-           //   Chromephp::log($mentor_index[$i]);
-              /*$mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index[$i];
-              // need to make this array and add it to the overrall array...
-              $list = db_query($mentor_query)->fetchAll();  */
-              // use drupal fn instead
-              $list = db_select($mentor_table_name, 'mtn')
-                ->fetch('mtn')
-                ->condition('id', $mentor_index[$i], '=')
-                ->execute()
-                ->fetchAll;
-             // Chromephp::log($list);
+             // Chromephp::log("inside the for loop");
+              $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index[$i];
+              $list = db_query($mentor_query)->fetchAll();  
               array_push($mentor_json, $list);  
             }
 
-              // do the samething for studnets for this particular group...
-
             for ($i = 0; $i < count($senior_index); $i++){
-              //Chromephp::log("inside the for loop");
-              // make the query..
-           //   Chromephp::log($mentor_index[$i]);
-              /*$senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index[$i];
-              // need to make this array and add it to the overrall array...
-              $list1 = db_query($senior_query)->fetchAll();  */
-              //Chromephp::log($list1);
-              // use drupal fn instead
-              $list = db_select($student_table_name, 'stn')
-                ->fetch('stn')
-                ->condition('id', $senior_index[$i], '=')
-                ->execute()
-                ->fetchAll;
+            
+              $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index[$i];
+              $list1 = db_query($senior_query)->fetchAll();  
               array_push($senior_json, $list1);
             }
 
             for ($i = 0; $i < count($junior_index); $i++){
              
               // make the query..
-           //   Chromephp::log($mentor_index[$i]);
-              /*$junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index[$i];
-              // need to make this array and add it to the overrall array...
-              $list2 = db_query($junior_query)->fetchAll();  */
-              // use drupal fn instead
-              $list = db_select($student_table_name, 'stn')
-                ->fetch('stn')
-                ->condition('id', $junior_index[$i], '=')
-                ->execute()
-                ->fetchAll;
+              $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index[$i];
+              $list2 = db_query($junior_query)->fetchAll();  
              
               array_push($junior_json, $list2);
             }
 
-            for ($i = 0; $i < count($junior_index); $i++){
-              Chromephp::log("zxcv");
-              Chromephp::log($junior_json[$i]);
+            /*for ($i = 0; $i < count($junior_index); $i++){
+              //Chromephp::log("zxcv");
+              //Chromephp::log($junior_json[$i]);
               
-              Chromephp::log($junior_json[$i][0]->first_name);
-            }
+            //  Chromephp::log($junior_json[$i][0]->first_name);
+            }*/
               
              $all_mentor_stuff = array(); 
             for ($i = 0; $i < count($mentor_json); $i++){
@@ -240,16 +228,8 @@ function d3_examples_group()
               'size' => 500
             );  
 
-              // we need to add this to another array...
-
               array_push($all_mentor_stuff, $group_array_mentor);
             }
-
-             for ($i = 0; $i < count($all_mentor_stuff); $i++){ 
-                //Chromephp::log("important loop here"); 
-                  // this is all the mentor stuff.. 
-                //Chromephp::log($all_mentor_stuff);
-             }
 
                $all_senior_stuff = array(); 
             for ($i = 0; $i < count($senior_json); $i++){
@@ -289,8 +269,8 @@ function d3_examples_group()
             $junior_gender = $junior_json[$i][0]->gender;
             $junior_phone = $junior_json[$i][0]->phone;
             $junior_birth = $junior_json[$i][0]->birth_year;
-            Chromephp::log("thius is the first name");
-            Chromephp::log($junior_first_name);
+           // Chromephp::log("thius is the first name");
+           // Chromephp::log($junior_first_name);
               // this is one entry...
               $group_array_junior = array(
               'position' => 'Junior',
@@ -309,13 +289,13 @@ function d3_examples_group()
               array_push($all_junior_stuff, $group_array_junior);
             }
 
-            // we three arrays now... we need to append them
+            
             $daResult = array_merge($all_junior_stuff,$all_senior_stuff);
             
             $daResult1 = array_merge($daResult, $all_mentor_stuff);
 
             $the_children_group = array();
-            //array_push($the_children_group, $daResult);
+            
 
               // lets create the group now...
             $group_array_start = array(
@@ -327,14 +307,13 @@ function d3_examples_group()
             }
           }
 
-         Chromephp::log("changing the json file before rendering the page...");
+       //  Chromephp::log("changing the json file before rendering the page...");
 
         $encodedJson = json_encode($final_array);
         $file = 'TESTING.json';
-        file_put_contents('json/'.$file, $encodedJson);
+        file_put_contents($file, $encodedJson);
 
-        // should allow u to cancel here
-
+        printJSFunction();
         echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
         echo '<script type="text/javascript">', 'jsfunction();', '</script>';
 
@@ -344,12 +323,8 @@ function d3_examples_group()
       }
     }
 
-  /*$query = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
-  $result = db_query($query)->fetchAll();*/
-  $result = db_select('maestro_matched_kickoff_groups', 'mmkg')
-    ->fields('mmkg')
-    ->execute()
-    ->fetchAll();
+  $query = "SELECT * FROM TESTING.maestro_matched_kickoff_groups";
+  $result = db_query($query)->fetchAll();
   echo "<table style='width:90%'>";
   echo "<tr>";
   echo "<th>Timestamp</th>";
@@ -376,13 +351,13 @@ function d3_examples_group()
     // lets send something inside here...
 
     echo "<td>";
-    //echo "<form action='http://localhost/TESTING/examples/group' method='get'>";
-    echo "<form action='/examples/group' method='get'>";
+    echo "<form action='http://localhost/TESTING/examples/group' method='get'>";
     echo "<input type='hidden' name='timestamp1' value=$timestamp1 />";
     echo "<input type='hidden' name='mentoring_year1' value=$mentoring_year1 />";
     echo "<input type='hidden' name='kickoff_night' value=$kickoff_night />";
     echo "<input type='hidden' name='id1' value=$id />";
-    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "<input type='submit' value='Choose' onSubmit='window.close()'></button> ";
+    echo "<input type='submit' name = 'delete' value='Delete' onSubmit='window.close()'></button> "; // this is the newly added delete button...
     echo "</form> ";
     echo "</td";
     echo "</tr>";
@@ -393,7 +368,7 @@ function d3_examples_group()
 
 function CheckifAdded($firstname, $lastname)
   {
-  Chromephp::log("checking if it has been added before actaully adding it");
+ // Chromephp::log("checking if it has been added before actaully adding it");
   $jsonString = file_get_contents('TESTING.json');
   $data = json_decode($jsonString);
   for ($g = 0; $g < count($data->children); $g++)
@@ -406,7 +381,7 @@ function CheckifAdded($firstname, $lastname)
       $currentlast = $object2->familyname;
       if ($currentfirst == $firstname && $currentlast == $lastname)
         {
-        Chromephp::log("cant add part is running");
+    //    Chromephp::log("cant add part is running");
         return true; // returns true if he has been added.
         }
       }
@@ -417,6 +392,14 @@ function CheckifAdded($firstname, $lastname)
 
 // this is going to display all the trios to the user so that he/she can decide which year to look at and alter...
 
+// add this to the trio function...
+function deleteTrio ($id1) {   // this deletes from the trio...
+  $delete_query = "DELETE FROM TESTING.maestro_matched_trios WHERE id = ". $id1;  // this should delete the query here... 
+  $result = db_query($delete_query)->fetchAll;
+  Chromephp::log($delete_query);  
+  Chromephp::log($result);  
+}
+
 function d3_examples_mentor()
   {
   $add_timestamp = $_GET["timestamp"];
@@ -425,7 +408,16 @@ function d3_examples_mentor()
   $add_percentage = $_GET["percentage"];
   $id = $_GET["id"];
 
-  // if one of them is not null
+  // check whether it has been deleted...
+// we need to know which form was submitted... 
+  if(isset($_GET['delete'])){
+    Chromephp::log("the delete button has been pressed..!! ");
+    deleteTrio($id); 
+    printJSFunction();
+    echo '<script type="text/javascript">alert("We have Deleted this matching");</script>';
+    echo '<script type="text/javascript">', 'jsfunction();', '</script>';
+    return;
+  }
 
   if (!is_null($add_timestamp))
     {
@@ -433,16 +425,12 @@ function d3_examples_mentor()
     // then the button was pressed and we need to change the json file to that of the year chosen...
     // TODO!! change the json file first...
 
-    Chromephp::log(" button was pressed");
-    /*$query1 = "SELECT * FROM TESTING.maestro_matched_trios";
-    $result1 = db_query($query1)->fetchAll();*/
-    $result1 = db_select('maestro_matched_trios', 'mmt')
-      ->fields('mmt')
-      ->execute()
-      ->fetchAll();
+   // Chromephp::log(" button was pressed");
+    $query1 = "SELECT * FROM TESTING.maestro_matched_trios";
+    $result1 = db_query($query1)->fetchAll();
     for ($g = 0; $g < count($result1); $g++)
       {
-      Chromephp::log($result1[$g]->id);
+     // Chromephp::log($result1[$g]->id);
       if ($result1[$g]->id == $id)
         {
 
@@ -485,25 +473,13 @@ function d3_examples_mentor()
             array_push($mentor_index_list, $mentor_index);
 
             // now that we have the mentor index we need tograb all his information and paste it into the json file...
-
-            // get current year
-            $year = getYear();
-            // get table names
-            list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-
             // mentor query
 
-            //$mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index;
+            $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index;
 
             // Chromephp:: log($mentor_query);
 
-            //$list = db_query($mentor_query)->fetchAll();
-
-            $list = db_select($mentor_table_name, 'mtn')
-              ->fields('mtn')
-              ->condition('id', $mentor_index, '=')
-              ->execute()
-              ->fetchAll();
+            $list = db_query($mentor_query)->fetchAll();
 
             // Chromephp::log($list);
             // Chromephp::log($list[0]->first_name);
@@ -518,14 +494,8 @@ function d3_examples_mentor()
 
             // junior student query...
 
-            //$junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
-            //$list2 = db_query($junior_query)->fetchAll();
-
-            $list2 = db_select($student_table_name, 'stn')
-              ->fields('stn')
-              ->condition('id', $junior_index, '=')
-              ->execute()
-              ->fetchAll();
+            $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
+            $list2 = db_query($junior_query)->fetchAll();
 
             // Chromephp::log($list2[0]->first_name);
 
@@ -538,14 +508,8 @@ function d3_examples_mentor()
 
             // senior student query...
 
-            //$senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
-            //$list3 = db_query($senior_query)->fetchAll();
-
-            $list3 = db_select($student_table_name, 'stn')
-              ->fields('stn')
-              ->condition('id', $senior_index, '=')
-              ->execute()
-              ->fetchAll();
+            $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
+            $list3 = db_query($senior_query)->fetchAll();
 
             // Chromephp::log($list2[0]->first_name);
 
@@ -622,10 +586,9 @@ function d3_examples_mentor()
 
         $encodedJson = json_encode($final_array);
         $file = 'TESTING.json';
-        file_put_contents('json/'.$file, $encodedJson);
+        file_put_contents($file, $encodedJson);
 
-        // should allow u to cancel here
-
+        printJSFunction();
         echo '<script type="text/javascript">alert("Switching to another visualization will delete changes");</script>';
         echo '<script type="text/javascript">', 'jsfunction();', '</script>';
 
@@ -635,12 +598,8 @@ function d3_examples_mentor()
       }
     }
 
-  /*$query = "SELECT * FROM TESTING.maestro_matched_trios";
-  $result = db_query($query)->fetchAll();*/
-  $result = db_select('maestro_matched_trios', 'mmt')
-    ->fields('mmt')
-    ->excute()
-    ->fetchAll();
+  $query = "SELECT * FROM TESTING.maestro_matched_trios";
+  $result = db_query($query)->fetchAll();
   echo "<table style='width:90%'>";
   echo "<tr>";
   echo "<th>Timestamp</th>";
@@ -670,14 +629,14 @@ function d3_examples_mentor()
     // lets send something inside here...
 
     echo "<td>";
-    //echo "<form action='http://localhost/TESTING/examples/mentor' method='get'>";
-    echo "<form action='/examples/mentor' method='get'>";
+    echo "<form action='http://localhost/TESTING/examples/mentor' method='get'>";
     echo "<input type='hidden' name='timestamp' value=$timestamp />";
     echo "<input type='hidden' name='mentoring_year' value=$mentoring_year />";
     echo "<input type='hidden' name='weightings' value=$weightings />";
     echo "<input type='hidden' name='percentage' value=$percentage />";
     echo "<input type='hidden' name='id' value=$id />";
-    echo "<input type='submit' value='Submit' onSubmit='window.close()'></button> ";
+    echo "<input type='submit' value='Choose' onSubmit='window.close()'></button> ";
+    echo "<input type='submit' name = 'delete' value='Delete' onSubmit='window.close()'></button> ";
     echo "</form> ";
     echo "</td";
     echo "</tr>";
@@ -690,17 +649,9 @@ function d3_examples_mentor()
 
 function make_mentor_list()
   {
-  Chromephp::log("making mentor list is running");
-  // get current year
-  $year = getYear();
-  // get table names
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-  /*$query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
-  $result = db_query($query)->fetchAll();*/
-  $result = db_select($mentor_table_name, 'mtn')
-    ->fields('mtn')
-    ->execute()
-    ->fetchAll();
+ // Chromephp::log("making mentor list is running");
+  $query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+  $result = db_query($query)->fetchAll();
   echo "<table style='width:90%'>";
 
   // set up the headers...
@@ -762,20 +713,12 @@ function make_mentor_list()
 
 function make_mentee_list()
   {
-  Chromephp::log("making mentee list is running");
+ // Chromephp::log("making mentee list is running");
 
   // just showing students for now... need to later make a function for mentor databse...
-  // get current year
-  $year = getYear();
-  // get table names
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
 
-  //$query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-  //$result = db_query($query)->fetchAll();
-  $result = db_select('student_table_name', 'stn')
-    ->fields('stn')
-    ->execute()
-    ->fetchAll();
+  $query = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+  $result = db_query($query)->fetchAll();
 
   // the table
 
@@ -813,8 +756,7 @@ function make_mentee_list()
     echo "<td>" . $gender . "</td>";
     echo "<td>" . $year . "</td>";
     echo "<td>";
-    echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-    //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+    echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
     echo "<input type='hidden' name='addid' value=$id />";
     echo "<input type='hidden' name='addlname' value=$lastName />";
     echo "<input type='hidden' name='addfname' value=$firstName />";
@@ -850,7 +792,7 @@ function add_button_pressed_mentee()
     // check if its been added before
 
     $beenadded = CheckifAdded($add_first_name, $add_last_name);
-    Chromephp::log($beenadded);
+ //   Chromephp::log($beenadded);
     if ($beenadded == true)
       {
 
@@ -859,7 +801,7 @@ function add_button_pressed_mentee()
       echo '<script language="javascript">';
       echo 'alert("This person has already been added")';
       echo '</script>';
-      Chromephp::log("inside the true");
+   //   Chromephp::log("inside the true");
       }
       else
       {
@@ -912,7 +854,8 @@ function add_button_pressed_mentee()
       $new_array = array_push($data->children, $group_array_start);
       $encodedJson = json_encode($data);
       $file = 'TESTING.json';
-      file_put_contents('json/'.$file, $encodedJson);
+      file_put_contents($file, $encodedJson);
+        printJSFunction();
       echo '<script type="text/javascript">', 'jsfunction();', '</script>';
       }
     }
@@ -938,7 +881,7 @@ function add_button_pressed_mentor()
     // check if its been added before
 
     $beenadded = CheckifAdded($add_first_name, $add_last_name);
-    Chromephp::log($beenadded);
+  //  Chromephp::log($beenadded);
     if ($beenadded == true)
       {
 
@@ -947,7 +890,7 @@ function add_button_pressed_mentor()
       echo '<script language="javascript">';
       echo 'alert("This person has already been added")';
       echo '</script>';
-      Chromephp::log("inside the true");
+     // Chromephp::log("inside the true");
       }
       else
       {
@@ -979,15 +922,16 @@ function add_button_pressed_mentor()
       $new_array = array_push($data->children, $group_array_start);
       $encodedJson = json_encode($data);
       $file = 'TESTING.json';
-      file_put_contents('json/'.$file, $encodedJson);
+      file_put_contents($file, $encodedJson);
+        printJSFunction();
       echo '<script type="text/javascript">', 'jsfunction();', '</script>';
       }
     }
   }
-
+// change the name of this function...
 function d3_examples_bubbles()
   {
-  Chromephp::log("bubbles is running");
+ // Chromephp::log("bubbles is running");
   $search_first_name = $_GET["fname"]; // this should be the first name
   $search_last_name = $_GET["lname"]; // this should be the second name.
 
@@ -997,41 +941,38 @@ function d3_examples_bubbles()
   add_button_pressed_mentor();
   $show_mentee_list = $_GET["mentee"]; // check these values and see which one the user wants to see...
   $show_mentor_list = $_GET["mentor"]; //
-  echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-  //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";   
   echo "First name: <input type='text' name='fname'><br />";
   echo "Last name: <input type='text' name='lname'><br />";
-  echo "<input type='submit' value='Submit'>";
+  echo "<input type='submit' value='Search'>";  // this is going to be the search button...
   echo "</form>";
-  echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-  //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
   echo "<input type='hidden' name='mentee' value='true' />";
   echo "<input type='hidden' name='mentor' value='false' />";
-  echo "<input name='Mentee List' type='submit' value='Submit'>Mentee List</button> ";
+  echo "<input name='Mentee List' type='submit' value='View all Mentees'>Mentee List</button> ";  // the mentee button..
   echo "</form>";
-  echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-  //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+  echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
   echo "<input type='hidden' name='mentee' value='false' />";
   echo "<input type='hidden' name='mentor' value='true' />";
-  echo "<input name='Mentor List' type='submit' value='Submit'>Mentor List</button> ";
+  echo "<input name='Mentor List' type='submit' value='View all Mentors'>Mentor List</button> ";  // the mentor button 
   echo "</form>";
 
   // Chromephp::log($show_mentee_list);
 
-  Chromephp::log("before checking if anything inputted into text bar");
+ // Chromephp::log("before checking if anything inputted into text bar");
   if (is_null($search_first_name) || is_null($search_last_name))
     {
     if ($show_mentee_list == 'true')
       {
-      Chromephp::log("making mentee list");
-      Chromephp::log($show_mentee_list);
+   //   Chromephp::log("making mentee list");
+    //  Chromephp::log($show_mentee_list);
       make_mentee_list(); // make the mentee list
       }
 
     if ($show_mentor_list == 'true')
       {
-      Chromephp::log("making mentor list");
-      Chromephp::log($show_mentor_list);
+      //Chromephp::log("making mentor list");
+      //Chromephp::log($show_mentor_list);
       make_mentor_list(); // makes the mentor list...
       }
     }
@@ -1048,32 +989,20 @@ function d3_examples_bubbles()
 
 function searchBar($firstname, $lastname)
   {
-  // get current year
-  $year = getYear();
-  // get table names
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-  Chromephp::log("running searrch bvar");
-  /*$theqry = "SELECT * FROM TESTING.maestro_signup_student_20142015"; //WHERE first_name = '.$firstname.' OR last_name = '.$lastname;
-  Chromephp::log($theqry);
-  $result = db_query($theqry)->fetchAll();*/
-  $result = db_select('student_table_name', 'stn')
-    ->fields('stn')
-    ->execute()
-    ->fetchAll();
+  //Chromephp::log("running searrch bvar");
+  $theqry = "SELECT * FROM TESTING.maestro_signup_student_20142015"; //WHERE first_name = '.$firstname.' OR last_name = '.$lastname;
+  //Chromephp::log($theqry);
+  $result = db_query($theqry)->fetchAll();
 
   // just fetch everything and go through inside php...
 
-  /*$theqry2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015"; // WHERE first_name = ".$firstname." OR last_name = ".$lastname;
-  Chromephp::log($theqry2);
-  $result2 = db_query($theqry2)->fetchAll();*/
-  $result2 = db_select('mentor_table_name', 'mtn')
-    ->fields('mtn')
-    ->execute()
-    ->fetchAll();
+  $theqry2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015"; // WHERE first_name = ".$firstname." OR last_name = ".$lastname;
+  //Chromephp::log($theqry2);
+  $result2 = db_query($theqry2)->fetchAll();
 
   // show the mentor list first...
 
-  Chromephp::log("the mentor names");
+  //Chromephp::log("the mentor names");
   echo "Mentor Search Results";
   echo "<table style='width:90%'>";
   echo "<tr>";
@@ -1086,8 +1015,8 @@ function searchBar($firstname, $lastname)
   $run = 0;
   for ($i = 0; $i < count($result2); $i++)
     {
-    Chromephp::log($result2[$i]->first_name);
-    Chromephp::log($result2[$i]->last_name);
+    //Chromephp::log($result2[$i]->first_name);
+    //Chromephp::log($result2[$i]->last_name);
 
     // if we have a first name match then we show...
 
@@ -1117,8 +1046,7 @@ function searchBar($firstname, $lastname)
       echo "<td>" . $gender . "</td>";
       echo "<td>" . $company . "</td>";
       echo "<td>";
-      echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-      //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
       echo "<input type='hidden' name='maddid' value=$id />";
       echo "<input type='hidden' name='maddlname' value=$mentors_last_name />";
       echo "<input type='hidden' name='maddfname' value=$mentors_first_name />";
@@ -1177,8 +1105,7 @@ function searchBar($firstname, $lastname)
       echo "<td>" . $gender . "</td>";
       echo "<td>" . $year . "</td>";
       echo "<td>";
-      echo "<form action='/examples/bubbles#overlay-context=' method='get'>";
-      //echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
+      echo "<form action='http://localhost/TESTING/examples/bubbles#overlay-context=' method='get'>";
       echo "<input type='hidden' name='addid' value=$id />";
       echo "<input type='hidden' name='addlname' value=$mentees_last_name />";
       echo "<input type='hidden' name='addfname' value=$mentees_first_name />";
@@ -1206,16 +1133,17 @@ function searchBar($firstname, $lastname)
 
 function createJson_mentors()
   {
-  // get current year
-  $year = getYear();
-  // get table names
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-  /*$query2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
-  $result2 = db_query($query2)->fetchAll();*/
-  $result2 = db_select($mentor_table_name, 'mtn')
-     ->fields('mtn')
-     ->execute()
-     ->fetchAll();
+  $query2 = "SELECT * FROM TESTING.maestro_signup_mentor_20142015";
+  $result2 = db_query($query2)->fetchAll();
+   /*$weighting_content = file_get_contents("weightings.json");   // make a json file for timestamp 
+    Chromephp::log($weighting_content);  // printing the weighting content...
+    $type_content = file_get_contents("TESTING.json");
+    $jsondecode = json_decode($type_content);
+    Chromephp::log($jsondecode->type);  // this is the decoded stuff
+                                            
+    $_timestamp = file_get_contents("timestamp.json");   // make a json file for timestamp 
+    Chromephp::log("this is the timestamp");
+    Chromephp::log($_timestamp);  // */
   for ($r = 0; $r < count($result2); $r++)
     {
 
@@ -1240,6 +1168,34 @@ function createJson_mentors()
 
     // ---> make the array here then encode it eventually...
     // not showing up because we dont have enough lines?
+      // just finished writing to json file... lets take a look at TESTING.json and see what type it is...
+      // for the weightings we have to grab 
+      // timestamp
+   
+
+    /*  $other_info_array1 = array(
+      'index' => '14',
+      'colour' => 'orange',
+      'code' => 'Group Type: ' .$jsondecode->type  ,  
+      "error" => "none",
+      "author" => "tomerfiliba@gmail.com"
+    );
+        
+      $other_info_array2= array(
+      'index' => '15',
+      'colour' => 'orange',
+      'code' => 'Weightings: ' .$weighting_content , 
+      "error" => "none",
+      "author" => "tomerfiliba@gmail.com"
+    );
+
+      $other_info_array3 = array(
+      'index' => '16',
+      'colour' => 'orange',
+      'code' => 'Save Time: ' .$_timestamp, 
+      "error" => "none",
+      "author" => "tomerfiliba@gmail.com"
+    );*/
 
     $info_array1 = array( // show the first name first...
       'index' => '1',
@@ -1329,6 +1285,10 @@ function createJson_mentors()
       "error" => "none",
       "author" => "tomerfiliba@gmail.com"
     );
+
+
+
+
     $starting_array = array(
       "path" => 'soomesort/asd/f/s',
       "lines" => array(
@@ -1344,10 +1304,13 @@ function createJson_mentors()
         $info_array11,
         $info_array12,
         $info_array13
+       /* $other_info_array1,
+        $other_info_array2,
+        $other_info_array3*/
       )
     );
     $jsonEncoded = json_encode($starting_array);
-    file_put_contents('json/'.$file, $jsonEncoded);
+    file_put_contents($file, $jsonEncoded);
     }
   }
 
@@ -1356,16 +1319,8 @@ function createJson_students()
 
   // this is going to creawte the json files for all the students...
 
-  // get current year
-  $year = getYear();
-  // get table names
-  list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-  /*$query2 = "SELECT * FROM TESTING.maestro_signup_student_20142015";
-  $result2 = db_query($query2)->fetchAll();*/
-  $result2 = db_select($student_table_name, 'stn')
-     ->fields('stn')
-     ->execute()
-     ->fetchAll();
+  $query2 = "SELECT * FROM TESTING.maestro_signup_student_20142015";
+  $result2 = db_query($query2)->fetchAll();
   for ($r = 0; $r < count($result2); $r++)
     {
     $theFirstName = $result2[$r]->first_name;
@@ -1465,7 +1420,7 @@ function createJson_students()
       )
     );
     $jsonEncoded = json_encode($starting_array);
-    file_put_contents('json/'.$file, $jsonEncoded);
+    file_put_contents($file, $jsonEncoded);
     }
   }
 
@@ -1477,28 +1432,31 @@ $mentor_index_list;
 
 function d3_examples_linegraph()
   {
-  createJson_students();
+  //  Chromephp::log("the line graph function is running right now");
+
+  createJson_students();  
   createJson_mentors();
   $jsonString = file_get_contents('TESTING.json');
+  //$most_recent_weightings;  // declare this global..
   if ($jsonString == "null")
     {
-    /*$query = "SELECT * FROM TESTING.maestro_matched_trios";
-    $result = db_query($query)->fetchAll();*/
-    $result = db_select('maestro_matched_trios', 'mmt')
-      ->fields('mmt')
-      ->execute()
-      ->fetchAll();
-    Chromephp::log($result);
+    $query = "SELECT * FROM TESTING.maestro_matched_trios";
+    $result = db_query($query)->fetchAll();
+    //Chromephp::log($result);
     $most_recent_trio = $result[count($result) - 1]->trios;
 
     // just send it to json file...
 
     $most_recent_weightings = $result[count($result) - 1]->weightings;
-
+    $most_recent_timestamp = $result[count($result) - 1] ->timestamp;
     // $encode_weightings = json_encode($most_recent_weightings);
 
-    $file = "weightings.json";
-    file_put_contents('json/'.$file, $most_recent_weightings); 
+    $file = "weightings.json";  // we have to keep updating this file...
+    file_put_contents($file, $most_recent_weightings);
+      // writes the json file...
+    $file8 = "timestamp.json";  // we have to keep updating this file...
+     file_put_contents($file8, $most_recent_timestamp);
+
     $manage = json_decode($most_recent_trio);
     $array = array(
       'name' => '',
@@ -1537,22 +1495,11 @@ function d3_examples_linegraph()
         // now that we have the mentor index we need tograb all his information and paste it into the json file...
         // mentor query
 
-        // get current year
-        $year = getYear();
-        // get table names
-        list($mentor_table_name, $student_table_name) = getParticipantTableNames($year);
-
-        //$mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index;
+        $mentor_query = "SELECT * FROM TESTING.maestro_signup_mentor_20142015 WHERE id =" . $mentor_index;
 
         // Chromephp:: log($mentor_query);
 
-        //$list = db_query($mentor_query)->fetchAll();
-
-        $list = db_select($mentor_table_name, 'mtn')
-          ->fields('mtn')
-          ->condition('id', $mentor_index, '=')
-          ->execute()
-          ->fetchAll();
+        $list = db_query($mentor_query)->fetchAll();
 
         // Chromephp::log($list);
         // Chromephp::log($list[0]->first_name);
@@ -1567,14 +1514,8 @@ function d3_examples_linegraph()
 
         // junior student query...
 
-        //$junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
-        //$list2 = db_query($junior_query)->fetchAll();
-
-        $list2 = db_select($student_table_name, 'stn')
-          ->fields('stn')
-          ->condition('id', $junior_index, '=')
-          ->execute()
-          ->fetchAll();
+        $junior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $junior_index;
+        $list2 = db_query($junior_query)->fetchAll();
 
         // Chromephp::log($list2[0]->first_name);
 
@@ -1587,14 +1528,8 @@ function d3_examples_linegraph()
 
         // senior student query...
 
-        //$senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
-        //$list3 = db_query($senior_query)->fetchAll();
-
-        $list3 = db_select($student_table_name, 'stn')
-          ->fields('stn')
-          ->condition('id', $senior_index, '=')
-          ->execute()
-          ->fetchAll();
+        $senior_query = "SELECT * FROM TESTING.maestro_signup_student_20142015 WHERE id =" . $senior_index;
+        $list3 = db_query($senior_query)->fetchAll();
 
         // Chromephp::log($list2[0]->first_name);
 
@@ -1667,10 +1602,10 @@ function d3_examples_linegraph()
         }
       }
 
-    Chromephp::log("changing the json file before rendering the page...");
+   // Chromephp::log("changing the json file before rendering the page...");
     $encodedJson = json_encode($final_array);
     $file = 'TESTING.json';
-    file_put_contents('json/'.$file, $encodedJson);
+    file_put_contents($file, $encodedJson);
     }
 
   // ---- >>> passing stuff to javascript side
@@ -1871,12 +1806,21 @@ function d3_examples_pie()
   return d3_draw($chart);*/
   }
 
+function printJSFunction() {
+  echo '<script type="text/javascript">function jsfunction(){
+                refreshParent();   
+                  function refreshParent() {
+
+                window.opener.location.reload();
+                window.close();
+               }
+          }</script>';
+}
+
+/*
 ?>
 
 <script>
-
-
-
 
 // right now this function is getting called once the submit button is pressed. 
 // it changes the json file
@@ -1887,7 +1831,6 @@ function jsfunction(){
 
   // console.log("this function is being called when submitted");
    // window.onunload = refreshParent;
-
 
    refreshParent();   
     function refreshParent() {
@@ -1901,4 +1844,4 @@ function jsfunction(){
     }
 }
 
-</script>
+</script>*/
