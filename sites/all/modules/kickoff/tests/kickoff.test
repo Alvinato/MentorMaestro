@@ -29,7 +29,7 @@ class KickoffTests extends DrupalWebTestCase {
 		$this->assertEqual(count($noGroups), 0);
 	}
 	
-	public function testKickoffInvalidGroup()
+	public function testNoSeniors()
 	{
 		/*$people = array(
 			array("name" => "Bill", "trio" => 4, "title"=>"mentor", "nights" => [0=>true], "prefs" => ["year" => 1, "hobbies" => ["sports","art"]])
