@@ -423,9 +423,15 @@ function d3_examples_mentor()
     {
 
     // then the button was pressed and we need to change the json file to that of the year chosen...
-    // TODO!! change the json file first...
+    // TODO!! change the json file first... we need to place the weighting into the json file...
 
    // Chromephp::log(" button was pressed");
+      Chromephp::log($add_weightings);  // this is going to give the weightings.
+      // write this to the json file.   
+
+    $file = "weightings.json";  
+    file_put_contents($file, $add_weightings);  // place the new weightiings into file ...
+    
     $query1 = "SELECT * FROM TESTING.maestro_matched_trios";
     $result1 = db_query($query1)->fetchAll();
     for ($g = 0; $g < count($result1); $g++)
