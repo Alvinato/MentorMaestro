@@ -39,11 +39,11 @@
             .padding(2)
             .size([diameter - margin, diameter - margin])
             .value(function(d) { return d.size; });
-        
 
         var svg = d3.select('#' + settings.id).append("svg")
             .attr("width", width)
             .attr("height", height)
+            .attr("style", "outline: solid black;")
             .attr("id","thesvg")
             .call(d3.behavior.zoom().scaleExtent([0, 8]).on("zoom", zoom));
             // call this on svg 2 instead...
